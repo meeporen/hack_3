@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Вход</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/sber.css">
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f4f6f9;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 15% 15%, rgba(2,136,214,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 85% 85%, rgba(1,161,4,0.06) 0%, transparent 60%);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+
+/* Logo */
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-logo img { height: 44px; width: auto; }
+.auth-logo-tagline {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+/* Tabs */
+.auth-tabs {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.auth-tab {
+  flex: 1; padding: 9px; border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #6b7280;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.auth-tab.active {
+  background: linear-gradient(90deg, #01a104, #16da03);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(1,161,4,0.25);
+}
+
+/* Forms */
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.auth-form .card { padding: 28px; }
+
+/* Password toggle */
+.input-wrap { position: relative; }
+.input-wrap input { padding-right: 44px; }
+.toggle-pass {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: #9ca3af; padding: 4px;
+  display: flex; align-items: center;
+  transition: color .15s;
+}
+.toggle-pass:hover { color: #6b7280; }
+
+/* Alert */
+#authAlert { display: none; }
+
+/* Footer */
+.auth-footer {
+  text-align: center; font-size: 11px; color: #9ca3af;
+  margin-top: 20px; line-height: 1.8;
+}
+.auth-footer a { color: #6b7280; text-decoration: none; }
+.auth-footer a:hover { color: #111827; }
+
+/* Gradient top line on card */
+.card.grad-line {
+  position: relative;
+  overflow: hidden;
+}
+.card.grad-line::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #0288d6, #01a104, #02e97e, #fdf001);
+  border-radius: 12px 12px 0 0;
+}
+
+/* Form label override — чёрный */
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 7px;
+}
+
+/* Input text — чёрный; placeholder — серый */
+input[type=text], input[type=email], input[type=password] {
+  color: #111827;
+  background: #ffffff;
+  border: 1.5px solid rgba(0,0,0,0.14);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus {
+  border-color: #01a104;
+  box-shadow: 0 0 0 3px rgba(1,161,4,0.1);
+}
+input::placeholder { color: #9ca3af; }  /* серый только в placeholder */
+
+/* Btn */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 22px; border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(90deg, #01a104, #16da03);
+  color: #fff; box-shadow: 0 2px 8px rgba(1,161,4,0.25);
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-full { width: 100%; }
+
+/* Card base */
+.card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.form-group { margin-bottom: 18px; }
+</style>
+</head>
+<body>
+
+<div class="auth-container">
+
+  <!-- Logo -->
+  <div class="auth-logo">
+    <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo">
+    <div class="auth-logo-tagline">Converter Agent Platform</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="auth-tabs">
+    <button class="auth-tab active" data-tab="login" onclick="switchTab('login')">Войти</button>
+    <button class="auth-tab" data-tab="register" onclick="switchTab('register')">Регистрация</button>
+  </div>
+
+  <!-- Alert -->
+  <div id="authAlert" class="alert"></div>
+
+  <!-- LOGIN -->
+  <div class="auth-form active" id="form-login">
+    <div class="card grad-line">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="loginEmail" placeholder="ivan@sber.ru" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter') doLogin()">
+          <button class="toggle-pass" onclick="togglePass('loginPassword', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:4px">
+        Войти
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px">
+        Демо: <code style="color:#374151;font-weight:600">ivan@sber.ru</code> / <code style="color:#374151;font-weight:600">password</code>
+      </p>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="auth-form" id="form-register">
+    <div class="card grad-line">
+      <div class="form-group">
+        <label class="form-label">Имя и фамилия</label>
+        <input type="text" id="regName" placeholder="Иван Иванов" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="regEmail" placeholder="you@sber.ru" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="regPassword" placeholder="Минимум 6 символов">
+          <button class="toggle-pass" onclick="togglePass('regPassword', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Повторите пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="regConfirm" placeholder="••••••••"
+                 onkeydown="if(event.key==='Enter') doRegister()">
+          <button class="toggle-pass" onclick="togglePass('regConfirm', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">
+        Создать аккаунт
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px">
+        После регистрации можно загрузить фото профиля
+      </p>
+    </div>
+  </div>
+
+  <div class="auth-footer">
+    &copy; 2026 ПАО Сбербанк &nbsp;·&nbsp;
+    <a href="#">Конфиденциальность</a> &nbsp;·&nbsp;
+    <a href="#">Поддержка</a>
+  </div>
+
+</div>
+
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+// Redirect if already logged in
+if (getSession()) {
+  window.location.href = 'dashboard.html';
+}
+
+function togglePass(inputId, btn) {
+  const input = document.getElementById(inputId);
+  input.type = input.type === 'password' ? 'text' : 'password';
+  btn.style.color = input.type === 'text' ? 'var(--accent2)' : 'var(--hint)';
+}
+</script>
+</body>
+</html>

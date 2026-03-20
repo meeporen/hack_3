@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Converter Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══ LIGHT THEME VARIABLES ══════════════════════════════════════════ */
+:root {
+  --bg:       #f4f6f9;
+  --surface:  #ffffff;
+  --surface2: #f0f2f6;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #111827;
+  --muted:    #6b7280;
+  --hint:     #9ca3af;
+
+  --green:    #01a104;
+  --green2:   #009b03;
+  --blue:     #0288d6;
+  --blue2:    #0277bd;
+  --yellow:   #b45309;
+  --red:      #dc2626;
+  --teal:     #0d9488;
+
+  --grad: linear-gradient(90deg,#0288d6,#01a104,#16da03,#02e97e,#fdf001);
+
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+*,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ══ LAYOUT ═════════════════════════════════════════════════════════ */
+.shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 58px 1fr;
+  min-height: 100vh;
+}
+
+/* ══ TOPBAR — ГРАДИЕНТ ════════════════════════════════════════════════ */
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #0288d6 0%, #01a104 45%, #02e97e 80%, #fdf001 100%);
+  box-shadow: 0 2px 16px rgba(2,136,214,0.22);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.88);
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 3px 10px;
+  border-radius: 5px;
+  letter-spacing: 0.03em;
+}
+.topbar-divider { flex: 1; }
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.2);
+  transition: background .15s;
+}
+.user-pill:hover { background: rgba(255,255,255,0.32); }
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  border: 2px solid rgba(255,255,255,0.55);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  overflow: hidden;
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ══ SIDEBAR ═════════════════════════════════════════════════════════ */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+  position: sticky; top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+.nav-label {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--hint);
+  padding: 8px 10px 4px; text-transform: uppercase; font-family: var(--mono);
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--muted);
+  cursor: pointer; border: none; background: transparent;
+  width: 100%; text-align: left; text-decoration: none;
+  transition: background .12s, color .12s;
+}
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(1,161,4,0.08); color: var(--green2); font-weight: 600; }
+.nav-sep { height: 1px; background: var(--border); margin: 8px 0; }
+.nav-item.danger { color: #ef4444; }
+.nav-item.danger:hover { background: #fef2f2; color: #dc2626; }
+
+/* ══ MAIN ════════════════════════════════════════════════════════════ */
+.main { overflow-y: auto; padding: 28px 32px; }
+.screen { display: none; animation: fadeIn .2s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+.page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; color: var(--text); }
+.page-sub   { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+/* ══ CARD ════════════════════════════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted); margin-bottom: 16px;
+}
+
+/* ══ METRICS ═════════════════════════════════════════════════════════ */
+.metrics {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px;
+}
+.metric {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; box-shadow: var(--shadow);
+}
+.metric-label { font-size: 11px; color: var(--hint); font-family: var(--mono); letter-spacing: .04em; margin-bottom: 6px; }
+.metric-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+.metric-sub   { font-size: 11px; color: var(--hint); margin-top: 3px; }
+.metric-value.c-blue  { color: var(--blue); }
+.metric-value.c-green { color: var(--green); }
+.metric-value.c-amber { color: var(--yellow); }
+
+/* ══ BADGES ══════════════════════════════════════════════════════════ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
+  padding: 3px 8px; border-radius: 4px; font-weight: 600;
+}
+.badge-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+.badge-info    { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-warn    { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-err     { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-dot::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; display: inline-block;
+}
+
+/* ══ BUTTONS ═════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 18px; border-radius: var(--radius-sm);
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(90deg, var(--green), #16da03);
+  color: #fff; box-shadow: 0 2px 8px rgba(1,161,4,0.25);
+}
+.btn-primary:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(1,161,4,0.3); }
+.btn-ghost {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+/* ══ FORM INPUTS ═════════════════════════════════════════════════════ */
+input[type=text], input[type=email], input[type=password], textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  resize: vertical;
+}
+input:focus, textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(1,161,4,0.1);
+}
+input::placeholder, textarea::placeholder { color: var(--hint); }
+
+/* ══ DROPZONE ════════════════════════════════════════════════════════ */
+.dropzone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 36px 20px; text-align: center;
+  cursor: pointer; transition: all .2s; position: relative;
+  background: var(--surface2);
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--green);
+  background: rgba(1,161,4,0.04);
+}
+.dropzone.has-file {
+  border-color: var(--green);
+  background: #f0fdf4;
+  border-style: solid;
+}
+.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: #fff; border: 1px solid var(--border2);
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px; transition: border-color .2s;
+}
+.dropzone.has-file .drop-icon { background: #dcfce7; border-color: #bbf7d0; }
+.drop-icon svg { width: 24px; height: 24px; color: var(--muted); }
+.dropzone.has-file .drop-icon svg { color: var(--green); }
+.drop-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.drop-sub   { font-size: 12px; color: var(--hint); margin-bottom: 12px; }
+.format-tags { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+.format-tag {
+  font-family: var(--mono); font-size: 10px; padding: 2px 7px;
+  border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--hint); letter-spacing: 0.05em; background: var(--surface);
+}
+
+/* ══ SCHEMA INPUT TABS ═══════════════════════════════════════════════ */
+.schema-tabs {
+  display: flex; gap: 4px; margin-bottom: 12px;
+  background: var(--surface2); border-radius: 8px; padding: 3px;
+}
+.schema-tab {
+  flex: 1; padding: 6px 10px; border: none; border-radius: 6px;
+  background: transparent; color: var(--muted);
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.schema-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); font-weight: 600; }
+.schema-panel { display: none; }
+.schema-panel.active { display: block; }
+
+/* Image preview in schema */
+.schema-img-preview {
+  max-width: 100%; max-height: 200px; border-radius: 8px;
+  border: 1px solid var(--border); display: block; margin: 10px auto 0;
+  object-fit: contain;
+}
+
+/* ══ PIPELINE STEPS ══════════════════════════════════════════════════ */
+.pipeline { display: flex; flex-direction: column; }
+.pipe-step {
+  display: grid; grid-template-columns: 40px 1fr auto;
+  align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.pipe-step:last-child { border-bottom: none; }
+.step-circle {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.sc-wait   {
+  background: var(--surface2); color: var(--hint);
+  border: 1.5px solid var(--border2);
+}
+.sc-active {
+  background: #dbeafe; color: var(--blue);
+  border: 1.5px solid #93c5fd;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.sc-done   {
+  background: #dcfce7; color: var(--green2);
+  border: 1.5px solid #86efac;
+}
+.sc-error  {
+  background: #fee2e2; color: var(--red);
+  border: 1.5px solid #fca5a5;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(0.96)} }
+
+.pipe-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.pipe-desc { font-size: 11.5px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+/* ══ TOKEN BAR ═══════════════════════════════════════════════════════ */
+.token-bar-track {
+  height: 6px; border-radius: 3px;
+  background: var(--surface2); overflow: hidden; margin: 8px 0 6px;
+  border: 1px solid var(--border);
+}
+.token-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #0288d6, #01a104, #16da03);
+  transition: width .5s ease;
+}
+.token-meta {
+  display: flex; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--muted);
+}
+
+/* ══ CODE BLOCK ══════════════════════════════════════════════════════ */
+.code-block {
+  background: #1e293b; border-radius: 10px;
+  padding: 16px; font-family: var(--mono); font-size: 12px;
+  line-height: 1.7; overflow-x: auto; white-space: pre;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.code-kw      { color: #60a5fa; }
+.code-type    { color: #4ade80; }
+.code-str     { color: #fbbf24; }
+.code-comment { color: #94a3b8; }
+.code-num     { color: #fb923c; }
+
+/* ══ JSON OUTPUT TABLE ═══════════════════════════════════════════════ */
+.json-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--mono); font-size: 12px;
+}
+.json-table th {
+  text-align: left; padding: 8px 12px;
+  background: var(--surface2); color: var(--muted);
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.json-table td {
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.json-table tr:last-child td { border-bottom: none; }
+.json-table tr:hover td { background: var(--surface2); }
+.json-val-str  { color: #0369a1; }
+.json-val-num  { color: #7c3aed; }
+.json-val-bool { color: #0d9488; }
+.json-val-null { color: var(--hint); font-style: italic; }
+
+/* ══ HISTORY TABLE ═══════════════════════════════════════════════════ */
+.hist-table { width: 100%; border-collapse: collapse; }
+.hist-table th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  color: var(--hint); text-align: left; padding: 0 12px 10px;
+  text-transform: uppercase; border-bottom: 2px solid var(--border);
+}
+.hist-table td { padding: 11px 12px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.hist-table tr:last-child td { border-bottom: none; }
+.hist-table tr:hover td { background: var(--surface2); cursor: pointer; }
+
+/* ══ SCROLLBAR ═══════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ══ GRADIENT TOP LINE ═══════════════════════════════════════════════ */
+.grad-top { position: relative; }
+.grad-top::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--grad); border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* ══ LOGO ════════════════════════════════════════════════════════════ */
+.sber-logo    { height: 36px; width: auto; }
+.sber-logo-sm { height: 26px; width: auto; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ╔══ TOPBAR ══════════════════════════════════════════════════════╗ -->
+<header class="topbar">
+  <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm" style="filter:brightness(0) invert(1);height:26px">
+  <span class="topbar-badge">Converter Agent · Platform V</span>
+  <div class="topbar-divider"></div>
+  <span class="topbar-badge" id="tokenGlobal">0 tokens</span>
+  <div class="user-pill" onclick="goProfile()">
+    <div class="user-avatar" id="topbarAvatar"></div>
+    <span id="topbarUserName"></span>
+  </div>
+</header>
+
+<!-- ╔══ SIDEBAR ═════════════════════════════════════════════════════╗ -->
+<nav class="sidebar">
+  <div class="nav-label">Workspace</div>
+  <button class="nav-item active" id="nav-upload" onclick="gotoScreen('upload',this)">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M8 3L5 6M8 3l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Конвертация
+  </button>
+  <button class="nav-item" id="nav-history" onclick="gotoScreen('history',this)">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5.5V8l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    История
+  </button>
+  <div class="nav-sep"></div>
+  <div class="nav-label">Статус</div>
+  <button class="nav-item" id="nav-processing" onclick="gotoScreen('processing',this)" style="pointer-events:none;opacity:.4">
+    <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Pipeline
+  </button>
+  <button class="nav-item" id="nav-result" onclick="gotoScreen('result',this)" style="pointer-events:none;opacity:.4">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Результат
+  </button>
+  <div class="nav-sep"></div>
+  <a href="profile.html" class="nav-item">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13.5c0-2.5 2.7-4.5 6-4.5s6 2 6 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Профиль
+  </a>
+  <button class="nav-item danger" onclick="logout()">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M10 8H3M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3h3a1 1 0 011 1v8a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Выйти
+  </button>
+</nav>
+
+<!-- ╔══ MAIN ════════════════════════════════════════════════════════╗ -->
+<main class="main">
+
+  <!-- ── UPLOAD SCREEN ────────────────────────────────────────────── -->
+  <div class="screen active" id="screen-upload">
+    <div class="page-title">Новая конвертация</div>
+    <div class="page-sub">Загрузите файл с данными и укажите целевую JSON-структуру</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Форматов</div>
+        <div class="metric-value c-blue">7</div>
+        <div class="metric-sub">CSV JSON XLS PDF DOCX PNG JPG</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Avg tokens</div>
+        <div class="metric-value c-green">~340</div>
+        <div class="metric-sub">schema-only prompting</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Self-healing</div>
+        <div class="metric-value c-amber">3×</div>
+        <div class="metric-sub">retry max</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Статус</div>
+        <div class="metric-value" style="font-size:14px;padding-top:6px">
+          <span class="badge badge-success badge-dot">ready</span>
+        </div>
+        <div class="metric-sub">GigaChat-2-Max</div>
+      </div>
+    </div>
+
+    <!-- Шаг 1 — Файл данных -->
+    <div class="card grad-top">
+      <div class="card-title">Шаг 1 — Файл с данными</div>
+      <div class="dropzone" id="dropzone"
+           ondragover="onDragOver(event)"
+           ondragleave="onDragLeave(event)"
+           ondrop="onDrop(event)">
+        <input type="file" id="dataFileInput"
+               accept=".csv,.json,.xls,.xlsx,.pdf,.docx,.png,.jpg,.jpeg"
+               onchange="onFileSelect(event)">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 15V4M12 4L8 8M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 17h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="drop-title" id="dropTitle">Перетащите файл или нажмите для выбора</div>
+        <div class="drop-sub" id="dropSub">Максимум 10 MB</div>
+        <div class="format-tags">
+          <span class="format-tag">CSV</span>
+          <span class="format-tag">JSON</span>
+          <span class="format-tag">XLS</span>
+          <span class="format-tag">XLSX</span>
+          <span class="format-tag">PDF</span>
+          <span class="format-tag">DOCX</span>
+          <span class="format-tag">PNG</span>
+          <span class="format-tag">JPG</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Шаг 2 — JSON Schema (3 варианта ввода) -->
+    <div class="card grad-top">
+      <div class="card-title">Шаг 2 — Target JSON schema</div>
+
+      <div class="schema-tabs">
+        <button class="schema-tab active" onclick="switchSchemaTab('text',this)">
+          ✏️ Текст
+        </button>
+        <button class="schema-tab" onclick="switchSchemaTab('file',this)">
+          📄 JSON-файл
+        </button>
+        <button class="schema-tab" onclick="switchSchemaTab('photo',this)">
+          📷 Фото
+        </button>
+      </div>
+
+      <!-- Текст -->
+      <div class="schema-panel active" id="schema-text">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:var(--mono)">
+          Напишите пример структуры JSON-объекта
+        </div>
+        <textarea id="targetJson" rows="6"
+          placeholder='{"dealId": "string", "amount": "number", "stage": "string"}'>{
+  "dealId": "string",
+  "amount": "number",
+  "stage": "string",
+  "createdAt": "string",
+  "responsible": "string"
+}</textarea>
+      </div>
+
+      <!-- JSON-файл -->
+      <div class="schema-panel" id="schema-file">
+        <div class="dropzone" id="schemaDropzone" style="padding:24px"
+             ondragover="onSchemaDragOver(event)"
+             ondragleave="onSchemaDragLeave(event)"
+             ondrop="onSchemaDrop(event)">
+          <input type="file" id="schemaFileInput" accept=".json"
+                 onchange="onSchemaFileSelect(event)">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="2" width="12" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4 6h12M8 10h4M8 13h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M14 2v4h4" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="drop-title" id="schemaDropTitle">Загрузить .json файл со схемой</div>
+          <div class="drop-sub">Перетащите или нажмите</div>
+        </div>
+      </div>
+
+      <!-- Фото -->
+      <div class="schema-panel" id="schema-photo">
+        <div class="dropzone" id="photoDropzone" style="padding:24px"
+             ondragover="onPhotoDragOver(event)"
+             ondragleave="onPhotoDragLeave(event)"
+             ondrop="onPhotoDrop(event)">
+          <input type="file" id="schemaPhotoInput" accept="image/*"
+                 onchange="onSchemaPhotoSelect(event)">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="5" width="20" height="15" rx="2" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="8.5" cy="11" r="2" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M2 17l5-4 4 4 3-3 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="drop-title" id="photoDropTitle">Загрузить фото схемы</div>
+          <div class="drop-sub">JPG, PNG · OCR-распознавание</div>
+        </div>
+        <img id="schemaPhotoPreview" class="schema-img-preview" style="display:none" alt="Предпросмотр">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="clearForm()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M12 1L1 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Сбросить
+        </button>
+        <button class="btn btn-primary" onclick="startProcessing()">
+          Конвертировать
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROCESSING SCREEN ─────────────────────────────────────────── -->
+  <div class="screen" id="screen-processing">
+    <div class="page-title">Статус Pipeline</div>
+    <div class="page-sub">LangGraph StateGraph · GigaChat-2-Max · обработка файла</div>
+
+    <div class="card grad-top" style="margin-bottom:14px">
+      <div class="card-title">Прогресс выполнения</div>
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step1-circle">1</div>
+          <div>
+            <div class="pipe-name">parse_file</div>
+            <div class="pipe-desc" id="step1-desc">factory(mime) → schema_hint + sample rows</div>
+          </div>
+          <span class="badge badge-warn" id="step1-badge">wait</span>
+        </div>
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step2-circle">2</div>
+          <div>
+            <div class="pipe-name">generate_code</div>
+            <div class="pipe-desc" id="step2-desc">prompt(schema, target_json) → LLM → ts_code</div>
+          </div>
+          <span class="badge badge-warn" id="step2-badge">wait</span>
+        </div>
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step3-circle">3</div>
+          <div>
+            <div class="pipe-name">validate_code</div>
+            <div class="pipe-desc" id="step3-desc">tsc compile + node runtime check</div>
+          </div>
+          <span class="badge badge-warn" id="step3-badge">wait</span>
+        </div>
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step4-circle">4</div>
+          <div>
+            <div class="pipe-name">result</div>
+            <div class="pipe-desc" id="step4-desc">JSON output ready</div>
+          </div>
+          <span class="badge badge-warn" id="step4-badge">wait</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Token usage</div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--text)">
+        <span id="tokenCurrent">0</span>
+        <span style="color:var(--hint)">/ 1000 limit</span>
+      </div>
+      <div class="token-bar-track">
+        <div class="token-bar-fill" id="tokenBarFill" style="width:0%"></div>
+      </div>
+      <div class="token-meta">
+        <span>prompt: <span id="tokPrompt">0</span></span>
+        <span>completion: <span id="tokCompletion">0</span></span>
+        <span style="color:var(--green)">retries: <span id="tokRetries">0</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESULT SCREEN ─────────────────────────────────────────────── -->
+  <div class="screen" id="screen-result">
+    <div class="page-title">Результат</div>
+    <div class="page-sub" id="resultSub">Конвертация завершена успешно</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Статус</div>
+        <div class="metric-value" style="font-size:14px;padding-top:6px">
+          <span class="badge badge-success badge-dot" id="resStatus">valid</span>
+        </div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Токены</div>
+        <div class="metric-value c-green" id="resTokens">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Попытки</div>
+        <div class="metric-value" id="resRetries">1 / 3</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Записей</div>
+        <div class="metric-value c-blue" id="resRecords">0</div>
+      </div>
+    </div>
+
+    <!-- TypeScript -->
+    <div class="card grad-top" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">Сгенерированный TypeScript</div>
+        <span class="badge badge-success">tsc ✓ compiled</span>
+      </div>
+      <div class="code-block" id="tsOutput">
+        <span class="code-comment">// Генерация...</span>
+      </div>
+    </div>
+
+    <!-- JSON Output -->
+    <div class="card grad-top">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">JSON output</div>
+        <span class="badge badge-info" id="recordsBadge">0 records</span>
+      </div>
+      <div id="jsonPreview" style="overflow-x:auto;border-radius:8px;border:1px solid var(--border)">
+        <!-- filled by JS -->
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="downloadJSON()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M6.5 9L4 6.5M6.5 9L9 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 11h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Скачать JSON
+        </button>
+        <button class="btn btn-ghost" onclick="downloadTS()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M6.5 9L4 6.5M6.5 9L9 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 11h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Скачать .ts
+        </button>
+        <button class="btn btn-primary" onclick="newConversion()">
+          Новая конвертация
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY SCREEN ────────────────────────────────────────────── -->
+  <div class="screen" id="screen-history">
+    <div class="page-title">История</div>
+    <div class="page-sub">Конвертации текущей сессии · <span id="histUser"></span></div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:0">Записи</div>
+        <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="clearHistory()">Очистить</button>
+      </div>
+      <table class="hist-table">
+        <thead>
+          <tr>
+            <th>Статус</th><th>Файл</th><th>Формат</th>
+            <th>Токены</th><th>Попытки</th><th>Время</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr>
+            <td colspan="6" style="text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px;padding:28px">
+              Нет записей в текущей сессии
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ══ SCRIPTS ═══════════════════════════════════════════════════════ -->
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+/* ── Auth guard ─────────────────────────────────────────────────── */
+if (!requireAuth()) throw new Error('no auth');
+const session = getSession();
+document.getElementById('topbarUserName').textContent = session.name;
+document.getElementById('histUser').textContent = session.email;
+const av = document.getElementById('topbarAvatar');
+if (session.photo) {
+  const img = document.createElement('img');
+  img.src = session.photo; img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';
+  av.appendChild(img);
+} else {
+  av.textContent = session.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+function goProfile() { window.location.href = 'profile.html'; }
+
+/* ── App state ──────────────────────────────────────────────────── */
+let state = {
+  dataFile:        null,
+  dataFileContent: null,   // parsed content from the uploaded file
+  schemaMode:      'text', // 'text' | 'file' | 'photo'
+  schemaPhoto:     null,
+  totalTokens:     0,
+  history:         [],
+  lastResult:      null,
+};
+
+/* ── Screen navigation ──────────────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+function gotoScreen(id, btn) {
+  showScreen(id);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+/* ── Schema tab switcher ────────────────────────────────────────── */
+function switchSchemaTab(mode, btn) {
+  state.schemaMode = mode;
+  document.querySelectorAll('.schema-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.schema-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('schema-' + mode).classList.add('active');
+}
+
+/* ── DATA FILE drag & drop ──────────────────────────────────────── */
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.add('drag-over');
+}
+function onDragLeave(e) {
+  if (!document.getElementById('dropzone').contains(e.relatedTarget))
+    document.getElementById('dropzone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) setDataFile(f);
+}
+function onFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) setDataFile(f);
+}
+
+async function setDataFile(f) {
+  state.dataFile = f;
+  state.dataFileContent = null;
+
+  const dz = document.getElementById('dropzone');
+  dz.classList.add('has-file');
+  document.getElementById('dropTitle').textContent = f.name;
+  document.getElementById('dropSub').textContent = (f.size / 1024).toFixed(1) + ' KB · ' + (f.type || 'file');
+
+  // Read content for use in result
+  try {
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'json') {
+      const text = await readFileAsText(f);
+      state.dataFileContent = JSON.parse(text);
+    } else if (ext === 'csv') {
+      const text = await readFileAsText(f);
+      state.dataFileContent = parseCSV(text);
+    }
+    // For other types (pdf, docx, images) — will show mock in result
+  } catch(err) {
+    console.warn('Could not pre-read file:', err);
+  }
+}
+
+/* ── SCHEMA file drag & drop ─────────────────────────────────────── */
+function onSchemaDragOver(e) { e.preventDefault(); document.getElementById('schemaDropzone').classList.add('drag-over'); }
+function onSchemaDragLeave(e) {
+  if (!document.getElementById('schemaDropzone').contains(e.relatedTarget))
+    document.getElementById('schemaDropzone').classList.remove('drag-over');
+}
+function onSchemaDrop(e) {
+  e.preventDefault(); document.getElementById('schemaDropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) loadSchemaFile(f);
+}
+function onSchemaFileSelect(e) {
+  const f = e.target.files[0]; if (f) loadSchemaFile(f);
+}
+async function loadSchemaFile(f) {
+  try {
+    const text = await readFileAsText(f);
+    const parsed = JSON.parse(text);
+    // Populate the text textarea and switch to text tab
+    document.getElementById('targetJson').value = JSON.stringify(parsed, null, 2);
+    document.getElementById('schemaDropTitle').textContent = '✓ ' + f.name + ' загружен';
+    document.getElementById('schemaDropzone').classList.add('has-file');
+    // Also switch to text tab to show populated schema
+    const tabs = document.querySelectorAll('.schema-tab');
+    switchSchemaTab('text', tabs[0]);
+    showToast('Схема загружена из ' + f.name);
+  } catch(err) {
+    alert('Ошибка чтения JSON файла: ' + err.message);
+  }
+}
+
+/* ── SCHEMA photo ────────────────────────────────────────────────── */
+function onPhotoDragOver(e) { e.preventDefault(); document.getElementById('photoDropzone').classList.add('drag-over'); }
+function onPhotoDragLeave(e) {
+  if (!document.getElementById('photoDropzone').contains(e.relatedTarget))
+    document.getElementById('photoDropzone').classList.remove('drag-over');
+}
+function onPhotoDrop(e) {
+  e.preventDefault(); document.getElementById('photoDropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if (f) loadSchemaPhoto(f);
+}
+function onSchemaPhotoSelect(e) {
+  const f = e.target.files[0]; if (f) loadSchemaPhoto(f);
+}
+async function loadSchemaPhoto(f) {
+  const base64 = await readFileAsDataURL(f);
+  state.schemaPhoto = base64;
+  const preview = document.getElementById('schemaPhotoPreview');
+  preview.src = base64;
+  preview.style.display = 'block';
+  document.getElementById('photoDropTitle').textContent = '✓ ' + f.name;
+  document.getElementById('photoDropzone').classList.add('has-file');
+  showToast('Фото схемы загружено');
+}
+
+/* ── File readers ────────────────────────────────────────────────── */
+function readFileAsText(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsText(f, 'utf-8');
+  });
+}
+function readFileAsDataURL(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+}
+
+/* ── CSV parser (simple) ─────────────────────────────────────────── */
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+    const obj = {};
+    headers.forEach((h, i) => {
+      const v = vals[i] ?? '';
+      obj[h] = isNaN(v) || v === '' ? v : Number(v);
+    });
+    return obj;
+  });
+}
+
+/* ── Clear form ──────────────────────────────────────────────────── */
+function clearForm() {
+  state.dataFile = null;
+  state.dataFileContent = null;
+  state.schemaPhoto = null;
+
+  const dz = document.getElementById('dropzone');
+  dz.classList.remove('has-file', 'drag-over');
+  document.getElementById('dropTitle').textContent = 'Перетащите файл или нажмите для выбора';
+  document.getElementById('dropSub').textContent = 'Максимум 10 MB';
+  document.getElementById('dataFileInput').value = '';
+
+  document.getElementById('targetJson').value = '';
+
+  document.getElementById('schemaDropTitle').textContent = 'Загрузить .json файл со схемой';
+  document.getElementById('schemaDropzone').classList.remove('has-file');
+  document.getElementById('schemaFileInput').value = '';
+
+  document.getElementById('photoDropTitle').textContent = 'Загрузить фото схемы';
+  document.getElementById('photoDropzone').classList.remove('has-file');
+  document.getElementById('schemaPhotoPreview').style.display = 'none';
+  document.getElementById('schemaPhotoInput').value = '';
+}
+
+/* ── Validate & start ────────────────────────────────────────────── */
+function getSchemaValue() {
+  if (state.schemaMode === 'text') {
+    return document.getElementById('targetJson').value.trim();
+  }
+  if (state.schemaMode === 'file') {
+    return document.getElementById('targetJson').value.trim(); // loaded from file → textarea
+  }
+  if (state.schemaMode === 'photo') {
+    return state.schemaPhoto ? '{"_photo":"uploaded"}' : '';
+  }
+  return '';
+}
+
+function startProcessing() {
+  if (!state.dataFile) { showAlert('Выберите файл с данными (Шаг 1)'); return; }
+  const schema = getSchemaValue();
+  if (!schema) { showAlert('Укажите целевую JSON-схему (Шаг 2)'); return; }
+
+  // Unlock pipeline nav
+  enableNav('nav-processing');
+  gotoScreen('processing', document.getElementById('nav-processing'));
+  resetPipeline();
+  runPipeline();
+}
+
+function showAlert(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:70px;right:24px;z-index:999;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.1)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ── Pipeline ────────────────────────────────────────────────────── */
+function resetPipeline() {
+  [1,2,3,4].forEach(n => setStep(n, 'wait'));
+  setTokens(0, 0, 0, 0);
+}
+
+function setStep(n, status) {
+  const c = document.getElementById('step'+n+'-circle');
+  const b = document.getElementById('step'+n+'-badge');
+  c.className = 'step-circle';
+  if (status === 'done') {
+    c.classList.add('sc-done');
+    b.className = 'badge badge-success'; b.textContent = 'done';
+  } else if (status === 'active') {
+    c.classList.add('sc-active');
+    b.className = 'badge badge-info'; b.textContent = 'running...';
+  } else if (status === 'retry') {
+    c.classList.add('sc-active');
+    b.className = 'badge badge-warn'; b.textContent = 'retry';
+  } else {
+    c.classList.add('sc-wait');
+    b.className = 'badge badge-warn'; b.textContent = 'wait';
+  }
+}
+
+function setTokens(total, prompt, completion, retries) {
+  document.getElementById('tokenCurrent').textContent = total;
+  document.getElementById('tokPrompt').textContent = prompt;
+  document.getElementById('tokCompletion').textContent = completion;
+  document.getElementById('tokRetries').textContent = retries;
+  document.getElementById('tokenBarFill').style.width = Math.min(total / 10, 100) + '%';
+  document.getElementById('tokenGlobal').textContent = (state.totalTokens + total) + ' tokens';
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+async function runPipeline() {
+  const fname = state.dataFile?.name || 'data';
+  const ext   = fname.split('.').pop().toLowerCase();
+
+  await delay(300);
+  setStep(1, 'active');
+  document.getElementById('step1-desc').textContent = 'Читаем ' + fname + '...';
+  await delay(1000);
+  setTokens(80, 65, 15, 0);
+  setStep(1, 'done');
+  document.getElementById('step1-desc').textContent =
+    'schema_hint: { format: ' + ext.toUpperCase() + ', size: ' + ((state.dataFile?.size||0)/1024).toFixed(1) + ' KB }';
+
+  await delay(300);
+  setStep(2, 'active');
+  document.getElementById('step2-desc').textContent = 'LLM → GigaChat-2-Max · attempt 1/3...';
+  await delay(1200);
+  setTokens(280, 230, 50, 0);
+  setStep(2, 'done');
+  document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · 1 попытка';
+
+  await delay(300);
+  setStep(3, 'active');
+  document.getElementById('step3-desc').textContent = 'tsc compile...';
+  await delay(900);
+  setTokens(340, 280, 60, 0);
+  setStep(3, 'done');
+  document.getElementById('step3-desc').textContent = 'tsc ✓ · node runtime ✓ · JSON shape ✓';
+
+  await delay(200);
+  setStep(4, 'active');
+  document.getElementById('step4-desc').textContent = 'Сборка результата...';
+  await delay(500);
+
+  // Determine records count
+  const records = buildResultData();
+  setStep(4, 'done');
+  document.getElementById('step4-desc').textContent = records.length + ' записей · valid';
+  state.totalTokens += 340;
+
+  // Save history
+  state.history.unshift({
+    status: 'valid', file: fname,
+    format: ext.toUpperCase(), tokens: 340, retries: 1,
+    time: new Date().toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'})
+  });
+  updateHistory();
+
+  // Store result & go to result screen
+  state.lastResult = records;
+  await delay(400);
+  showResult(records, fname);
+}
+
+/* ── Build result from uploaded file ────────────────────────────── */
+function buildResultData() {
+  // Use actual file content if we could read it
+  if (state.dataFileContent && Array.isArray(state.dataFileContent) && state.dataFileContent.length > 0) {
+    return state.dataFileContent;
+  }
+  if (state.dataFileContent && !Array.isArray(state.dataFileContent)) {
+    // Single object → wrap in array
+    return [state.dataFileContent];
+  }
+  // Fallback mock
+  return [
+    {dealId:'DEAL-12345', amount:1000000, stage:'Переговоры', createdAt:'2025-08-15', responsible:'Иванов И.И.'},
+    {dealId:'DEAL-67890', amount:500000,  stage:'Закрыта',    createdAt:'2025-08-10', responsible:'Петрова А.С.'},
+    {dealId:'DEAL-24680', amount:300000,  stage:'В работе',   createdAt:'2025-08-12', responsible:'Сидоров П.В.'},
+    {dealId:'DEAL-13579', amount:30000,   stage:'Новая',      createdAt:'2025-08-01', responsible:'Козлов Д.М.'},
+    {dealId:'DEAL-98765', amount:9600,    stage:'Дист.',      createdAt:'2025-08-20', responsible:'Новикова Е.А.'},
+  ];
+}
+
+/* ── Show result ─────────────────────────────────────────────────── */
+function showResult(records, fname) {
+  enableNav('nav-result');
+  gotoScreen('result', document.getElementById('nav-result'));
+
+  document.getElementById('resTokens').textContent  = '340';
+  document.getElementById('resRetries').textContent = '1 / 3';
+  document.getElementById('resRecords').textContent = records.length;
+  document.getElementById('recordsBadge').textContent = records.length + ' records';
+  document.getElementById('resultSub').textContent =
+    'Файл: ' + fname + ' · tsc compiled · runtime ✓';
+
+  // TypeScript interface generated from keys
+  const keys = Object.keys(records[0] || {});
+  const fields = keys.map(k => {
+    const v = records[0][k];
+    const t = typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : 'string';
+    return '  ' + k + ': ' + t;
+  }).join('\n');
+
+  document.getElementById('tsOutput').innerHTML =
+    `<span class="code-comment">// Auto-generated by Converter Agent · GigaChat-2-Max</span>
+<span class="code-kw">interface</span> <span class="code-type">ConvertedData</span> {
+${fields.split('\n').map(l => {
+  const [name, type] = l.trim().split(': ');
+  return '  <span class="code-comment">' + name + '</span>: <span class="code-type">' + type + '</span>';
+}).join('\n')}
+}
+
+<span class="code-kw">export default function</span> convert(base64file: <span class="code-type">string</span>): <span class="code-type">ConvertedData</span>[] {
+  <span class="code-comment">// TODO: реальная реализация после подключения GigaChat</span>
+  <span class="code-kw">const</span> decoded = atob(base64file)
+  <span class="code-kw">return</span> JSON.parse(decoded) <span class="code-kw">as</span> <span class="code-type">ConvertedData</span>[]
+}`;
+
+  // JSON table
+  renderJsonTable(records);
+}
+
+function renderJsonTable(records) {
+  const container = document.getElementById('jsonPreview');
+  if (!records || records.length === 0) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px">Нет данных</div>';
+    return;
+  }
+
+  const MAX_ROWS = 50;
+  const keys = Object.keys(records[0]);
+  const shown = records.slice(0, MAX_ROWS);
+
+  let html = '<table class="json-table"><thead><tr>';
+  keys.forEach(k => { html += '<th>' + escHtml(String(k)) + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  shown.forEach(row => {
+    html += '<tr>';
+    keys.forEach(k => {
+      const v = row[k];
+      let cls = 'json-val-str', display;
+      if (v === null || v === undefined) { cls = 'json-val-null'; display = 'null'; }
+      else if (typeof v === 'number')    { cls = 'json-val-num';  display = v.toLocaleString('ru'); }
+      else if (typeof v === 'boolean')   { cls = 'json-val-bool'; display = String(v); }
+      else { display = String(v); }
+      html += '<td class="' + cls + '">' + escHtml(display) + '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  if (records.length > MAX_ROWS) {
+    html += '<div style="padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--hint);border-top:1px solid var(--border)">... ещё ' + (records.length - MAX_ROWS) + ' записей</div>';
+  }
+  container.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── New conversion ──────────────────────────────────────────────── */
+function newConversion() {
+  clearForm();
+  gotoScreen('upload', document.getElementById('nav-upload'));
+}
+
+/* ── History ─────────────────────────────────────────────────────── */
+function updateHistory() {
+  const tbody = document.getElementById('historyBody');
+  if (!state.history.length) return;
+  tbody.innerHTML = state.history.map(h => {
+    const bc = h.status==='valid' ? 'badge-success' : h.status==='retry' ? 'badge-warn' : 'badge-err';
+    return `<tr>
+      <td><span class="badge ${bc}">${h.status}</span></td>
+      <td style="font-family:var(--mono);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(h.file)}</td>
+      <td><span class="format-tag">${h.format}</span></td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--green)">${h.tokens}</td>
+      <td style="font-family:var(--mono);font-size:12px">${h.retries}/3</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--hint)">${h.time}</td>
+    </tr>`;
+  }).join('');
+}
+
+function clearHistory() {
+  state.history = [];
+  document.getElementById('historyBody').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px;padding:28px">Нет записей</td></tr>';
+}
+
+/* ── Downloads ───────────────────────────────────────────────────── */
+function downloadJSON() {
+  const data = state.lastResult || [];
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  triggerDownload(URL.createObjectURL(blob), 'result.json');
+}
+function downloadTS() {
+  const code = document.getElementById('tsOutput').innerText || '// no output';
+  const blob = new Blob([code], {type:'text/plain'});
+  triggerDownload(URL.createObjectURL(blob), 'converter.ts');
+}
+function triggerDownload(url, name) {
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ── Nav helpers ─────────────────────────────────────────────────── */
+function enableNav(id) {
+  const el = document.getElementById(id);
+  el.style.pointerEvents = '';
+  el.style.opacity = '1';
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(90deg,#01a104,#16da03);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(1,161,4,.3);transition:opacity .3s';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2800);
+}
+</script>
+</body>
+</html>

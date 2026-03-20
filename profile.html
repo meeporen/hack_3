@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Профиль</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/sber.css">
+<style>
+body { font-family: 'Inter', var(--sans); }
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 58px 1fr;
+  min-height: 100vh;
+}
+
+.topbar { grid-column: 1 / -1; }
+
+.sidebar-wrap { position: sticky; top: 58px; height: calc(100vh - 58px); overflow-y: auto; }
+
+.main {
+  padding: 32px;
+  max-width: 700px;
+}
+
+/* Profile hero */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.profile-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--grad-start), var(--grad-mid1), var(--grad-mid3), var(--grad-end));
+}
+.profile-hero-info h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.profile-hero-info p {
+  font-size: 13px;
+  color: var(--muted);
+}
+.profile-hero-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(1,161,4,0.12);
+  color: var(--accent2);
+  border: 1px solid rgba(1,161,4,0.2);
+  border-radius: 20px;
+  font-size: 11px;
+  padding: 3px 10px;
+  margin-top: 8px;
+}
+
+/* Avatar large */
+.avatar-large-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.avatar-large {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  box-shadow: 0 0 0 3px rgba(1,161,4,0.3);
+}
+.avatar-large-placeholder {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--grad-mid1), var(--grad-mid3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(1,161,4,0.3);
+}
+
+.photo-upload-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+.photo-upload-zone:hover {
+  border-color: var(--accent);
+  background: rgba(1,161,4,0.04);
+}
+.photo-upload-zone input[type=file] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+}
+.photo-upload-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(1,161,4,0.1);
+  border: 1px solid rgba(1,161,4,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+.photo-upload-icon svg { color: var(--accent2); }
+
+.photo-preview-wrap {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.photo-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+}
+
+/* New-user banner */
+.welcome-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(2,136,214,0.15), rgba(1,161,4,0.15));
+  border: 1px solid rgba(1,161,4,0.2);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  align-items: center;
+  gap: 16px;
+}
+.welcome-banner.show { display: flex; }
+.welcome-banner-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--grad-mid1), var(--grad-mid3));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.welcome-banner h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.welcome-banner p  { font-size: 13px; color: var(--muted); }
+
+/* Section title */
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm">
+    <div class="topbar-divider"></div>
+    <div class="user-pill" onclick="logout()">
+      <div class="user-pill-avatar" id="topbarAvatar"></div>
+      <span id="topbarUserName"></span>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-wrap">
+    <nav class="sidebar">
+      <div class="nav-label">Навигация</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Дашборд
+      </a>
+      <a href="profile.html" class="nav-item active">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 13.5c0-2.5 2.7-4.5 6-4.5s6 2 6 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Профиль
+      </a>
+      <div class="nav-sep"></div>
+      <button class="nav-item" onclick="logout()" style="color:rgba(255,80,80,0.7)">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 8H3M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3h3a1 1 0 011 1v8a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Выйти
+      </button>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Welcome banner (shown for new users) -->
+    <div class="welcome-banner" id="welcomeBanner">
+      <div class="welcome-banner-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 2l2.4 6.6H20l-5.2 3.8 2 6.6L11 15l-5.8 4 2-6.6L2 8.6h6.6L11 2z" stroke="white" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Добро пожаловать!</h3>
+        <p>Аккаунт создан. Загрузите фото профиля, чтобы персонализировать аккаунт.</p>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="profile-hero" id="profileHero">
+      <div class="avatar-large-wrap">
+        <img class="avatar-large avatar-preview" id="heroAvatarImg" style="display:none" src="" alt="Фото профиля">
+        <div class="avatar-large-placeholder avatar-placeholder-el" id="heroAvatarPlaceholder"></div>
+        <!-- Quick upload button on avatar -->
+        <div class="avatar-upload-btn">
+          <input type="file" accept="image/*" onchange="handlePhotoUpload(this)" title="Загрузить фото">
+          <svg viewBox="0 0 12 12" fill="none">
+            <path d="M6 8V2M6 2L3.5 4.5M6 2L8.5 4.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M1 10h10" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="profile-hero-info">
+        <h2 id="heroName">—</h2>
+        <p id="heroEmail">—</p>
+        <div class="profile-hero-role">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l1.5 1.5L7 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span id="heroRole">user</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo upload card -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-title">Фото профиля</div>
+
+      <div class="photo-upload-zone" id="photoZone">
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+               onchange="handlePhotoUpload(this)" id="photoFileInput">
+        <div class="photo-upload-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 14V4M11 4L7 8M11 4l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">Перетащите фото или нажмите</div>
+        <div style="font-size:12px;color:var(--hint)">JPG, PNG, WebP · до 5 MB</div>
+      </div>
+
+      <div class="photo-preview-wrap" id="photoPreviewWrap">
+        <img class="photo-preview avatar-preview" id="photoPreviewImg" src="" alt="Предпросмотр">
+        <div style="font-size:13px;color:var(--muted)">Фото обновлено</div>
+        <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px"
+                onclick="document.getElementById('photoFileInput').click()">Изменить</button>
+      </div>
+    </div>
+
+    <!-- Info card -->
+    <div class="card">
+      <div class="section-title">Данные аккаунта</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Имя</span>
+          <span style="font-size:14px;font-weight:500" id="infoName">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Email</span>
+          <span style="font-size:14px;font-family:monospace" id="infoEmail">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--muted)">Роль</span>
+          <span style="font-size:13px" id="infoRole">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+          <span style="font-size:13px;color:var(--muted)">Дата регистрации</span>
+          <span style="font-size:13px;color:var(--muted)" id="infoCreated">—</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+if (!requireAuth()) throw new Error('not auth');
+
+const session = getSession();
+const user    = getUserById(session.userId);
+
+// Fill hero
+document.getElementById('heroName').textContent  = session.name;
+document.getElementById('heroEmail').textContent = session.email;
+document.getElementById('heroRole').textContent  = session.role;
+
+// Fill info
+document.getElementById('infoName').textContent    = session.name;
+document.getElementById('infoEmail').textContent   = session.email;
+document.getElementById('infoRole').textContent    = session.role;
+document.getElementById('infoCreated').textContent = user
+  ? new Date(user.createdAt).toLocaleDateString('ru', {day:'2-digit',month:'long',year:'numeric'})
+  : '—';
+
+// Fill topbar
+document.getElementById('topbarUserName').textContent = session.name;
+
+// Avatar
+const photo = session.photo || (user && user.photo);
+if (photo) {
+  document.getElementById('heroAvatarImg').src = photo;
+  document.getElementById('heroAvatarImg').style.display = 'block';
+  document.getElementById('heroAvatarPlaceholder').style.display = 'none';
+  document.getElementById('photoPreviewImg').src = photo;
+  document.getElementById('photoPreviewWrap').style.display = 'flex';
+  document.getElementById('topbarAvatar').style.cssText =
+    `width:28px;height:28px;border-radius:50%;background-image:url(${photo});background-size:cover;background-position:center;`;
+} else {
+  const initials = session.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('heroAvatarPlaceholder').textContent = initials;
+  document.getElementById('topbarAvatar').textContent = initials;
+}
+
+// Welcome banner for new users
+const isNew = new URLSearchParams(location.search).get('new');
+if (isNew) {
+  document.getElementById('welcomeBanner').classList.add('show');
+}
+
+// Override handlePhotoUpload to also show preview block
+const _orig = handlePhotoUpload;
+window.handlePhotoUpload = function(inputEl) {
+  const file = inputEl.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой (макс. 5 MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    const session = getSession();
+    if (session) {
+      updateUserPhoto(session.userId, base64);
+      refreshSessionPhoto(base64);
+    }
+    // Update hero
+    const heroImg = document.getElementById('heroAvatarImg');
+    heroImg.src = base64;
+    heroImg.style.display = 'block';
+    document.getElementById('heroAvatarPlaceholder').style.display = 'none';
+    // Show preview
+    document.getElementById('photoPreviewImg').src = base64;
+    document.getElementById('photoPreviewWrap').style.display = 'flex';
+    // Topbar
+    document.getElementById('topbarAvatar').style.cssText =
+      `width:28px;height:28px;border-radius:50%;background-image:url(${base64});background-size:cover;background-position:center;`;
+    showToast('Фото успешно обновлено');
+  };
+  reader.readAsDataURL(file);
+};
+</script>
+</body>
+</html>

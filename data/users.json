@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Иван Иванов",
+    "email": "ivan@sber.ru",
+    "password": "password",
+    "role": "admin",
+    "photo": null,
+    "createdAt": "2026-01-10T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Анна Петрова",
+    "email": "anna@sber.ru",
+    "password": "password",
+    "role": "user",
+    "photo": null,
+    "createdAt": "2026-02-15T09:30:00.000Z"
+  }
+]
