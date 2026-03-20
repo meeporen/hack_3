@@ -46,32 +46,18 @@ def _detect_separator(filepath: str) -> str:
 
 
 def _map_dtype(series: pd.Series) -> str:
-    if pd.api.types.is_bool_dtype(series):
-        return "bool"
-    if pd.api.types.is_integer_dtype(series):
-        return "int64"
-    if pd.api.types.is_float_dtype(series):
-        return "float64"
-    if pd.api.types.is_datetime64_any_dtype(series):
-        return "datetime"
-    if pd.api.types.is_timedelta64_dtype(series):
-        return "timedelta"
-    if pd.api.types.is_categorical_dtype(series):
-        return "category"
-    if pd.api.types.is_complex_dtype(series):
-        return "complex"
+    if pd.api.types.is_bool_dtype(series):           return "bool"
+    if pd.api.types.is_integer_dtype(series):        return "int64"
+    if pd.api.types.is_float_dtype(series):          return "float64"
+    if pd.api.types.is_datetime64_any_dtype(series): return "datetime"
+    if pd.api.types.is_timedelta64_dtype(series):    return "timedelta"
+    if isinstance(series.dtype, pd.CategoricalDtype):return "category"
     return "str"
 
 if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) > 1:
-        path = sys.argv[1]
-    else:
-        path = input("Введи путь к файлу: ")
-
+    import sys, json
+    path = sys.argv[1] if len(sys.argv) > 1 else input("Путь к файлу: ")
     try:
-        schema = _generate_schema_hint(path)
-        print(json.dumps(schema, ensure_ascii=False, indent=4))
+        print(json.dumps(_generate_schema_hint(path), ensure_ascii=False, indent=4))
     except Exception as e:
         print(f"Ошибка: {e}")
