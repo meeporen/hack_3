@@ -1,41 +1,93 @@
 import asyncio
 import base64
 import json
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-async def test():
-    from agent.graph import get_graph_agent
+FORMATS = [
+    ("crmData.csv",   "csv"),
+    ("crmData.xlsx",  "xlsx"),
+    ("crmData.xls",   "xls"),
+    ("crmData.json",  "json"),
+    ("crmData.jsonl", "jsonl"),
+]
 
-    with open("crmData.xlsx", "rb") as f:
+OUTPUT_DIR = "main_test"
+
+
+async def run_one(graph, file_path: str, file_type: str, target: dict) -> dict:
+    with open(file_path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
+
+    return await graph.ainvoke({
+        "file_b64":    b64,
+        "file_type":   file_type,
+        "target_json": target,
+    })
+
+
+async def main():
+    from agent.graph import get_graph_agent
 
     with open("crm.json", encoding="utf-8") as f:
         target = json.load(f)[0]
 
-    print("запускаем граф...")
-    result = await get_graph_agent().ainvoke({
-        "file_b64":    b64,
-        "file_type":   "xlsx",
-        "target_json": target,
-    })
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    graph = get_graph_agent()
 
-    print(f"valid:      {result['is_valid']}")
-    print(f"retries:    {result['retry_count']}")
-    print(f"records:    {len(result.get('result_json', []))}")
-    print()
-    print("=== сгенерированный TypeScript ===")
-    print(result["ts_code"])
-    print()
+    summary = []
 
-    if result.get("result_json"):
-        # сохраняем в файл
-        with open("result.json", "w", encoding="utf-8") as f:
-            json.dump(result["result_json"], f, ensure_ascii=False, indent=2)
-        print("=== результат сохранён в result.json ===")
-        print(json.dumps(result["result_json"][0], ensure_ascii=False, indent=2))
-    else:
-        print("errors:", result.get("errors"))
+    for file_path, file_type in FORMATS:
+        print(f"\n{'='*50}")
+        print(f"Формат: {file_type}  ({file_path})")
+        print('='*50)
 
-asyncio.run(test())
+        try:
+            result = await run_one(graph, file_path, file_type, target)
+
+            valid   = result["is_valid"]
+            retries = result["retry_count"]
+            records = len(result.get("result_json", []))
+            tokens  = result.get("tokens_used", 0)
+
+            print(f"valid:   {valid}")
+            print(f"retries: {retries}")
+            print(f"records: {records}")
+            print(f"tokens:  {tokens}")
+
+            out_path = os.path.join(OUTPUT_DIR, f"result_{file_type}.json")
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "file_type":   file_type,
+                    "is_valid":    valid,
+                    "retry_count": retries,
+                    "tokens_used": tokens,
+                    "ts_code":     result.get("ts_code", ""),
+                    "errors":      result.get("errors", []),
+                    "result_json": result.get("result_json", []),
+                }, f, ensure_ascii=False, indent=2)
+
+            print(f"Сохранено: {out_path}")
+            summary.append({"file_type": file_type, "valid": valid, "retries": retries, "records": records, "tokens": tokens, "error": None})
+
+        except Exception as e:
+            print(f"ОШИБКА: {e}")
+            summary.append({"file_type": file_type, "valid": False, "retries": 0, "records": 0, "tokens": 0, "error": str(e)})
+
+    print(f"\n{'='*50}")
+    print("ИТОГ:")
+    print('='*50)
+    for s in summary:
+        status = "OK" if s["valid"] else "FAIL"
+        err    = f"  ({s['error']})" if s["error"] else ""
+        print(f"  {s['file_type']:<8} {status}  retries={s['retries']}  records={s['records']}  tokens={s['tokens']}{err}")
+
+    summary_path = os.path.join(OUTPUT_DIR, "summary.json")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    print(f"\nСводка: {summary_path}")
+
+
+asyncio.run(main())

@@ -62,32 +62,6 @@ export default function(base64file: string): TargetData[] {{
   }})
 }}
 
-## Шаблон для XLSX (если file_type = "xlsx")
-
-export default function(base64file: string): TargetData[] {{
-  const workbook = XLSX.read(base64file, {{type: 'base64'}})
-  const sheet = workbook.Sheets[workbook.SheetNames[0]]
-  const [headerRow, ...dataRows] = XLSX.utils.sheet_to_json(sheet, {{header: 1}}) as any[][]
-  const headers = headerRow.map(String)
-
-  const get = (cells: any[], name: string): string | null => {{
-    const idx = headers.indexOf(name)
-    return idx === -1 ? null : (String(cells[idx] ?? '').trim() || null)
-  }}
-  const toNum = (v: string | null): number | null =>
-    v === null ? null : (isNaN(Number(v)) ? null : Number(v))
-  const toStr = (v: string | null): string | null =>
-    v === null || v === '' ? null : v
-  const toBool = (v: string | boolean | null): boolean =>
-    v === 'Да' || v === 'да' || v === true
-
-  return dataRows.map((cells: any[]) => {{
-    return {{
-      // маппинг полей
-    }}
-  }})
-}}
-
 ## Подсказки для неочевидных полей
 - creator           ← "Сделка - Создал"
 - deal              ← "Сделка"
@@ -99,25 +73,12 @@ export default function(base64file: string): TargetData[] {{
 - stageTransitionTime ← "Время перехода на текущую стадию"
 - dealStageFinal    ← get(cells, "Стадия (Сделка)") === "Закрыта"
 
-## КРИТИЧНО — скобки в названиях колонок
-- Колонки содержащие (с НДС) в названии требуют особого внимания
-- НЕВЕРНО:  toNum(get(cells, 'Сделка - Итоговая сумма услуг (с НДС)'),
-- ВЕРНО:    toNum(get(cells, 'Сделка - Итоговая сумма услуг (с НДС)')),
-- Правило: после get(...) всегда ставь )) перед запятой если обёрнуто в toNum/toStr/toBool
-
-## КРИТИЧНО — частые ошибки с boolean
-- НИКОГДА не пиши toBool(get(...) === 'что-то') — это передаёт boolean в функцию ожидающую string
-- ВЕРНО для Да/Нет колонок:    directSupply: toBool(get(cells, 'Сделка - Прямая поставка'))
-- ВЕРНО для dealStageFinal:    dealStageFinal: get(cells, 'Стадия (Сделка)') === 'Закрыта'
-- toBool принимает string | null, НЕ boolean
-
 ## КРИТИЧНО — опечатка в переменной
 - НИКОГДА не пиши ccells — только cells
 - ВЕРНО:   siteLead: toBool(get(cells, 'Сделка - Лид с сайта'))
 - НЕВЕРНО: siteLead: toBool(get(ccells, 'Сделка - Лид с сайта'))
 
 ## Правила маппинга
-- Выбери шаблон исходя из file_type
 - Ключи результата берёшь СТРОГО из target_json
 - Названия колонок берёшь СТРОГО из поля name в схеме колонок
 - dtype int64/float64 → toNum()
