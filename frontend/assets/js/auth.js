@@ -37,18 +37,22 @@ async function doLogin() {
   if (!email)    { showAlert('Введите email'); return; }
   if (!password) { showAlert('Введите пароль'); return; }
 
-  // TODO: заменить на реальный fetch:
-  // const res = await fetch('/api/v1/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
-  // const data = await res.json();
-
-  const user = getUserByEmail(email);
-  if (!user || user.password !== password) {
-    showAlert('Неверный email или пароль');
-    return;
+  try {
+    const data = await Api.auth.login(email, password);
+    // data: { access_token, token_type, expires_in, user: {id, name, email, role, photo, createdAt} }
+    localStorage.setItem('sber_session', JSON.stringify({
+      userId:    data.user.id,
+      name:      data.user.name,
+      email:     data.user.email,
+      role:      data.user.role,
+      photo:     data.user.photo,
+      token:     data.access_token,
+      expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+    }));
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    showAlert(err.message || 'Неверный email или пароль');
   }
-
-  const session = saveSession(user);
-  window.location.href = 'dashboard.html';
 }
 
 // ── REGISTER ──
@@ -65,18 +69,22 @@ async function doRegister() {
   if (password.length < 6) { showAlert('Пароль минимум 6 символов'); return; }
   if (password !== confirm) { showAlert('Пароли не совпадают'); return; }
 
-  // TODO: заменить на реальный fetch:
-  // const res = await fetch('/api/v1/auth/register', { method:'POST', ... });
-
-  const result = createUser(name, email, password);
-  if (!result.ok) { showAlert(result.error); return; }
-
-  const session = saveSession({ ...result.user, password: undefined });
-
-  showAlert('Аккаунт создан! Перенаправляем...', 'ok');
-  setTimeout(() => {
-    window.location.href = 'profile.html?new=1';
-  }, 1200);
+  try {
+    const data = await Api.auth.register(name, email, password);
+    localStorage.setItem('sber_session', JSON.stringify({
+      userId:    data.user.id,
+      name:      data.user.name,
+      email:     data.user.email,
+      role:      data.user.role,
+      photo:     data.user.photo,
+      token:     data.access_token,
+      expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString(),
+    }));
+    showAlert('Аккаунт создан! Перенаправляем...', 'ok');
+    setTimeout(() => { window.location.href = 'profile.html?new=1'; }, 1200);
+  } catch (err) {
+    showAlert(err.message || 'Ошибка при регистрации');
+  }
 }
 
 // ── LOGOUT (вызывается из dashboard/profile) ──
@@ -91,6 +99,9 @@ function logout() {
 }
 
 function _doLogout() {
+  if (typeof Api !== 'undefined') {
+    Api.auth.logout().catch(() => {});  // fire-and-forget
+  }
   clearSession();
   window.location.href = 'index.html';
 }

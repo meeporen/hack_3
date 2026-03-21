@@ -1216,6 +1216,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 
 <!-- ══ SCRIPTS ═══════════════════════════════════════════════════════ -->
 <script src="assets/js/storage.js"></script>
+<script src="assets/js/api.js"></script>
 <script src="assets/js/auth.js"></script>
 <script>
 /* ── Auth guard ─────────────────────────────────────────────────── */
@@ -1508,57 +1509,94 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function runPipeline() {
   const fname = state.dataFile?.name || 'data';
-  const ext   = fname.split('.').pop().toLowerCase();
+  const schema = getSchemaValue();
 
-  await delay(300);
+  let schemaDict;
+  try { schemaDict = JSON.parse(schema); }
+  catch { showAlert('Целевая JSON-схема невалидна'); return; }
+
+  resetPipeline();
+
+  // Step 1 — upload
   setStep(1, 'active');
-  document.getElementById('step1-desc').textContent = 'Читаем ' + fname + '...';
-  await delay(1000);
-  setTokens(80, 65, 15, 0);
+  document.getElementById('step1-desc').textContent = 'Загружаем файл ' + fname + '...';
+
+  let jobId;
+  try {
+    const res = await Api.prediction.upload(state.dataFile, schemaDict);
+    jobId = res.job_id;
+  } catch (err) {
+    setStep(1, 'done');
+    document.getElementById('step1-desc').textContent = 'Ошибка загрузки: ' + err.message;
+    showAlert('Ошибка загрузки: ' + err.message);
+    return;
+  }
+
   setStep(1, 'done');
-  document.getElementById('step1-desc').textContent =
-    'schema_hint: { format: ' + ext.toUpperCase() + ', size: ' + ((state.dataFile?.size||0)/1024).toFixed(1) + ' KB }';
+  document.getElementById('step1-desc').textContent = 'Файл принят · job ' + jobId.slice(0, 8) + '...';
 
-  await delay(300);
+  // Step 2 — generate while polling
   setStep(2, 'active');
-  document.getElementById('step2-desc').textContent = 'LLM → GigaChat-2-Max · attempt 1/3...';
-  await delay(1200);
-  setTokens(280, 230, 50, 0);
-  setStep(2, 'done');
-  document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · 1 попытка';
+  document.getElementById('step2-desc').textContent = 'LLM → GigaChat · генерация кода...';
 
-  await delay(300);
-  setStep(3, 'active');
-  document.getElementById('step3-desc').textContent = 'tsc compile...';
-  await delay(900);
-  setTokens(340, 280, 60, 0);
+  let job = null;
+  let stepAdvanced = false;
+
+  try {
+    job = await Api.prediction.pollJob(jobId, (update) => {
+      if (!stepAdvanced && update.tokens_used > 0) {
+        stepAdvanced = true;
+        setStep(2, 'done');
+        document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · попытка ' + (update.retries || 1);
+        setTokens(update.tokens_used, Math.floor(update.tokens_used * 0.8), Math.floor(update.tokens_used * 0.2), update.retries || 0);
+        setStep(3, 'active');
+        document.getElementById('step3-desc').textContent = 'tsc компиляция + runtime проверка...';
+      }
+    }, 1500);
+  } catch (_err) {
+    try { job = await Api.prediction.getJob(jobId); } catch {}
+  }
+
+  if (!stepAdvanced) {
+    setStep(2, 'done');
+    document.getElementById('step2-desc').textContent = job?.ts_code ? 'ts_code сгенерирован' : 'Генерация завершена';
+  }
   setStep(3, 'done');
-  document.getElementById('step3-desc').textContent = 'tsc ✓ · node runtime ✓ · JSON shape ✓';
+  document.getElementById('step3-desc').textContent = job?.is_valid
+    ? 'tsc ✓ · runtime ✓ · JSON shape ✓'
+    : 'Ошибка: ' + (job?.error || 'валидация не прошла');
 
-  await delay(200);
   setStep(4, 'active');
   document.getElementById('step4-desc').textContent = 'Сборка результата...';
-  await delay(500);
+  await delay(300);
 
-  // Determine records count
-  const records = buildResultData();
+  if (!job || job.status === 'error') {
+    setStep(4, 'done');
+    const errMsg = job?.error || 'неизвестная ошибка';
+    document.getElementById('step4-desc').textContent = 'Ошибка: ' + errMsg;
+    showAlert('Ошибка обработки: ' + errMsg);
+    return;
+  }
+
+  const records = job.json_output || [];
+  const tokens  = job.tokens_used || 0;
+  setTokens(tokens, Math.floor(tokens * 0.8), Math.floor(tokens * 0.2), job.retries || 0);
   setStep(4, 'done');
   document.getElementById('step4-desc').textContent = records.length + ' записей · valid';
-  state.totalTokens += 340;
+  state.totalTokens += tokens;
 
-  // Save history
+  const ext = fname.split('.').pop().toUpperCase();
   state.history.unshift({
-    status: 'valid', file: fname,
-    format: ext.toUpperCase(), tokens: 340, retries: 1,
+    status: 'valid', file: fname, format: ext,
+    tokens: tokens, retries: job.retries || 0,
     time: new Date().toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'}),
-    date: new Date().toISOString().slice(0, 10)
+    date: new Date().toISOString().slice(0, 10),
   });
   updateHistory();
 
-  // Store result & go to result screen
   state.lastResult = records;
-  await delay(400);
-  showResult(records, fname);
+  await delay(300);
+  showResult(records, fname, job);
 }
 
 /* ── Build result from uploaded file ────────────────────────────── */
@@ -1582,27 +1620,34 @@ function buildResultData() {
 }
 
 /* ── Show result ─────────────────────────────────────────────────── */
-function showResult(records, fname) {
+function showResult(records, fname, job) {
   enableNav('nav-result');
   gotoScreen('result', document.getElementById('nav-result'));
 
-  document.getElementById('resTokens').textContent  = '340';
-  document.getElementById('resRetries').textContent = '1 / 3';
+  const tokens  = job?.tokens_used ?? 0;
+  const retries = job?.retries ?? 0;
+
+  document.getElementById('resTokens').textContent  = tokens;
+  document.getElementById('resRetries').textContent = retries + ' / 3';
   document.getElementById('resRecords').textContent = records.length;
   document.getElementById('recordsBadge').textContent = records.length + ' records';
   document.getElementById('resultSub').textContent =
     'Файл: ' + fname + ' · tsc compiled · runtime ✓';
 
-  // TypeScript interface generated from keys
-  const keys = Object.keys(records[0] || {});
-  const fields = keys.map(k => {
-    const v = records[0][k];
-    const t = typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : 'string';
-    return '  ' + k + ': ' + t;
-  }).join('\n');
+  // TypeScript code: prefer real ts_code from API
+  if (job?.ts_code) {
+    document.getElementById('tsOutput').textContent = job.ts_code;
+  } else {
+    // Fallback: synthesise interface from result keys
+    const keys = Object.keys(records[0] || {});
+    const fields = keys.map(k => {
+      const v = records[0][k];
+      const t = typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : 'string';
+      return '  ' + k + ': ' + t;
+    }).join('\n');
 
-  document.getElementById('tsOutput').innerHTML =
-    `<span class="code-comment">// Auto-generated by Converter Agent · GigaChat-2-Max</span>
+    document.getElementById('tsOutput').innerHTML =
+      `<span class="code-comment">// Auto-generated by Converter Agent · GigaChat</span>
 <span class="code-kw">interface</span> <span class="code-type">ConvertedData</span> {
 ${fields.split('\n').map(l => {
   const [name, type] = l.trim().split(': ');
@@ -1611,10 +1656,10 @@ ${fields.split('\n').map(l => {
 }
 
 <span class="code-kw">export default function</span> convert(base64file: <span class="code-type">string</span>): <span class="code-type">ConvertedData</span>[] {
-  <span class="code-comment">// TODO: реальная реализация после подключения GigaChat</span>
   <span class="code-kw">const</span> decoded = atob(base64file)
   <span class="code-kw">return</span> JSON.parse(decoded) <span class="code-kw">as</span> <span class="code-type">ConvertedData</span>[]
 }`;
+  }
 
   // JSON table
   renderJsonTable(records);
