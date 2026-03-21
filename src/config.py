@@ -9,9 +9,18 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24h
 
+    # Hardcoded admin user (из .env)
+    LOGIN: str = "admin"
+    PASSWORD: str = "secret"
+
+    # OpenRouter
+    OPENROUTER_API_KEY: str = ""
+
     # GigaChat / LLM
-    GIGACHAT_API_KEY: str = ""
-    GIGACHAT_MODEL: str = "GigaChat-2-Max"
+    GIGACHAT_CREDENTIALS: str = ""
+    GIGACHAT_SCOPE: str = "GIGACHAT_API_CORP"
+    GIGACHAT_MODEL: str = "GigaChat"
+    GIGACHAT_VERIFY_SSL_CERTS: bool = False
 
     # Storage (mock JSON paths — при реальном DB заменить)
     USERS_FILE: str = "data/users.json"

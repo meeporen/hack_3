@@ -16,5 +16,14 @@
     "role": "user",
     "photo": null,
     "createdAt": "2026-02-15T09:30:00.000Z"
+  },
+  {
+    "name": "admin",
+    "email": "admin@localhost",
+    "password": "$2b$12$7yTkrpKEkcnowVBFJeUcp.HPmCQ3hoEbC045lOxKGQQARJAh2Zqx.",
+    "role": "admin",
+    "photo": null,
+    "createdAt": "2026-03-21T07:40:22.437058+00:00",
+    "id": 3
   }
 ]

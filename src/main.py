@@ -8,12 +8,19 @@ Swagger UI: http://localhost:8000/docs
 Frontend:   http://localhost:8000/
 """
 
+# Загружаем .env в os.environ ДО всех других импортов,
+# чтобы langchain_gigachat мог читать GIGACHAT_CREDENTIALS и пр.
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from src.api.auth.routers    import router as auth_router
+from src.config   import settings
+from src.database import get_user_by_email, create_user
+from src.api.auth.routers    import router as auth_router, _hash_password
 from src.api.v1.routers      import router as v1_router
 from src.api.history.routers import router as history_router
 from src.api.chat.routers    import router as chat_router
@@ -40,6 +47,23 @@ app.include_router(auth_router,    prefix="/api/v1/auth",       tags=["Auth"])
 app.include_router(v1_router,      prefix="/api/v1/prediction", tags=["Conversion"])
 app.include_router(history_router, prefix="/api/v1/history",    tags=["History"])
 app.include_router(chat_router,    prefix="/api/v1/chat",       tags=["Chat"])
+
+# ── Seed admin user from .env ─────────────────────────────────────
+@app.on_event("startup")
+async def seed_admin():
+    """Создаёт admin-пользователя из .env, если его ещё нет."""
+    from datetime import datetime, timezone
+    admin_email = f"{settings.LOGIN}@localhost"
+    if not get_user_by_email(admin_email):
+        create_user({
+            "name":      settings.LOGIN,
+            "email":     admin_email,
+            "password":  _hash_password(settings.PASSWORD),
+            "role":      "admin",
+            "photo":     None,
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+        })
+
 
 # ── Static files (Frontend) ───────────────────────────────────────────
 app.mount("/assets", StaticFiles(directory="frontend/assets"), name="assets")
