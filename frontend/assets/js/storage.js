@@ -66,13 +66,12 @@ function updateUserPhoto(userId, photoBase64) {
 // ── Session ──
 function saveSession(user) {
   const session = {
-    userId: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    photo: user.photo,
-    // Mock JWT token (при реальном беке — настоящий токен)
-    token: 'mock_jwt_' + btoa(user.email + ':' + Date.now()),
+    userId:    user.id    || user.userId || Date.now(),
+    name:      user.name  || user.email?.split('@')[0] || 'Пользователь',
+    email:     user.email || '',
+    role:      user.role  || 'user',
+    photo:     user.photo || null,
+    token:     'mock_jwt_' + btoa((user.email || '') + ':' + Date.now()),
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
   };
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
