@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сбербанк · Профиль</title>
+<!-- Apply saved theme before first paint — prevents flash of wrong theme -->
+<script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/effects.css">
 <link rel="stylesheet" href="assets/css/sber.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -13,13 +16,41 @@
 html { font-size: 15px; }           /* sber.css sets 16px → all text 6.7% larger without this */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── VARIABLE OVERRIDES (sber.css differs from dashboard on these) ──── */
+/* ── VARIABLES ───────────────────────────────────────────────────────── */
 :root {
-  --muted:   #6b7280;   /* sber.css uses #4b5563 — darker than dashboard */
-  --surface: #ffffff;
+  --bg:       #f4f6f9;
+  --surface:  #ffffff;
+  --surface2: #f0f2f6;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #111827;
+  --muted:    #6b7280;
+  --hint:     #9ca3af;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; line-height: 1.6; }
+/* ── DARK THEME ──────────────────────────────────────────────────────── */
+html.dark {
+  --bg:       #0f1117;
+  --surface:  #1a1d27;
+  --surface2: #222535;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --hint:     #64748b;
+  --shadow:   0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background .3s ease, color .3s ease;
+}
 
 /* ── LAYOUT ─────────────────────────────────────────────────────────── */
 .layout {
@@ -306,20 +337,128 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
   filter: blur(var(--oblur,5px)); z-index: 10;
 }
 
+/* ── THEME TOGGLE ────────────────────────────────────────────────────── */
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.32); transform: rotate(25deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun  { display: block; }
+.theme-toggle .icon-moon { display: none; }
+html.dark .theme-toggle .icon-sun  { display: none; }
+html.dark .theme-toggle .icon-moon { display: block; }
+
+/* ── DARK MODE — COMPONENT OVERRIDES ─────────────────────────────────── */
+html.dark .profile-merged {
+  background: rgba(26,32,50,0.85);
+  border-color: rgba(255,255,255,0.09);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+html.dark .profile-identity h2 { color: var(--text); }
+html.dark .profile-identity p  { color: var(--muted); }
+html.dark .profile-hero-role {
+  background: rgba(22,163,74,0.15);
+  border-color: rgba(22,163,74,0.3);
+  color: #4ade80;
+}
+html.dark .profile-vdivider { background: rgba(255,255,255,0.08); }
+html.dark .info-row { border-bottom-color: rgba(255,255,255,0.07); }
+html.dark .info-label { color: var(--muted); }
+html.dark .info-value { color: var(--text); }
+html.dark .card {
+  background: rgba(26,32,50,0.82);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+html.dark .section-title { color: var(--muted); }
+html.dark .welcome-banner {
+  background: linear-gradient(135deg, rgba(2,136,214,0.12), rgba(1,161,4,0.12));
+  border-color: rgba(1,161,4,0.25);
+}
+html.dark .welcome-banner h3 { color: var(--text); }
+html.dark .welcome-banner p  { color: var(--muted); }
+html.dark .photo-upload-zone {
+  background: var(--surface2);
+  border-color: rgba(255,255,255,0.12);
+}
+html.dark .photo-upload-zone:hover { background: rgba(1,161,4,0.08); border-color: rgba(1,161,4,0.4); }
+html.dark .photo-upload-zone .upload-title { color: var(--text); }
+html.dark .photo-upload-zone .upload-hint  { color: var(--muted); }
+html.dark .photo-upload-icon {
+  background: rgba(22,163,74,0.15);
+  border-color: rgba(22,163,74,0.3);
+}
+html.dark .logout-modal {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+html.dark .logout-modal h3 { color: var(--text); }
+html.dark .logout-modal p  { color: var(--muted); }
+html.dark .logout-modal-icon {
+  background: rgba(220,38,38,0.15);
+  border-color: rgba(220,38,38,0.3);
+}
+html.dark .user-dropdown {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .user-dropdown a, html.dark .user-dropdown button { color: var(--text); }
+html.dark .user-dropdown a:hover, html.dark .user-dropdown button:hover { background: var(--surface2); }
+html.dark .user-dropdown button.danger:hover { background: rgba(220,38,38,0.12); }
+html.dark .sidebar {
+  background: var(--surface) !important;
+  border-right-color: rgba(255,255,255,0.08) !important;
+}
+html.dark .site-footer {
+  background: #0d1018;
+  border-top-color: rgba(255,255,255,0.07);
+}
+html.dark .footer-brand-desc,
+html.dark .footer-contact-item,
+html.dark .footer-links a,
+html.dark .footer-bottom-copy,
+html.dark .footer-bottom-links a,
+html.dark .footer-license { color: var(--muted); }
+html.dark .footer-col-title { color: var(--text); }
+html.dark .footer-contact-item a { color: var(--muted); }
+html.dark .footer-divider { background: rgba(255,255,255,0.07); }
+
+/* Smooth transition for theme switch */
+.card, .sidebar, .profile-merged, .photo-upload-zone,
+.user-dropdown, .site-footer, .nav-item {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+}
+.sidebar { transition-property: left, box-shadow, background, border-color !important; transition-duration: .28s, .28s, .3s, .3s !important; }
+
 /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+
+/* — Tablet (1024px) — */
 @media (max-width: 1024px) {
+  .main { padding: 32px 28px; }
+  .profile-merged { gap: 36px; padding: 36px 32px; }
+  .profile-identity { min-width: 200px; }
+  .avatar-large, .avatar-large-placeholder { width: 160px !important; height: 160px !important; }
+  .avatar-large-placeholder { font-size: 56px !important; }
   .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
   .site-footer { padding: 40px 28px 24px; }
 }
+
+/* — Tablet portrait / large phone (768px) — */
 @media (max-width: 768px) {
-  /* Grid rows: 64px matches dashboard.html exactly (was 72px — mismatched) */
   .layout { grid-template-columns: 1fr !important; grid-template-rows: 64px 1fr auto !important; }
   .topbar { height: 64px !important; padding: 0 16px !important; gap: 10px !important; }
   .topbar-badge { display: none !important; }
   .menu-toggle { display: flex !important; align-items: center; justify-content: center; }
-  /* sidebar-wrap: zero-size container with overflow:visible so fixed-pos sidebar can escape */
   .sidebar-wrap {
-    display: block !important;         /* override sber.css display:none !important */
+    display: block !important;
     position: fixed !important; top: 64px !important; left: 0 !important;
     width: 0 !important; height: 0 !important; overflow: visible !important;
     z-index: 300; pointer-events: none;
@@ -327,14 +466,15 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
   .sidebar {
     position: fixed !important; left: -260px; top: 64px;
     height: calc(100vh - 64px) !important; z-index: 300; width: 248px;
-    background: rgba(255,255,255,0.94) !important;
+    background: rgba(255,255,255,0.96) !important;
     backdrop-filter: blur(20px) saturate(1.6) !important;
     -webkit-backdrop-filter: blur(20px) saturate(1.6) !important;
     display: flex !important; flex-direction: column; gap: 2px;
-    transition: left .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease;
+    transition: left .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease, background .3s !important;
     box-shadow: none !important; border-right: 1px solid rgba(0,0,0,0.1) !important;
     min-height: unset !important; padding: 16px 10px !important; pointer-events: auto;
   }
+  html.dark .sidebar { background: rgba(22,26,40,0.97) !important; border-right-color: rgba(255,255,255,0.1) !important; }
   .sidebar.open { left: 0; box-shadow: 6px 0 32px rgba(0,0,0,0.18) !important; }
   .sidebar-overlay {
     display: block !important; position: fixed; inset: 0;
@@ -343,20 +483,53 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
   }
   .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
   .main { padding: 20px 16px; width: 100%; }
-  /* Profile-specific mobile */
-  .profile-merged { flex-direction: column; gap: 24px; padding: 28px 16px; align-items: center !important; }
+  .profile-merged { flex-direction: column; gap: 20px; padding: 28px 20px; align-items: center !important; }
   .profile-vdivider { width: 90% !important; height: 1px !important; }
   .profile-data { width: 100%; }
-  .card { padding: 24px 16px; }
-  .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px !important; }
-  .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .card { padding: 24px 18px; border-radius: 14px; }
   .avatar-large, .avatar-large-placeholder { width: 140px !important; height: 140px !important; }
   .avatar-large-placeholder { font-size: 48px !important; }
   .profile-identity h2 { font-size: 26px !important; }
   .profile-identity { min-width: unset !important; }
+  .info-row { padding: 16px 0; }
   .info-label { font-size: 13px !important; }
   .info-value { font-size: 14px !important; }
+  .logout-modal-btns { flex-direction: column; gap: 10px; }
+  .logout-modal-btns button { width: 100%; }
+  .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px !important; }
+  .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* — Phone (480px) — */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .topbar { gap: 8px !important; }
+  .topbar-title { font-size: 15px; }
+  .topbar-subtitle { display: none; }
+  .sber-logo-sm { height: 28px !important; }
+  .user-pill { padding: 6px 10px !important; gap: 6px !important; font-size: 13px !important; }
+  .user-pill-avatar, .user-avatar { width: 30px !important; height: 30px !important; font-size: 11px !important; }
+  #topbarUserName { display: none; }
+  .theme-toggle { width: 32px; height: 32px; }
+  .main { padding: 14px 12px; }
+  .profile-merged { padding: 20px 14px; gap: 16px; border-radius: 14px; }
+  .avatar-large, .avatar-large-placeholder { width: 110px !important; height: 110px !important; }
+  .avatar-large-placeholder { font-size: 36px !important; }
+  .profile-identity h2 { font-size: 22px !important; }
+  .profile-identity p { font-size: 13px !important; }
+  .profile-hero-role { font-size: 12px !important; padding: 4px 12px !important; }
+  .info-row { padding: 12px 0; }
+  .info-label { font-size: 12px !important; }
+  .info-value { font-size: 13px !important; }
+  .card { padding: 16px 12px; border-radius: 12px; }
+  .section-title { font-size: 10px !important; margin-bottom: 14px !important; }
+  .photo-upload-zone { padding: 28px 14px; }
+  .logout-modal { padding: 32px 20px 28px; border-radius: 18px; }
+  .logout-modal h3 { font-size: 18px; }
+  .site-footer { padding: 24px 12px 16px !important; }
+  .footer-bottom-links { gap: 12px; }
+  .user-dropdown { min-width: 140px; right: -8px; }
 }
 
 /* ── User dropdown (identical to dashboard) ── */
@@ -418,11 +591,28 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
     <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm" style="filter:brightness(0) invert(1);">
     <div style="display:flex;flex-direction:column;gap:2px">
       <span class="topbar-title">Профиль</span>
-      <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;">Управление аккаунтом</span>
+      <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;"
+            data-typewriter
+            data-tw-phrases='["Управление аккаунтом","Настройки профиля","Загрузка фото","История токенов"]'
+            data-tw-speed="55"
+            data-tw-delete-speed="28"
+            data-tw-pause="2800">Управление аккаунтом</span>
     </div>
     <span class="topbar-badge">Мой аккаунт</span>
     <div class="topbar-divider"></div>
     <a href="dashboard.html" class="topbar-badge" style="text-decoration:none">← Дашборд</a>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему" title="Тёмная / светлая тема">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
     <div class="user-pill-wrap">
       <div class="user-pill" onclick="toggleProfileDropdown(event)">
         <div class="user-pill-avatar" id="topbarAvatar"></div>
@@ -937,6 +1127,14 @@ document.addEventListener('keydown', function(e) {
   });
 })();
 
+/* ── Effects.js included at end of body — see script tag below ───── */
+
+/* ── Theme toggle ───────────────────────────────────────────────── */
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
 /* ── Sidebar mobile toggle ──────────────────────────────────────── */
 function toggleMobileSidebar() {
   document.getElementById('mobileSidebar').classList.toggle('open');
@@ -947,5 +1145,6 @@ function closeMobileSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
 </script>
+<script src="assets/js/effects.js"></script>
 </body>
 </html>
