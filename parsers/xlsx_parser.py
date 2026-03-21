@@ -1,46 +1,44 @@
 import pandas as pd
-import openpyxl
 
 
 def _map_dtype(series: pd.Series) -> str:
-    if pd.api.types.is_bool_dtype(series):           return "bool"
-    if pd.api.types.is_integer_dtype(series):        return "int64"
-    if pd.api.types.is_float_dtype(series):          return "float64"
-    if pd.api.types.is_datetime64_any_dtype(series): return "datetime"
-    if pd.api.types.is_timedelta64_dtype(series):    return "timedelta"
-    if isinstance(series.dtype, pd.CategoricalDtype):return "category"
+    if pd.api.types.is_bool_dtype(series):            return "bool"
+    if pd.api.types.is_integer_dtype(series):         return "int64"
+    if pd.api.types.is_float_dtype(series):           return "float64"
+    if pd.api.types.is_datetime64_any_dtype(series):  return "datetime"
+    if pd.api.types.is_timedelta64_dtype(series):     return "timedelta"
+    if isinstance(series.dtype, pd.CategoricalDtype): return "category"
     return "str"
 
 
 def _build_columns(df: pd.DataFrame) -> list:
     columns = []
     for col in df.columns:
-        series = df[col]
-        null_count = int(series.isna().sum())
+        series   = df[col]
         non_null = series.dropna()
 
-        sample = non_null.unique()[0] if len(non_null) > 0 else None
-
-        if hasattr(sample, "item"):
-            sample = sample.item()
+        # список из 2 значений
+        sample = []
+        for val in non_null.head(2):
+            sample.append(val.item() if hasattr(val, "item") else val)
 
         columns.append({
-            "name": col,
-            "dtype": _map_dtype(series),
-            "sample": sample,
-            "has_nulls": null_count > 0,
+            "name":     col,
+            "dtype":    _map_dtype(series),
+            "sample":   sample,                        # ← список
+            "nullable": int(series.isna().sum()) > 0,  # ← nullable не has_nulls
         })
     return columns
 
 
 def _generate_schema_hint(filepath: str) -> dict:
-    df = pd.read_excel(filepath, engine="openpyxl")
+    df = pd.read_excel(filepath, engine="openpyxl", nrows=5)  # ← nrows=5
     return {
         "file_type": "xlsx",
-        "separator": None,
+        "separator": "xlsx",   # ← не None, а "xlsx" чтобы промпт не писал split('None')
         "row_count": len(df),
         "col_count": len(df.columns),
-        "columns": _build_columns(df),
+        "columns":   _build_columns(df),
     }
 
 

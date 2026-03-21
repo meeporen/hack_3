@@ -1,7 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 
 CODE_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", """Ты генерируешь TypeScript функцию трансформации CSV файла в JSON.
+    ("system", """Ты генерируешь TypeScript функцию трансформации файла в JSON.
 
 Сигнатура строго такая — не меняй:
 export default function(base64file: string): TargetData[] {{ ... }}
@@ -11,7 +11,7 @@ export default function(base64file: string): TargetData[] {{ ... }}
 - Разделитель: "{separator}"
 - Строк: {row_count}, Колонок: {col_count}
 
-## Схема колонок CSV (name — точное название колонки, dtype — тип, sample — примеры)
+## Схема колонок (name — точное название, dtype — тип, sample — примеры)
 {columns}
 
 ## Целевой JSON (пример одного объекта — ключи которые нужно вернуть)
@@ -20,7 +20,7 @@ export default function(base64file: string): TargetData[] {{ ... }}
 ## Ошибки предыдущей попытки — ОБЯЗАТЕЛЬНО исправь их
 {errors}
 
-## Обязательный шаблон — используй именно эту структуру
+## Шаблон для CSV (если file_type = "csv")
 
 export default function(base64file: string): TargetData[] {{
   const text = atob(base64file).replace(/^\\uFEFF/, '')
@@ -57,24 +57,75 @@ export default function(base64file: string): TargetData[] {{
   return lines.slice(1).map((line: string) => {{
     const cells = parseLine(line)
     return {{
-      // подставь сюда все ключи из target_json
-      // используй get(cells, 'Точное название колонки из схемы выше')
+      // маппинг полей
     }}
   }})
 }}
 
+## Шаблон для XLSX (если file_type = "xlsx")
+
+export default function(base64file: string): TargetData[] {{
+  const workbook = XLSX.read(base64file, {{type: 'base64'}})
+  const sheet = workbook.Sheets[workbook.SheetNames[0]]
+  const [headerRow, ...dataRows] = XLSX.utils.sheet_to_json(sheet, {{header: 1}}) as any[][]
+  const headers = headerRow.map(String)
+
+  const get = (cells: any[], name: string): string | null => {{
+    const idx = headers.indexOf(name)
+    return idx === -1 ? null : (String(cells[idx] ?? '').trim() || null)
+  }}
+  const toNum = (v: string | null): number | null =>
+    v === null ? null : (isNaN(Number(v)) ? null : Number(v))
+  const toStr = (v: string | null): string | null =>
+    v === null || v === '' ? null : v
+  const toBool = (v: string | boolean | null): boolean =>
+    v === 'Да' || v === 'да' || v === true
+
+  return dataRows.map((cells: any[]) => {{
+    return {{
+      // маппинг полей
+    }}
+  }})
+}}
+
+## Подсказки для неочевидных полей
+- creator           ← "Сделка - Создал"
+- deal              ← "Сделка"
+- dealId            ← "Сделка - Идентификатор"
+- dealIdentifier    ← "Сделка - Идентификатор"
+- identifierRevenue ← "Идентификатор (Выручка)"
+- revenue           ← "Выручка"
+- lastUpdateDate    ← "Дата последнего обновления"
+- stageTransitionTime ← "Время перехода на текущую стадию"
+- dealStageFinal    ← get(cells, "Стадия (Сделка)") === "Закрыта"
+
+## КРИТИЧНО — скобки в названиях колонок
+- Колонки содержащие (с НДС) в названии требуют особого внимания
+- НЕВЕРНО:  toNum(get(cells, 'Сделка - Итоговая сумма услуг (с НДС)'),
+- ВЕРНО:    toNum(get(cells, 'Сделка - Итоговая сумма услуг (с НДС)')),
+- Правило: после get(...) всегда ставь )) перед запятой если обёрнуто в toNum/toStr/toBool
+
+## КРИТИЧНО — частые ошибки с boolean
+- НИКОГДА не пиши toBool(get(...) === 'что-то') — это передаёт boolean в функцию ожидающую string
+- ВЕРНО для Да/Нет колонок:    directSupply: toBool(get(cells, 'Сделка - Прямая поставка'))
+- ВЕРНО для dealStageFinal:    dealStageFinal: get(cells, 'Стадия (Сделка)') === 'Закрыта'
+- toBool принимает string | null, НЕ boolean
+
+## КРИТИЧНО — опечатка в переменной
+- НИКОГДА не пиши ccells — только cells
+- ВЕРНО:   siteLead: toBool(get(cells, 'Сделка - Лид с сайта'))
+- НЕВЕРНО: siteLead: toBool(get(ccells, 'Сделка - Лид с сайта'))
+
 ## Правила маппинга
+- Выбери шаблон исходя из file_type
 - Ключи результата берёшь СТРОГО из target_json
 - Названия колонок берёшь СТРОГО из поля name в схеме колонок
-- Сопоставляй по смыслу самостоятельно
 - dtype int64/float64 → toNum()
 - sample ['Да','Нет'] → toBool()
 - nullable: true → string | null
-- dealStageFinal → get(cells, 'Стадия (Сделка)') === 'Закрыта'
-- Все ключи из target_json должны быть в результате
 - НИКОГДА не используй cells[0], cells[1] и т.д.
 - НИКОГДА не вызывай функции которые сам не определил
-- НИКОГДА не пиши опечатки в названиях переменных — cells это cells везде
+- НИКОГДА не пиши опечатки в переменных
 - Верни ТОЛЬКО TypeScript код. Без markdown. Без пояснений.
 """),
     ("user", "Сгенерируй функцию"),

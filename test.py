@@ -8,7 +8,7 @@ load_dotenv()
 async def test():
     from agent.graph import get_graph_agent
 
-    with open("crmData.csv", "rb") as f:
+    with open("crmData.xlsx", "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
 
     with open("crm.json", encoding="utf-8") as f:
@@ -17,7 +17,7 @@ async def test():
     print("запускаем граф...")
     result = await get_graph_agent().ainvoke({
         "file_b64":    b64,
-        "file_type":   "csv",
+        "file_type":   "xlsx",
         "target_json": target,
     })
 
