@@ -7,7 +7,6 @@ Pipeline: PNG/JPG → Llama-3.2-90B vision (OpenRouter) → JSON array → DataF
 import base64
 import json
 import os
-import re
 import tempfile
 
 import pandas as pd
@@ -43,7 +42,7 @@ def generate_schema_hint(filepath: str) -> dict:
     from src.config import settings
 
     ext = filepath.lower().rsplit(".", 1)[-1]
-    mime = "image/jpeg" if ext in ("jpg", "jpeg") else "image/png"
+    mime = "image/png"  # _preprocess всегда сохраняет PNG
 
     print(f"\n[image_parser] ── шаг 1: чтение и предобработка ───────────")
     print(f"[image_parser] filepath : {filepath}")

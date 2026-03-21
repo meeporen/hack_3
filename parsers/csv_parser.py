@@ -1,6 +1,5 @@
 import re
 import pandas as pd
-import json
 
 _NUM_DASH_NUM = re.compile(r'^\d+[-]\d+$')
 
@@ -67,10 +66,3 @@ def _map_dtype(series: pd.Series) -> str:
     return "str"
 
 
-if __name__ == "__main__":
-    import sys
-    path = sys.argv[1] if len(sys.argv) > 1 else input("Путь к файлу: ")
-    try:
-        print(json.dumps(_generate_schema_hint(path), ensure_ascii=False, indent=4))
-    except Exception as e:
-        print(f"Ошибка: {e}")
