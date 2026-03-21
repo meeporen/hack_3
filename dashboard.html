@@ -147,6 +147,118 @@ textarea, input[type=text] {
 .json-key { color: var(--blue); min-width: 140px; }
 .json-val { color: var(--yellow); }
 .json-val.num  { color: var(--accent2); }
+
+/* ── TERMINAL (glassmorphism) ── */
+.terminal-window {
+  background: rgba(6, 10, 6, 0.88);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(39, 201, 63, 0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  box-shadow:
+    0 0 0 1px rgba(39, 201, 63, 0.04),
+    0 0 48px rgba(39, 201, 63, 0.07),
+    0 10px 40px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.terminal-titlebar {
+  background: rgba(10, 16, 10, 0.96);
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid rgba(39, 201, 63, 0.1);
+  user-select: none;
+}
+.terminal-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.terminal-dot-red    { background: #ff5f56; box-shadow: 0 0 5px rgba(255,95,86,.45); }
+.terminal-dot-yellow { background: #ffbd2e; box-shadow: 0 0 5px rgba(255,189,46,.45); }
+.terminal-dot-green  { background: #27c93f; box-shadow: 0 0 5px rgba(39,201,63,.45); }
+.terminal-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(39, 201, 63, 0.75);
+  margin-left: 6px;
+  flex: 1;
+  letter-spacing: 0.05em;
+}
+.terminal-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(39, 201, 63, 0.55);
+  border: 1px solid rgba(39, 201, 63, 0.18);
+  border-radius: 4px;
+  padding: 2px 8px;
+  letter-spacing: .04em;
+  transition: color .3s, border-color .3s;
+}
+.terminal-badge.is-running { color: #27c93f; border-color: rgba(39,201,63,.35); }
+.terminal-badge.is-done    { color: #27c93f; border-color: rgba(39,201,63,.35); }
+.terminal-clear-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,.28);
+  background: none;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 4px;
+  padding: 2px 9px;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: color .2s, border-color .2s;
+  flex-shrink: 0;
+}
+.terminal-clear-btn:hover { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.25); }
+.terminal-progress-bar {
+  height: 2px;
+  background: rgba(39, 201, 63, 0.07);
+}
+.terminal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a8c2a, #27c93f, #00ff88);
+  transition: width .45s ease;
+  box-shadow: 0 0 10px rgba(39, 201, 63, 0.55);
+}
+.terminal-body {
+  padding: 16px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  color: rgba(39, 201, 63, 0.8);
+  min-height: 240px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(39,201,63,.14) transparent;
+}
+.terminal-body::-webkit-scrollbar { width: 4px; }
+.terminal-body::-webkit-scrollbar-track { background: transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background: rgba(39,201,63,.18); border-radius: 2px; }
+.term-line    { display: block; white-space: pre-wrap; word-break: break-all; }
+.term-empty   { display: block; height: 0.45em; }
+.term-step    { color: rgba(39, 201, 63, 0.82); }
+.term-info    { color: rgba(39, 201, 63, 0.4); }
+.term-ok      { color: #27c93f; text-shadow: 0 0 8px rgba(39,201,63,.35); }
+.term-http    { color: #5dade2; }
+.term-token   { color: #f4e842; }
+.term-prog    { color: rgba(39, 201, 63, 0.6); letter-spacing: -0.01em; }
+.term-warn    { color: #ffbd2e; }
+.term-err     { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,.3); }
+.term-success { color: #27c93f; font-weight: 700; text-shadow: 0 0 14px rgba(39,201,63,.55); }
+.term-cursor {
+  display: inline-block; width: 8px; height: 14px;
+  background: rgba(39, 201, 63, 0.85); vertical-align: middle;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(39, 201, 63, 0.55);
+  animation: blink 1.1s step-start infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@media (max-width: 640px) {
+  .terminal-body { font-size: 10.5px; padding: 10px 12px; max-height: 300px; }
+  .terminal-title { font-size: 10px; }
+}
 </style>
 </head>
 <body>
@@ -324,6 +436,24 @@ textarea, input[type=text] {
         <div class="metric"><div class="metric-label">Попытки</div><div class="metric-value" id="resRetries">1 / 3</div></div>
         <div class="metric"><div class="metric-label">Записей</div><div class="metric-value c-blue" id="resRecords">5</div></div>
       </div>
+      <!-- TERMINAL WINDOW -->
+      <div class="terminal-window" id="terminalWindow">
+        <div class="terminal-titlebar">
+          <div class="terminal-dot terminal-dot-red"></div>
+          <div class="terminal-dot terminal-dot-yellow"></div>
+          <div class="terminal-dot terminal-dot-green"></div>
+          <span class="terminal-title">📟 CONVERTER CONSOLE</span>
+          <span class="terminal-badge" id="terminalBadge">● idle</span>
+          <button class="terminal-clear-btn" onclick="termClear()">clear</button>
+        </div>
+        <div class="terminal-progress-bar">
+          <div class="terminal-progress-fill" id="termProgressFill" style="width:0%"></div>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <span class="term-cursor" id="termCursor"></span>
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Сгенерированный TypeScript</div>
@@ -366,6 +496,7 @@ textarea, input[type=text] {
 
 <script src="assets/js/storage.js"></script>
 <script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
 <script>
 // ── Auth guard ──
 if (!requireAuth()) throw new Error('not auth');
@@ -470,6 +601,245 @@ async function runPipeline() {
   await delay(300); showResult();
 }
 
+// ── Terminal ──────────────────────────────────────────────────────────────────
+
+// Current time as [HH:MM:SS] — called at render time so each line gets its real timestamp
+function _ts() {
+  const n = new Date();
+  const p = v => v.toString().padStart(2,'0');
+  return `[${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}]`;
+}
+
+// ASCII progress bar: "████████████░░░░░░░░  62%"
+function _progBar(pct) {
+  const total = 22, filled = Math.round(pct / 100 * total);
+  return '█'.repeat(filled) + '░'.repeat(total - filled);
+}
+
+// Move the thin top progress bar
+function _setProgress(pct) {
+  document.getElementById('termProgressFill').style.width = pct + '%';
+}
+
+// Clear terminal output (keeps cursor)
+function termClear() {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  body.innerHTML = '';
+  body.appendChild(cursor);
+  cursor.style.display = '';
+  _setProgress(0);
+  const badge = document.getElementById('terminalBadge');
+  badge.textContent = '● idle';
+  badge.className = 'terminal-badge';
+}
+
+// Append a full line instantly
+function _appendLine(text, cls) {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  if (!text) {
+    const el = document.createElement('span'); el.className = 'term-empty';
+    body.insertBefore(el, cursor);
+  } else {
+    const el = document.createElement('span'); el.className = 'term-line ' + cls;
+    el.textContent = text; body.insertBefore(el, cursor);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+// Type a line character-by-character (typing animation)
+async function _typeLine(text, cls, speed) {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  const el = document.createElement('span');
+  el.className = 'term-line ' + cls;
+  body.insertBefore(el, cursor);
+  for (const ch of text) {
+    el.textContent += ch;
+    body.scrollTop = body.scrollHeight;
+    await new Promise(r => setTimeout(r, speed));
+  }
+}
+
+// Simple wait helper
+const _w = ms => new Promise(r => setTimeout(r, ms));
+
+// Build per-file-type step list.
+// Steps: [type, text, waitMs, charSpeed, progressPct]
+//   type      – 'type' (typed) | 'instant' | 'empty' | 'prog' (ASCII bar line)
+//   text      – log message WITHOUT timestamp (added at render time) or null for 'prog'/'empty'
+//   waitMs    – ms to wait before this step
+//   charSpeed – ms per character (only for 'type')
+//   progressPct – 0-100 or null
+function _buildSteps(ext, fileName, fileSize, schema, jobId) {
+  const schemaShort = schema.replace(/\s+/g,' ').slice(0,50) + (schema.length > 50 ? '…' : '');
+
+  const start = [
+    ['type',    `Initializing Converter Agent...`,                              0,  14, null],
+    ['type',    `Loading file: ${fileName}`,                                  160,  13, null],
+    ['type',    `Analyzing file structure...`,                                 240,  12,   8],
+    ['type',    `Detected format: ${ext.toUpperCase()}  ·  size: ${fileSize}`,280,  11, null],
+    ['empty',   null, 100, 0, null],
+  ];
+
+  // File-type-specific parsing steps
+  let parse = [];
+  if (ext === 'pdf') {
+    parse = [
+      ['type',    `Parsing PDF document structure...`,                          0,  13,  15],
+      ['instant', `Found: 12 pages, 3 embedded tables, 847 text blocks`,     480,   0, null],
+      ['type',    `Starting OCR text recognition...`,                         220,  13, null],
+      ['prog',    null, 220, 0, 32],
+      ['instant', `OCR progress: 45%...`,                                     680,   0, null],
+      ['prog',    null,   0, 0, 45],
+      ['instant', `OCR progress: 85%...`,                                     780,   0, null],
+      ['prog',    null,   0, 0, 56],
+      ['type',    `OCR complete  ·  2,340 tokens extracted`,                  600,  14, null],
+      ['type',    `Building schema_hint from PDF tables...`,                  200,  13, null],
+      ['instant', `schema_hint: {columns: 18, sample: 3 rows}`,              500,   0, null],
+    ];
+  } else if (['png','jpg','jpeg','webp'].includes(ext)) {
+    parse = [
+      ['type',    `Loading image into memory...`,                               0,  13,  15],
+      ['instant', `Image: 1920×1080 px  ·  3 channels`,                      400,   0, null],
+      ['type',    `Detecting tabular regions in image...`,                    200,  13, null],
+      ['prog',    null, 200, 0, 30],
+      ['instant', `Found 2 table regions  ✓`,                                 720,   0, null],
+      ['type',    `OCR scanning table cells...`,                              200,  13, null],
+      ['prog',    null, 300, 0, 48],
+      ['instant', `OCR confidence: 94.2%`,                                    820,   0, null],
+      ['type',    `Extracting cell values...`,                                200,  13, null],
+      ['instant', `schema_hint: {columns: 8, sample: 5 rows}`,               480,   0, null],
+    ];
+  } else if (ext === 'csv') {
+    parse = [
+      ['type',    `Parsing CSV rows...`,                                        0,  13,  15],
+      ['prog',    null, 200, 0, 28],
+      ['instant', `Detected: 847 rows × 24 columns`,                         480,   0, null],
+      ['type',    `Inferring column types...`,                                200,  13, null],
+      ['instant', `types: {string×8, number×12, date×4}`,                    600,   0, null],
+      ['type',    `schema_hint extracted  ✓`,                                300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (['xls','xlsx'].includes(ext)) {
+    parse = [
+      ['type',    `Opening Excel workbook...`,                                  0,  13,  15],
+      ['instant', `Sheets found: Sheet1, Sheet2, Summary`,                    400,   0, null],
+      ['type',    `Reading active sheet: Sheet1`,                             200,  13, null],
+      ['prog',    null, 200, 0, 28],
+      ['instant', `Detected: 1,204 rows × 16 columns`,                       600,   0, null],
+      ['type',    `Resolving merged cells & formulas...`,                     200,  13, null],
+      ['instant', `schema_hint: {columns: 16, sample: 3 rows}`,              580,   0, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (ext === 'json') {
+    parse = [
+      ['type',    `Parsing JSON structure...`,                                  0,  13,  15],
+      ['instant', `Root type: Array  ·  847 elements`,                        350,   0, null],
+      ['type',    `Sampling keys from first 10 elements...`,                  200,  13, null],
+      ['prog',    null, 200, 0, 32],
+      ['instant', `Keys: dealId, amount, stage, createdAt, responsible`,      420,   0, null],
+      ['type',    `schema_hint built  ✓`,                                     300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (['docx','doc'].includes(ext)) {
+    parse = [
+      ['type',    `Parsing DOCX structure...`,                                  0,  13,  15],
+      ['instant', `Found: 24 paragraphs, 4 tables`,                           440,   0, null],
+      ['type',    `Extracting table data...`,                                 200,  13, null],
+      ['prog',    null, 200, 0, 28],
+      ['instant', `Table 1: 847 rows × 12 columns  ✓`,                       600,   0, null],
+      ['type',    `schema_hint extracted  ✓`,                                 300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else {
+    parse = [
+      ['type',    `Reading file bytes...`,                                       0,  13,  15],
+      ['prog',    null, 280, 0, 28],
+      ['instant', `MIME type detected  ·  ${ext.toUpperCase()} format`,       400,   0, null],
+      ['type',    `Extracting data structure...`,                              200,  13, null],
+      ['instant', `schema_hint: {columns: 12, sample: 2 rows}`,              580,   0, null],
+      ['prog',    null,   0, 0, 48],
+    ];
+  }
+
+  const llm = [
+    ['empty',   null, 100, 0, null],
+    ['type',    `Connecting to GigaChat-2-Max API...`,                          0,  14,  60],
+    ['instant', `POST /api/v1/prediction/upload  →  202 Accepted`,            260,   0, null],
+    ['instant', `job_id: "${jobId}"  ·  status: processing`,                  100,   0, null],
+    ['empty',   null,  60, 0, null],
+    ['type',    `LLM generating TypeScript code...`,                           200,  13, null],
+    ['instant', `prompt_tokens=240  completion_tokens=50  total=290`,         980,   0, null],
+    ['prog',    null,  80, 0, 76],
+    ['type',    `TypeScript code generated  ✓`,                               240,  16, null],
+    ['empty',   null,  80, 0, null],
+    ['type',    `Running tsc compiler...`,                                       0,  14, null],
+    ['instant', `tsc  →  0 errors  ✓`,                                        740,   0, null],
+    ['type',    `Node runtime validation...`,                                  180,  14, null],
+    ['instant', `runtime ✓   JSON shape ✓`,                                   640,   0, null],
+    ['prog',    null,  80, 0, 94],
+  ];
+
+  const end = [
+    ['empty',   null, 120, 0, null],
+    ['type',    `[SUCCESS] Conversion complete!`,                               0,  18, 100],
+    ['instant', `Output: result.json  (${fileSize})`,                         240,   0, null],
+    ['instant', `Download ready!`,                                             200,   0, null],
+  ];
+
+  return [...start, ...parse, ...llm, ...end];
+}
+
+// Main terminal orchestrator — called from showResult()
+async function runTerminal(fileName, schema) {
+  const body   = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  body.innerHTML = ''; body.appendChild(cursor); cursor.style.display = '';
+  _setProgress(0);
+  const badge = document.getElementById('terminalBadge');
+  badge.textContent = '● running'; badge.className = 'terminal-badge is-running';
+
+  const ext      = (fileName.split('.').pop() || 'csv').toLowerCase();
+  const fileSize = state.file ? (state.file.size / 1024).toFixed(1) + ' KB' : '14.2 KB';
+  const jobId    = 'job_' + Math.random().toString(36).slice(2, 10);
+  const steps    = _buildSteps(ext, fileName, fileSize, schema, jobId);
+
+  for (const [type, text, wait, speed, progress] of steps) {
+    if (wait > 0) await _w(wait);
+
+    if (type === 'empty') {
+      _appendLine('', '');
+    } else if (type === 'prog') {
+      _appendLine(`  ${_progBar(progress)}  ${progress}%`, 'term-prog');
+    } else if (type === 'type') {
+      const ts  = _ts();
+      const full = `${ts} > ${text}`;
+      const cls  = text.startsWith('[SUCCESS]') ? 'term-success'
+                 : text.includes('ERROR')       ? 'term-err'
+                 : 'term-step';
+      await _typeLine(full, cls, speed);
+    } else { // instant
+      const ts   = _ts();
+      const full = `${ts} > ${text}`;
+      const cls  = full.includes('POST') || full.includes('GET')
+                   ? 'term-http'
+                 : full.includes('✓')      ? 'term-ok'
+                 : full.includes('tokens') ? 'term-token'
+                 : 'term-info';
+      _appendLine(full, cls);
+    }
+
+    if (progress !== null) _setProgress(progress);
+  }
+
+  await _w(500);
+  _setProgress(100);
+  badge.textContent = '✓ done'; badge.className = 'terminal-badge is-done';
+  cursor.style.display = 'none';
+}
+
 function showResult() {
   const navR = document.getElementById('navResult');
   navR.style.pointerEvents=''; navR.style.opacity='1';
@@ -478,7 +848,13 @@ function showResult() {
   document.getElementById('resRetries').textContent='1 / 3';
   document.getElementById('resRecords').textContent='5';
   document.getElementById('recordsBadge').textContent='5 records';
-  document.getElementById('resultSub').textContent='Файл: '+(state.file?.name||'data.csv')+' · tsc compiled · runtime ✓';
+  const fname = state.file?.name || 'data.csv';
+  document.getElementById('resultSub').textContent='Файл: '+fname+' · tsc compiled · runtime ✓';
+
+  // Run terminal animation
+  const schema = document.getElementById('targetJson')?.value?.trim() || '{"dealId":"string"}';
+  runTerminal(fname, schema);
+
   document.getElementById('tsOutput').innerHTML=`<span class="code-comment">// Auto-generated by Converter Agent</span>
 <span class="code-kw">interface</span> <span class="code-type">DealData</span> {
   dealId:      <span class="code-type">string</span>
