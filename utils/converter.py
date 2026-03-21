@@ -20,7 +20,7 @@ def convert_to_csv(raw_bytes: bytes, file_type: str) -> tuple[bytes, str]:
     if ft == "csv":
         return raw_bytes, "csv"
 
-    if ft in ("pdf", "docx"):
+    if ft in ("pdf", "docx", "jpg", "jpeg", "png"):
         return raw_bytes, ft
 
     if ft in ("xlsx", "xls"):

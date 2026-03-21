@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     LOGIN: str = "admin"
     PASSWORD: str = "secret"
 
+    # OpenRouter
+    OPENROUTER_API_KEY: str = ""
+
     # GigaChat / LLM
     GIGACHAT_CREDENTIALS: str = ""
     GIGACHAT_SCOPE: str = "GIGACHAT_API_CORP"

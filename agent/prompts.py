@@ -78,6 +78,13 @@ export default function(base64file: string): TargetData[] {{
 - ВЕРНО:   siteLead: toBool(get(cells, 'Сделка - Лид с сайта'))
 - НЕВЕРНО: siteLead: toBool(get(ccells, 'Сделка - Лид с сайта'))
 
+## Колонки с "format": "N-N" (значение вида "254-173" — два числа через дефис)
+- Разбивай ТОЛЬКО через `.split('-')`, никогда не через `.split(' ')`
+- Всегда защищай от null перед split:
+  const _raw = get(cells, 'ИмяКолонки')
+  field1: toNum(_raw ? _raw.split('-')[0] : null),
+  field2: toNum(_raw ? _raw.split('-')[1] : null),
+
 ## Правила маппинга
 - Ключи результата берёшь СТРОГО из target_json — РОВНО столько полей, сколько в target_json, НЕ БОЛЬШЕ
 - НИКОГДА не добавляй поля которых нет в target_json, даже если они есть в файле

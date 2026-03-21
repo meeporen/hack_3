@@ -1,5 +1,8 @@
+import re
 import pandas as pd
 import json
+
+_NUM_DASH_NUM = re.compile(r'^\d+[-]\d+$')
 
 
 def _generate_schema_hint(filepath: str, sample_size: int = 2) -> dict:
@@ -27,9 +30,13 @@ def _generate_schema_hint(filepath: str, sample_size: int = 2) -> dict:
         entry = {
             "name":     col,
             "dtype":    dtype,
-            "sample":   sample,           # ← список
-            "nullable": null_count > 0,   # ← было has_nulls, теперь nullable
+            "sample":   sample,
+            "nullable": null_count > 0,
         }
+        if dtype == "str" and sample and all(
+            _NUM_DASH_NUM.match(str(v).strip()) for v in sample
+        ):
+            entry["format"] = "N-N"
         columns.append(entry)
 
     return {

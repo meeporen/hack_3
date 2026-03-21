@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import tempfile
 import os
@@ -53,6 +54,9 @@ def _get_parser(file_type: str):
     elif file_type == "docx":
         from parsers.docx_parser import generate_schema_hint
         return generate_schema_hint
+    elif file_type in ("jpg", "jpeg", "png"):
+        from parsers.image_parser import generate_schema_hint
+        return generate_schema_hint
     else:
         raise ValueError(f"Unsupported file_type: {file_type}")
 
@@ -69,9 +73,20 @@ async def parse_file(state: AgentState) -> dict:
         tmp_path = tmp.name
 
     try:
-        schema_hint = parser(tmp_path)
+        schema_hint = await asyncio.to_thread(parser, tmp_path)
     finally:
         os.unlink(tmp_path)
+
+    # Для изображений image_parser кладёт CSV в schema_hint["_csv_bytes_b64"].
+    # Подменяем file_b64 и file_type, чтобы дальнейший pipeline работал с CSV.
+    csv_b64 = schema_hint.pop("_csv_bytes_b64", None)
+    schema_hint.pop("_original_type", None)
+    if csv_b64:
+        return {
+            "schema_hint": schema_hint,
+            "file_b64":    csv_b64,
+            "file_type":   "csv",
+        }
 
     return {
         "schema_hint": schema_hint,
@@ -127,11 +142,11 @@ async def validate_code(state: AgentState) -> dict:
             "result_json": [],
         }
 
-    is_valid, errors = run_tsc(ts_code)
+    is_valid, errors = await asyncio.to_thread(run_tsc, ts_code)
 
     result_json = []
     if is_valid:
-        is_valid, result_json, err = run_ts_function(
+        is_valid, result_json, err = await asyncio.to_thread(run_ts_function,
             ts_code,
             state["file_b64"],
             state.get("file_type", "csv"),
