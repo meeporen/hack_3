@@ -122,7 +122,14 @@ async def _run_pipeline(job_id: str, user_id: int):
         })
 
         errors = state.get("errors") or []
-        job["json_output"] = state.get("result_json") or []
+        schema = job["target_schema"]
+        first  = schema[0] if isinstance(schema, list) else schema
+        allowed_keys = set(first.keys())
+        raw_output = state.get("result_json") or []
+        job["json_output"] = [
+            {k: v for k, v in row.items() if k in allowed_keys}
+            for row in raw_output
+        ]
         job["records"]     = len(job["json_output"])
         job["tokens_used"] = state.get("tokens_used", 0)
         job["retries"]     = state.get("retry_count", 0)

@@ -34,5 +34,101 @@
     "records": 5,
     "time": "2026-03-21T08:05:10.407193+00:00",
     "id": 3
+  },
+  {
+    "user_id": 1,
+    "job_id": "b04a3e4ac93a44a6b11167a1f23c1d66",
+    "status": "valid",
+    "filename": "crmData.csv",
+    "file_format": "CSV",
+    "tokens": 4246,
+    "retries": 1,
+    "records": 5,
+    "time": "2026-03-21T15:41:37.082328+00:00",
+    "id": 4
+  },
+  {
+    "user_id": 1,
+    "job_id": "ec08a23daa4a44fb9344f36bb94dda3a",
+    "status": "valid",
+    "filename": "NHL_STANDINGS.xlsx",
+    "file_format": "XLSX",
+    "tokens": 1813,
+    "retries": 1,
+    "records": 32,
+    "time": "2026-03-21T15:43:32.498261+00:00",
+    "id": 5
+  },
+  {
+    "user_id": 1,
+    "job_id": "a8a756af61564bc4aa5a102dd0127b01",
+    "status": "valid",
+    "filename": "NHL_STANDINGS.xlsx",
+    "file_format": "XLSX",
+    "tokens": 1833,
+    "retries": 1,
+    "records": 32,
+    "time": "2026-03-21T15:45:30.283174+00:00",
+    "id": 6
+  },
+  {
+    "user_id": 1,
+    "job_id": "a62fb939f7c841f08a12e0ed384117dc",
+    "status": "valid",
+    "filename": "NHL_STANDINGS.xlsx",
+    "file_format": "XLSX",
+    "tokens": 749,
+    "retries": 1,
+    "records": 32,
+    "time": "2026-03-21T15:46:59.569307+00:00",
+    "id": 7
+  },
+  {
+    "user_id": 1,
+    "job_id": "3240764d8a1d4c07981a7a627af6307f",
+    "status": "valid",
+    "filename": "NHL_STANDINGS.xlsx",
+    "file_format": "XLSX",
+    "tokens": 1362,
+    "retries": 1,
+    "records": 32,
+    "time": "2026-03-21T15:48:29.787928+00:00",
+    "id": 8
+  },
+  {
+    "user_id": 1,
+    "job_id": "a26d68583ba64a1ba1a35af540139a1c",
+    "status": "valid",
+    "filename": "NHL_STANDINGS.xlsx",
+    "file_format": "XLSX",
+    "tokens": 1857,
+    "retries": 1,
+    "records": 32,
+    "time": "2026-03-21T15:52:04.482184+00:00",
+    "id": 9
+  },
+  {
+    "user_id": 1,
+    "job_id": "558f97ca298b46afa7ce6d7fcf49a3d3",
+    "status": "valid",
+    "filename": "NHL_STANDINGS.xlsx",
+    "file_format": "XLSX",
+    "tokens": 1847,
+    "retries": 1,
+    "records": 32,
+    "time": "2026-03-21T15:54:43.899592+00:00",
+    "id": 10
+  },
+  {
+    "user_id": 1,
+    "job_id": "fd6b95fdb5ad4274b3f55728d8c9969c",
+    "status": "valid",
+    "filename": "crmData.csv",
+    "file_format": "CSV",
+    "tokens": 4224,
+    "retries": 1,
+    "records": 5,
+    "time": "2026-03-21T15:56:32.352056+00:00",
+    "id": 11
   }
 ]

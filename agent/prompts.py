@@ -79,7 +79,8 @@ export default function(base64file: string): TargetData[] {{
 - НЕВЕРНО: siteLead: toBool(get(ccells, 'Сделка - Лид с сайта'))
 
 ## Правила маппинга
-- Ключи результата берёшь СТРОГО из target_json
+- Ключи результата берёшь СТРОГО из target_json — РОВНО столько полей, сколько в target_json, НЕ БОЛЬШЕ
+- НИКОГДА не добавляй поля которых нет в target_json, даже если они есть в файле
 - Названия колонок берёшь СТРОГО из поля name в схеме колонок
 - dtype int64/float64 → toNum()
 - sample ['Да','Нет'] → toBool()

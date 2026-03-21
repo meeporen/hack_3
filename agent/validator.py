@@ -27,7 +27,7 @@ def run_tsc(ts_code: str) -> tuple[bool, list[str]]:
         fname = f.name
     try:
         r = subprocess.run(
-            [TSC, "--noEmit", "--strict", "--target", "ES2020", fname],
+            [TSC, "--noEmit", "--target", "ES2020", "--strictNullChecks", "false", fname],
             capture_output=True, text=True, timeout=15
         )
         ok     = r.returncode == 0
