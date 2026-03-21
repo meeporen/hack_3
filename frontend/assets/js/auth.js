@@ -81,7 +81,16 @@ async function doRegister() {
 
 // ── LOGOUT (вызывается из dashboard/profile) ──
 function logout() {
-  if (!confirm('Выйти из аккаунта?')) return;
+  if (typeof window.__showLogoutModal === 'function') {
+    window.__showLogoutModal();
+  } else {
+    if (!confirm('Выйти из аккаунта?')) return;
+    clearSession();
+    window.location.href = 'index.html';
+  }
+}
+
+function _doLogout() {
   clearSession();
   window.location.href = 'index.html';
 }

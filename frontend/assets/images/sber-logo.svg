@@ -1,17 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
-  <defs>
-    <linearGradient id="sberGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%"   stop-color="#0288d6"/>
-      <stop offset="40%"  stop-color="#01a104"/>
-      <stop offset="70%"  stop-color="#02e97e"/>
-      <stop offset="100%" stop-color="#fdf001"/>
-    </linearGradient>
-  </defs>
-  <!-- Circle emblem -->
-  <circle cx="30" cy="30" r="28" fill="url(#sberGrad)"/>
-  <!-- Stylized S arc (Sberbank emblem) -->
-  <path d="M44 18 A16 16 0 0 0 16 30" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <path d="M16 30 A16 16 0 0 0 44 42" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <!-- Wordmark -->
-  <text x="68" y="38" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="white" letter-spacing="-0.5">Сбербанк</text>
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+ "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="1545.000000pt" height="1544.000000pt" viewBox="0 0 1545.000000 1544.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g transform="translate(0.000000,1544.000000) scale(0.100000,-0.100000)"
+fill="#000000" stroke="none">
+<path d="M7705 15421 c-11 -4 -126 -11 -255 -14 -580 -15 -1205 -111 -1785
+-273 -166 -47 -481 -148 -502 -162 -10 -6 17 -217 112 -901 68 -492 126 -895
+128 -898 2 -2 33 10 69 26 229 102 724 256 1021 317 472 96 774 125 1287 124
+369 -1 522 -12 810 -56 625 -96 1179 -270 1735 -544 261 -129 461 -244 715
+-412 l25 -17 740 549 c407 301 740 553 740 559 0 6 -70 64 -156 128 -511 385
+-1017 683 -1590 935 -799 352 -1692 570 -2564 627 -244 16 -508 22 -530 12z"/>
+<path d="M13698 12322 c-133 -99 -5855 -4298 -5933 -4354 l-52 -37 -1434 900
+c-789 495 -1449 909 -1466 921 l-33 20 1 -1104 0 -1103 1473 -925 c810 -508
+1476 -924 1478 -925 3 0 1579 1161 3503 2580 1924 1419 3502 2583 3507 2586
+18 11 -244 515 -420 809 -162 270 -473 721 -496 719 -6 0 -64 -40 -128 -87z"/>
+<path d="M14488 8472 l-817 -607 -1 -130 c-4 -1381 -456 -2660 -1319 -3734
+-138 -173 -423 -481 -444 -481 -5 0 -53 -45 -109 -100 l-100 -100 84 -95 84
+-95 62 -757 c35 -417 68 -822 74 -900 l11 -142 81 56 c223 156 429 317 651
+509 77 66 145 119 151 117 15 -5 268 234 433 410 950 1011 1601 2223 1910
+3559 207 895 250 1800 131 2733 -28 215 -52 365 -59 365 -3 -1 -374 -274 -823
+-608z"/>
+</g>
 </svg>

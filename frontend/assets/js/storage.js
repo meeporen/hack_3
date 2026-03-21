@@ -100,3 +100,20 @@ function refreshSessionPhoto(photoBase64) {
   session.photo = photoBase64;
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
+
+// ── History persistence ──
+const HISTORY_KEY = 'sber_history';
+
+function saveHistory(history) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+  } catch { return []; }
+}
+
+function clearHistoryStorage() {
+  localStorage.removeItem(HISTORY_KEY);
+}
