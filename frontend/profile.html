@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сбербанк · Профиль</title>
+<!-- Favicon — SVG data URI, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230288d6'/%3E%3Cstop offset='.5' stop-color='%2301a104'/%3E%3Cstop offset='1' stop-color='%2316da03'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url(%23g)'/%3E%3Cpath d='M8 19 Q8 10 17 10 L14 7 M17 10 L14 13' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M24 13 Q24 22 15 22 L18 25 M15 22 L18 19' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none' opacity='.8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAI3SURBVFhH7ZdNaBNBFMd/m82mmzQEDRqDiiAiHjxIERU8iYpERA+iePLgyZtHQUREPCjowYMHL548iHhQxA+sWMGDBy8+ioiiRSwaExNjPhqzSTbZ3fV/kxRXaBOzJgv2Bw+2k5n3/u+b2d19oygKiqKgKAqKoigYhmGY5z4AAAAASUVORK5CYII=">
 <!-- Apply saved theme before first paint — prevents flash of wrong theme -->
 <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -560,6 +563,77 @@ html.dark .footer-divider { background: rgba(255,255,255,0.07); }
 .user-dropdown button.danger:hover { background: #fef2f2; color: #dc2626; }
 .user-dropdown svg { width: 15px; height: 15px; flex-shrink: 0; }
 .dropdown-sep { height: 1px; background: rgba(0,0,0,0.08); margin: 4px 0; }
+/* ══ FORMAT PIE CHART ════════════════════════════════════════════════ */
+.pie-section-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+}
+.pie-mock-badge {
+  display: none; align-items: center; gap: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .04em;
+  background: var(--surface2); color: var(--hint);
+  border: 1px solid var(--border2); border-radius: 4px; padding: 2px 8px;
+}
+.pie-mock-badge.visible { display: inline-flex; }
+.pie-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.pie-canvas-wrap {
+  position: relative;
+  width: 220px; height: 220px;
+  flex-shrink: 0;
+}
+#fmtPieChart { width: 100%; height: 100%; display: block; }
+.pie-legend {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pie-legend-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 8px;
+  cursor: pointer; transition: background .15s, opacity .2s;
+  user-select: none; -webkit-user-select: none;
+}
+.pie-legend-item:hover,
+.pie-legend-item.active { background: var(--surface2); }
+.pie-legend-item.hidden { opacity: 0.38; }
+.pie-legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.pie-legend-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 600; color: var(--text); flex: 1; letter-spacing: .04em;
+}
+.pie-legend-pct {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 700; color: var(--muted);
+}
+.pie-tooltip {
+  position: absolute; display: none; pointer-events: none; z-index: 200;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,0,0,0.1); border-radius: 10px;
+  padding: 9px 13px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+  white-space: nowrap; min-width: 110px;
+}
+html.dark .pie-tooltip {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+.pie-tt-row { display: flex; align-items: center; gap: 8px; }
+.pie-tt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pie-tt-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); }
+.pie-tt-pct   { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #01a104; margin-left: auto; padding-left: 14px; }
+.pie-tt-count { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+
+@media (max-width: 640px) {
+  .pie-layout { grid-template-columns: 1fr; justify-items: center; }
+  .pie-canvas-wrap { width: 180px; height: 180px; }
+  .pie-legend { width: 100%; max-width: 280px; }
+}
 </style>
 </head>
 <body>
@@ -763,6 +837,33 @@ html.dark .footer-divider { background: rgba(255,255,255,0.07); }
       <canvas id="tokenChart" height="120"></canvas>
       <div id="tokenChartEmpty" style="display:none;text-align:center;padding:32px;font-size:13px;color:#9ca3af;font-family:'JetBrains Mono',monospace">
         Нет данных · запустите конвертацию
+      </div>
+    </div>
+
+    <!-- ── Format statistics pie chart ──────────────────────────────── -->
+    <div class="card" aria-label="Статистика форматов файлов">
+      <div class="pie-section-header">
+        <div class="section-title" style="margin-bottom:0">Форматы файлов</div>
+        <span class="pie-mock-badge" id="pieMockBadge">демо-данные</span>
+      </div>
+      <div class="pie-layout">
+        <!-- Canvas: donut chart drawn by JS -->
+        <div class="pie-canvas-wrap">
+          <canvas id="fmtPieChart"
+                  role="img"
+                  aria-label="Круговая диаграмма распределения форматов файлов"></canvas>
+          <!-- Floating tooltip (positioned by JS) -->
+          <div class="pie-tooltip" id="fmtPieTooltip" role="tooltip" aria-live="polite">
+            <div class="pie-tt-row">
+              <span class="pie-tt-dot" id="fmtTtDot"></span>
+              <span class="pie-tt-label" id="fmtTtLabel"></span>
+              <span class="pie-tt-pct"   id="fmtTtPct"></span>
+            </div>
+            <div class="pie-tt-count"   id="fmtTtCount"></div>
+          </div>
+        </div>
+        <!-- Legend: built by JS -->
+        <div class="pie-legend" id="fmtPieLegend" role="list" aria-label="Легенда диаграммы"></div>
       </div>
     </div>
 
@@ -1128,6 +1229,445 @@ document.addEventListener('keydown', function(e) {
 })();
 
 /* ── Effects.js included at end of body — see script tag below ───── */
+
+/* ══ FORMAT PIE CHART ════════════════════════════════════════════════
+   Pure Canvas implementation — no external libraries.
+   • Donut chart with animated draw-in (cubic ease-out, 850ms)
+   • Hover: sector expands +8px with glow, tooltip appears
+   • Legend click: toggle sector visibility
+   • Data: real history first, falls back to mock demo data
+   • Dark/light theme aware (reads CSS vars at render time)
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ── Brand colour palette per format ─────────────────────────────── */
+  var PALETTE = {
+    CSV:  { color: '#0288d6', glow: 'rgba(2,136,214,.45)'  },
+    JSON: { color: '#01a104', glow: 'rgba(1,161,4,.45)'    },
+    XLS:  { color: '#16da03', glow: 'rgba(22,218,3,.45)'   },
+    XLSX: { color: '#16da03', glow: 'rgba(22,218,3,.45)'   },
+    PDF:  { color: '#f59e0b', glow: 'rgba(245,158,11,.45)' },
+    DOCX: { color: '#7c3aed', glow: 'rgba(124,58,237,.45)' },
+    DOC:  { color: '#7c3aed', glow: 'rgba(124,58,237,.45)' },
+    PNG:  { color: '#02e97e', glow: 'rgba(2,233,126,.45)'  },
+    JPG:  { color: '#fb923c', glow: 'rgba(251,146,60,.45)' },
+    JPEG: { color: '#fb923c', glow: 'rgba(251,146,60,.45)' },
+  };
+  var FALLBACK_COLORS = [
+    '#0288d6','#01a104','#f59e0b','#7c3aed','#02e97e',
+    '#fb923c','#ec4899','#14b8a6','#ef4444','#6366f1'
+  ];
+
+  /* ── Mock data shown when conversion history is empty ─────────────── */
+  var MOCK = [
+    { label: 'PDF',  value: 35 },
+    { label: 'PNG',  value: 25 },
+    { label: 'CSV',  value: 18 },
+    { label: 'JSON', value: 12 },
+    { label: 'XLS',  value:  5 },
+    { label: 'DOCX', value:  3 },
+    { label: 'JPG',  value:  2 },
+  ];
+
+  /* ── Read history and build format counts ─────────────────────────── */
+  function buildData() {
+    var history = (typeof loadHistory === 'function') ? loadHistory() : [];
+    if (!history.length) return { segments: buildSegments(MOCK), isMock: true };
+
+    var counts = {};
+    history.forEach(function (h) {
+      var fmt = ((h.format || h.outputFormat || h.type || '')).replace(/^\./, '').toUpperCase();
+      if (fmt) counts[fmt] = (counts[fmt] || 0) + 1;
+    });
+    if (!Object.keys(counts).length) return { segments: buildSegments(MOCK), isMock: true };
+
+    var total = Object.values(counts).reduce(function (a, b) { return a + b; }, 0);
+    var raw = Object.entries(counts)
+      .sort(function (a, b) { return b[1] - a[1]; })
+      .map(function (entry) { return { label: entry[0], value: entry[1], count: entry[1] }; });
+
+    return { segments: buildSegments(raw, total), isMock: false };
+  }
+
+  /* ── Convert raw data array into segment objects ──────────────────── */
+  function buildSegments(raw, total) {
+    total = total || raw.reduce(function (s, d) { return s + d.value; }, 0);
+    var angle = -Math.PI / 2;  // start at 12 o'clock
+    var colorIdx = 0;
+
+    return raw.map(function (d) {
+      var pct   = Math.round(d.value / total * 100);
+      var sweep = (d.value / total) * Math.PI * 2;
+      var pal   = PALETTE[d.label] || { color: FALLBACK_COLORS[colorIdx % FALLBACK_COLORS.length], glow: 'rgba(100,100,100,.4)' };
+      colorIdx++;
+      var seg = {
+        label: d.label,
+        value: d.value,
+        count: d.count || null,
+        pct:   pct,
+        color: pal.color,
+        glow:  pal.glow,
+        startAngle: angle,
+        sweep: sweep,
+        visible: true,
+        /* runtime — filled during draw: */
+        _drawnStart: 0, _drawnEnd: 0,
+        _ox: 0, _oy: 0,
+      };
+      angle += sweep;
+      return seg;
+    });
+  }
+
+  /* ── Easing ───────────────────────────────────────────────────────── */
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  /* ── CSS variable reader ──────────────────────────────────────────── */
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  /* ══ PieChart class ══════════════════════════════════════════════════ */
+  function PieChart(canvasEl, legendEl, tooltipEl) {
+    this.canvas     = canvasEl;
+    this.ctx        = canvasEl.getContext('2d');
+    this.legendEl   = legendEl;
+    this.tooltipEl  = tooltipEl;
+    this.segments   = [];
+    this.hoverProg  = [];   /* per-segment 0..1 hover animation */
+    this.drawProg   = 0;    /* 0..1 overall entrance animation  */
+    this.hovered    = -1;
+    this.rafId      = null;
+    this._cw = this._ch = this._cx = this._cy = this._R = this._ri = 0;
+    this._init();
+  }
+
+  PieChart.prototype._init = function () {
+    var result = buildData();
+    this.segments  = result.segments;
+    this.hoverProg = this.segments.map(function () { return 0; });
+
+    if (result.isMock) {
+      var badge = document.getElementById('pieMockBadge');
+      if (badge) badge.classList.add('visible');
+    }
+
+    this._buildLegend();
+    this._resize();
+    this._startEntrance();
+
+    /* Re-layout on container resize */
+    var self = this;
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { self._resize(); self._scheduleRender(); })
+        .observe(this.canvas.parentElement);
+    }
+  };
+
+  /* ── Canvas sizing (DPR-aware for crisp retina rendering) ─────────── */
+  PieChart.prototype._resize = function () {
+    var dpr  = window.devicePixelRatio || 1;
+    var rect = this.canvas.getBoundingClientRect();
+    var size = Math.min(rect.width || 220, rect.height || 220);
+    this.canvas.width  = size * dpr;
+    this.canvas.height = size * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this._cw = size; this._ch = size;
+    this._cx = size / 2; this._cy = size / 2;
+    this._R  = size * 0.41;   /* outer radius */
+    this._ri = size * 0.235;  /* inner radius (donut hole) */
+  };
+
+  /* ── Entrance: animate drawProg 0→1 over 850ms ───────────────────── */
+  PieChart.prototype._startEntrance = function () {
+    var self = this;
+    var start = null;
+    var DURATION = 850;
+    function tick(ts) {
+      if (!start) start = ts;
+      self.drawProg = Math.min((ts - start) / DURATION, 1);
+      self._render();
+      if (self.drawProg < 1) self.rafId = requestAnimationFrame(tick);
+      else { self.rafId = null; self.drawProg = 1; }
+    }
+    this.rafId = requestAnimationFrame(tick);
+  };
+
+  /* ── Schedule a single render frame ──────────────────────────────── */
+  PieChart.prototype._scheduleRender = function () {
+    if (this.rafId) return;
+    var self = this;
+    this.rafId = requestAnimationFrame(function () {
+      self.rafId = null;
+      self._render();
+    });
+  };
+
+  /* ── Hover animation loop ─────────────────────────────────────────── */
+  PieChart.prototype._animateHover = function () {
+    var self = this;
+    function tick() {
+      var needMore = false;
+      self.hoverProg.forEach(function (p, i) {
+        var target = (i === self.hovered) ? 1 : 0;
+        var d = (target - p) * 0.2;
+        if (Math.abs(d) > 0.005) { self.hoverProg[i] += d; needMore = true; }
+        else self.hoverProg[i] = target;
+      });
+      self._render();
+      if (needMore) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  };
+
+  /* ── Main draw routine ────────────────────────────────────────────── */
+  PieChart.prototype._render = function () {
+    var ctx = this.ctx;
+    var cx = this._cx, cy = this._cy, R = this._R, ri = this._ri;
+    var eased = easeOutCubic(this.drawProg);
+    var GAP   = 0.013;  /* small gap between sectors in radians */
+
+    ctx.clearRect(0, 0, this._cw, this._ch);
+
+    /* Recalculate angles from visible segments only */
+    var visTotal = this.segments.reduce(function (s, seg) {
+      return s + (seg.visible ? seg.value : 0);
+    }, 0) || 1;
+
+    var angle = -Math.PI / 2;
+
+    for (var i = 0; i < this.segments.length; i++) {
+      var seg = this.segments[i];
+
+      if (!seg.visible) {
+        seg._drawnStart = angle; seg._drawnEnd = angle;
+        seg._ox = 0; seg._oy = 0;
+        continue;
+      }
+
+      var sweep    = (seg.value / visTotal) * Math.PI * 2 * eased;
+      var hp       = this.hoverProg[i];
+      var expand   = hp * 8;
+      var midAngle = angle + sweep / 2;
+      var ox = Math.cos(midAngle) * expand;
+      var oy = Math.sin(midAngle) * expand;
+
+      /* Glow shadow on hover */
+      if (hp > 0.01) {
+        ctx.shadowColor = seg.glow;
+        ctx.shadowBlur  = 18 * hp;
+      }
+
+      /* Draw donut sector */
+      ctx.beginPath();
+      ctx.arc(cx + ox, cy + oy, R + expand, angle + GAP, angle + sweep - GAP);
+      ctx.arc(cx + ox, cy + oy, ri,         angle + sweep - GAP, angle + GAP, true);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      /* Store for hit-testing */
+      seg._drawnStart = angle;
+      seg._drawnEnd   = angle + sweep;
+      seg._ox = ox; seg._oy = oy;
+
+      angle += sweep;
+    }
+
+    /* Center label */
+    var textColor  = cssVar('--text')  || '#111827';
+    var mutedColor = cssVar('--muted') || '#6b7280';
+
+    if (this.hovered >= 0 && this.drawProg >= 0.5) {
+      var s = this.segments[this.hovered];
+      /* big percentage */
+      ctx.font = 'bold ' + Math.round(R * 0.52) + "px 'Exo 2', sans-serif";
+      ctx.fillStyle   = textColor;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.pct + '%', cx, cy - Math.round(R * 0.12));
+      /* format name below */
+      ctx.font = '600 ' + Math.round(R * 0.22) + "px 'JetBrains Mono', monospace";
+      ctx.fillStyle = mutedColor;
+      ctx.fillText(s.label, cx, cy + Math.round(R * 0.25));
+    } else if (this.drawProg >= 1) {
+      /* total count */
+      var visCount = this.segments.filter(function (s) { return s.visible; }).length;
+      ctx.font = 'bold ' + Math.round(R * 0.44) + "px 'Exo 2', sans-serif";
+      ctx.fillStyle   = textColor;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(visCount, cx, cy - Math.round(R * 0.1));
+      ctx.font = '500 ' + Math.round(R * 0.19) + "px 'Inter', sans-serif";
+      ctx.fillStyle = mutedColor;
+      ctx.fillText('форматов', cx, cy + Math.round(R * 0.26));
+    }
+  };
+
+  /* ── Hit test: which sector contains (x, y)? ─────────────────────── */
+  PieChart.prototype._hitTest = function (x, y) {
+    var cx = this._cx, cy = this._cy, R = this._R, ri = this._ri;
+    var TWO_PI = Math.PI * 2;
+
+    for (var i = 0; i < this.segments.length; i++) {
+      var seg = this.segments[i];
+      if (!seg.visible || seg._drawnStart === seg._drawnEnd) continue;
+
+      var dx = x - (cx + seg._ox);
+      var dy = y - (cy + seg._oy);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < ri - 4 || dist > R + 12) continue;
+
+      /* Normalize mouse angle to our drawing range */
+      var ang = Math.atan2(dy, dx);
+      while (ang < seg._drawnStart) ang += TWO_PI;
+      while (ang > seg._drawnStart + TWO_PI) ang -= TWO_PI;
+      if (ang >= seg._drawnStart && ang <= seg._drawnEnd) return i;
+    }
+    return -1;
+  };
+
+  /* ── Event wiring ─────────────────────────────────────────────────── */
+  PieChart.prototype._bindEvents = function () {
+    var self = this;
+    var canvas = this.canvas;
+    var dpr = window.devicePixelRatio || 1;
+
+    canvas.addEventListener('mousemove', function (e) {
+      if (self.drawProg < 0.5) return;
+      var rect  = canvas.getBoundingClientRect();
+      var scale = (canvas.width / dpr) / rect.width;
+      var x = (e.clientX - rect.left) * scale;
+      var y = (e.clientY - rect.top)  * scale;
+      var hit = self._hitTest(x, y);
+
+      if (hit !== self.hovered) {
+        self.hovered = hit;
+        self._updateLegendActive(hit);
+        self._animateHover();
+        if (hit >= 0) self._showTooltip(e, hit);
+        else          self._hideTooltip();
+      } else if (hit >= 0) {
+        self._moveTooltip(e);
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('mouseleave', function () {
+      if (self.hovered !== -1) {
+        self.hovered = -1;
+        self._updateLegendActive(-1);
+        self._animateHover();
+        self._hideTooltip();
+      }
+    });
+
+    canvas.addEventListener('click', function () {
+      if (self.hovered >= 0) {
+        var seg = self.segments[self.hovered];
+        seg.visible = !seg.visible;
+        self._buildLegend();
+        self._scheduleRender();
+      }
+    });
+  };
+
+  /* ── Tooltip helpers ──────────────────────────────────────────────── */
+  PieChart.prototype._showTooltip = function (e, idx) {
+    var seg = this.segments[idx];
+    var dot   = document.getElementById('fmtTtDot');
+    var label = document.getElementById('fmtTtLabel');
+    var pct   = document.getElementById('fmtTtPct');
+    var count = document.getElementById('fmtTtCount');
+    if (!dot) return;
+    dot.style.background   = seg.color;
+    label.textContent      = seg.label;
+    pct.textContent        = seg.pct + '%';
+    count.textContent      = seg.count ? seg.count + ' конверта' + (seg.count === 1 ? '' : seg.count < 5 ? 'ции' : 'ций') : '';
+    count.style.display    = seg.count ? 'block' : 'none';
+    this.tooltipEl.style.display = 'block';
+    this._moveTooltip(e);
+  };
+  PieChart.prototype._moveTooltip = function (e) {
+    var wrap = this.canvas.parentElement.getBoundingClientRect();
+    var x = e.clientX - wrap.left + 14;
+    var y = e.clientY - wrap.top  - 14;
+    var ttW = this.tooltipEl.offsetWidth  || 120;
+    var ttH = this.tooltipEl.offsetHeight || 56;
+    if (x + ttW + 6 > wrap.width)  x = e.clientX - wrap.left - ttW - 14;
+    if (y + ttH + 6 > wrap.height) y = e.clientY - wrap.top  - ttH - 14;
+    if (x < 0) x = 4;
+    if (y < 0) y = 4;
+    this.tooltipEl.style.left = x + 'px';
+    this.tooltipEl.style.top  = y + 'px';
+  };
+  PieChart.prototype._hideTooltip = function () {
+    this.tooltipEl.style.display = 'none';
+  };
+
+  /* ── Legend ───────────────────────────────────────────────────────── */
+  PieChart.prototype._buildLegend = function () {
+    var self = this;
+    this.legendEl.innerHTML = '';
+    this.segments.forEach(function (seg, i) {
+      var item = document.createElement('div');
+      item.className   = 'pie-legend-item' + (seg.visible ? '' : ' hidden');
+      item.setAttribute('role', 'listitem');
+      item.setAttribute('aria-label', seg.label + ' ' + seg.pct + '%' + (seg.visible ? '' : ' (скрыт)'));
+      item.setAttribute('title', 'Нажмите, чтобы ' + (seg.visible ? 'скрыть' : 'показать'));
+
+      var dot  = document.createElement('span'); dot.className  = 'pie-legend-dot';  dot.style.background = seg.color; dot.style.boxShadow = '0 0 6px ' + seg.color;
+      var name = document.createElement('span'); name.className = 'pie-legend-name'; name.textContent = seg.label;
+      var pct  = document.createElement('span'); pct.className  = 'pie-legend-pct';  pct.textContent  = seg.pct + '%';
+      item.appendChild(dot); item.appendChild(name); item.appendChild(pct);
+
+      item.addEventListener('mouseenter', function () {
+        self.hovered = i;
+        self._updateLegendActive(i);
+        self._animateHover();
+      });
+      item.addEventListener('mouseleave', function () {
+        self.hovered = -1;
+        self._updateLegendActive(-1);
+        self._animateHover();
+      });
+      item.addEventListener('click', function () {
+        seg.visible = !seg.visible;
+        item.classList.toggle('hidden', !seg.visible);
+        self._scheduleRender();
+      });
+
+      self.legendEl.appendChild(item);
+    });
+  };
+
+  PieChart.prototype._updateLegendActive = function (idx) {
+    var items = this.legendEl.querySelectorAll('.pie-legend-item');
+    items.forEach(function (item, i) {
+      item.classList.toggle('active', i === idx);
+    });
+  };
+
+  /* ── Bootstrap ────────────────────────────────────────────────────── */
+  function init() {
+    var canvas  = document.getElementById('fmtPieChart');
+    var legend  = document.getElementById('fmtPieLegend');
+    var tooltip = document.getElementById('fmtPieTooltip');
+    if (!canvas || !legend || !tooltip) return;
+
+    /* Reduced-motion: skip entrance animation */
+    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var chart = new PieChart(canvas, legend, tooltip);
+    if (prefersReduced) { chart.drawProg = 1; chart._render(); }
+    chart._bindEvents();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+})();
 
 /* ── Theme toggle ───────────────────────────────────────────────── */
 function toggleTheme() {
