@@ -47,7 +47,7 @@ async function doLogin() {
     return;
   }
 
-  const session = saveSession(user);
+  saveSession({ ...user, password: undefined });
   window.location.href = 'dashboard.html';
 }
 

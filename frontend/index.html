@@ -248,7 +248,8 @@ input::placeholder { color: #9ca3af; }
   <div class="auth-form active" id="form-login">
     <div class="form-group">
       <label class="form-label">Email</label>
-      <input type="email" id="loginEmail" placeholder="ivan@sber.ru" autocomplete="email">
+      <input type="email" id="loginEmail" placeholder="ivan@sber.ru" autocomplete="email"
+             onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()">
     </div>
     <div class="form-group">
       <label class="form-label">Пароль</label>
@@ -274,50 +275,93 @@ input::placeholder { color: #9ca3af; }
     </p>
   </div>
 
-  <!-- REGISTER -->
+  <!-- REGISTER — Step 1: форма -->
   <div class="auth-form" id="form-register">
-    <div class="form-group">
-      <label class="form-label">Имя и фамилия</label>
-      <input type="text" id="regName" placeholder="Иван Иванов" autocomplete="name">
+
+    <div id="reg-step-form">
+      <div class="form-group">
+        <label class="form-label">Имя и фамилия</label>
+        <input type="text" id="regName" placeholder="Иван Иванов" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="regEmail" placeholder="you@sber.ru" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="regPassword" placeholder="Минимум 6 символов">
+          <button class="toggle-pass" onclick="togglePass('regPassword', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Повторите пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="regConfirm" placeholder="••••••••"
+                 onkeydown="if(event.key==='Enter') sendOtp()">
+          <button class="toggle-pass" onclick="togglePass('regConfirm', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="btnSendOtp" onclick="sendOtp()">
+        Получить код на email
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px">
+        После регистрации можно загрузить фото профиля
+      </p>
     </div>
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input type="email" id="regEmail" placeholder="you@sber.ru" autocomplete="email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Пароль</label>
-      <div class="input-wrap">
-        <input type="password" id="regPassword" placeholder="Минимум 6 символов">
-        <button class="toggle-pass" onclick="togglePass('regPassword', this)" type="button">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
-            <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
-          </svg>
+
+    <!-- REGISTER — Step 2: ввод кода -->
+    <div id="reg-step-otp" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:36px;margin-bottom:8px">📬</div>
+        <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px">Проверьте почту</div>
+        <div style="font-size:13px;color:#6b7280">
+          Код отправлен на <strong id="otpEmailDisplay"></strong>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="text-align:center;display:block">6-значный код</label>
+        <input type="text" id="otpInput"
+               placeholder="_ _ _ _ _ _"
+               maxlength="6"
+               inputmode="numeric"
+               autocomplete="one-time-code"
+               onkeydown="if(event.key==='Enter') verifyOtp()"
+               style="text-align:center;font-size:24px;font-weight:700;letter-spacing:8px;font-family:'JetBrains Mono',monospace">
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="verifyOtp()" style="margin-bottom:10px">
+        Подтвердить и создать аккаунт
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7l4 4 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <button onclick="backToForm()" style="background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af;text-decoration:underline">
+          ← Изменить данные
+        </button>
+        <button id="btnResend" onclick="resendOtp()" style="background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af">
+          Отправить повторно (<span id="resendTimer">60</span>с)
         </button>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Повторите пароль</label>
-      <div class="input-wrap">
-        <input type="password" id="regConfirm" placeholder="••••••••"
-               onkeydown="if(event.key==='Enter') doRegister()">
-        <button class="toggle-pass" onclick="togglePass('regConfirm', this)" type="button">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
-            <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="doRegister()">
-      Создать аккаунт
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-      </svg>
-    </button>
-    <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px">
-      После регистрации можно загрузить фото профиля
-    </p>
+
   </div>
 
   <div class="auth-footer">
@@ -376,9 +420,211 @@ input::placeholder { color: #9ca3af; }
 
 <script src="assets/js/storage.js"></script>
 <script src="assets/js/auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <script>
+// ══ EMAILJS CONFIG — вставьте свои значения ══════════════════════════
+const EJS = {
+  publicKey:  'jwgqzLug2bVRHFBSP',
+  serviceId:  'service_sy0jx74',
+  templateId: 'template_uwgayby',
+};
+// ════════════════════════════════════════════════════════════════════
+
 // Redirect if already logged in
 if (getSession()) { window.location.href = 'dashboard.html'; }
+
+// ── OTP state ──────────────────────────────────────────────────────
+const _otp = { code: null, email: null, expiresAt: null, timer: null };
+
+// ── Шаг 1: валидация формы → отправка кода ────────────────────────
+async function sendOtp() {
+  clearAlert();
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirm  = document.getElementById('regConfirm').value;
+
+  // Валидация
+  if (!name)               { showAlert('Введите имя'); return; }
+  if (!email)              { showAlert('Введите email'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Некорректный email'); return; }
+  if (password.length < 6) { showAlert('Пароль минимум 6 символов'); return; }
+  if (password !== confirm) { showAlert('Пароли не совпадают'); return; }
+  if (getUserByEmail(email)) { showAlert('Пользователь с таким email уже существует'); return; }
+
+  // Генерируем 6-значный код
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  _otp.code      = code;
+  _otp.email     = email;
+  _otp.expiresAt = Date.now() + 10 * 60 * 1000; // 10 минут
+
+  const btn = document.getElementById('btnSendOtp');
+  btn.disabled   = true;
+  btn.textContent = 'Отправляем…';
+
+  try {
+    if (EJS.publicKey === 'REPLACE_PUBLIC_KEY') {
+      throw new Error('EmailJS не настроен');
+    }
+
+    emailjs.init(EJS.publicKey);
+    await emailjs.send(EJS.serviceId, EJS.templateId, {
+      email:     email,
+      user_name: name,
+      otp_code:  code,
+    });
+
+    showAlert('Код отправлен на ' + email, 'ok');
+
+  } catch (err) {
+    console.error('EmailJS error:', err);
+    _showDemoCode(code, email, err?.text || err?.message || String(err));
+  }
+
+  // Переключаем на шаг 2
+  document.getElementById('reg-step-form').style.display = 'none';
+  document.getElementById('reg-step-otp').style.display  = 'block';
+  document.getElementById('otpEmailDisplay').textContent = email;
+  document.getElementById('otpInput').focus();
+
+  // Таймер повторной отправки (60 сек)
+  _startResendTimer();
+}
+
+// ── Шаг 2: проверка кода → создание аккаунта ──────────────────────
+function verifyOtp() {
+  clearAlert();
+  const entered = document.getElementById('otpInput').value.trim();
+
+  if (!entered)          { showAlert('Введите код из письма'); return; }
+  if (entered.length !== 6) { showAlert('Код должен быть 6 цифр'); return; }
+  if (Date.now() > _otp.expiresAt) {
+    showAlert('Код истёк. Запросите новый');
+    backToForm();
+    return;
+  }
+  if (entered !== _otp.code) {
+    // Подсветить поле красным
+    const inp = document.getElementById('otpInput');
+    inp.style.borderColor = '#ef4444';
+    inp.style.background  = '#fef2f2';
+    setTimeout(() => { inp.style.borderColor = ''; inp.style.background = ''; }, 1500);
+    showAlert('Неверный код. Попробуйте ещё раз');
+    return;
+  }
+
+  // Код верный — создаём аккаунт
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+
+  const result = createUser(name, email, password);
+  if (!result.ok) { showAlert(result.error); return; }
+
+  saveSession({ ...result.user, password: undefined });
+  showAlert('Аккаунт создан! Перенаправляем…', 'ok');
+
+  clearTimeout(_otp.timer);
+  _otp.code = null; // Одноразовый — сбрасываем
+
+  setTimeout(() => { window.location.href = 'profile.html?new=1'; }, 1200);
+}
+
+// ── Повторная отправка ─────────────────────────────────────────────
+async function resendOtp() {
+  const btn = document.getElementById('btnResend');
+  btn.disabled = true;
+  // Генерируем новый код
+  _otp.code      = String(Math.floor(100000 + Math.random() * 900000));
+  _otp.expiresAt = Date.now() + 10 * 60 * 1000;
+
+  const name = document.getElementById('regName').value.trim();
+
+  try {
+    if (EJS.publicKey === 'REPLACE_PUBLIC_KEY') throw new Error('demo');
+    await emailjs.send(EJS.serviceId, EJS.templateId, {
+      to_email:  _otp.email,
+      user_name: name,
+      otp_code:  _otp.code,
+    });
+    showAlert('Новый код отправлен на ' + _otp.email, 'ok');
+  } catch {
+    _showDemoCode(_otp.code, _otp.email);
+  }
+
+  document.getElementById('otpInput').value = '';
+  _startResendTimer();
+}
+
+// ── Вернуться к форме ──────────────────────────────────────────────
+function backToForm() {
+  clearAlert();
+  clearTimeout(_otp.timer);
+  document.getElementById('reg-step-otp').style.display  = 'none';
+  document.getElementById('reg-step-form').style.display = 'block';
+  const btn = document.getElementById('btnSendOtp');
+  btn.disabled    = false;
+  btn.innerHTML   = 'Получить код на email <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+}
+
+// ── Таймер обратного отсчёта для повторной отправки ───────────────
+function _startResendTimer() {
+  clearInterval(_otp.timer);
+  let sec = 60;
+  const timerEl = document.getElementById('resendTimer');
+  const btnEl   = document.getElementById('btnResend');
+  if (timerEl) timerEl.textContent = sec;
+  if (btnEl)   btnEl.disabled = true;
+
+  _otp.timer = setInterval(() => {
+    sec--;
+    if (timerEl) timerEl.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(_otp.timer);
+      if (btnEl)   { btnEl.disabled = false; btnEl.innerHTML = 'Отправить повторно'; }
+    }
+  }, 1000);
+}
+
+// ── Демо-режим: показать код прямо на странице ────────────────────
+function _showDemoCode(code, email, errorMsg) {
+  // Удалить предыдущий баннер если есть
+  const old = document.getElementById('demoCodeBanner');
+  if (old) old.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'demoCodeBanner';
+  banner.style.cssText = `
+    position:fixed; top:16px; right:16px; z-index:9999;
+    background:#1e293b; color:#f1f5f9;
+    border:1px solid rgba(99,102,241,0.4);
+    border-radius:12px; padding:16px 20px;
+    font-family:'JetBrains Mono',monospace;
+    box-shadow:0 8px 32px rgba(0,0,0,0.4);
+    max-width:320px;
+  `;
+  banner.innerHTML = `
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;letter-spacing:.06em">
+      📧 DEMO MODE — ${errorMsg ? '⚠️ ' + errorMsg : 'EmailJS не настроен'}
+    </div>
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">
+      Письмо для <b style="color:#e2e8f0">${email}</b>:
+    </div>
+    <div style="font-size:28px;font-weight:700;letter-spacing:10px;color:#22d3ee;
+                text-align:center;background:rgba(34,211,238,0.08);
+                border-radius:8px;padding:10px 8px;margin-bottom:10px">
+      ${code}
+    </div>
+    <div style="font-size:10px;color:#64748b;text-align:center">
+      Введите этот код для подтверждения
+    </div>
+    <button onclick="this.parentElement.remove()"
+            style="position:absolute;top:10px;right:12px;background:none;border:none;
+                   color:#64748b;cursor:pointer;font-size:16px;line-height:1">×</button>
+  `;
+  document.body.appendChild(banner);
+}
 
 /* ── Плавающие символы валют ────────────────────────────────────── */
 (function spawnCurrencySymbols() {
