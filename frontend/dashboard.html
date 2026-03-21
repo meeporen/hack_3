@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сбербанк · Converter Agent</title>
+<!-- Favicon — SVG data URI, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230288d6'/%3E%3Cstop offset='.5' stop-color='%2301a104'/%3E%3Cstop offset='1' stop-color='%2316da03'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url(%23g)'/%3E%3Cpath d='M8 19 Q8 10 17 10 L14 7 M17 10 L14 13' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M24 13 Q24 22 15 22 L18 25 M15 22 L18 19' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none' opacity='.8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAI3SURBVFhH7ZdNaBNBFMd/m82mmzQEDRqDiiAiHjxIERU8iYpERA+iePLgyZtHQUREPCjowYMHL548iHhQxA+sWMGDBy8+ioiiRSwaExNjPhqzSTbZ3fV/kxRXaBOzJgv2Bw+2k5n3/u+b2d19oygKiqKgKAqKoigYhmGY5z4AAAAASUVORK5CYII=">
+<!-- Apply saved theme before first paint to prevent flash -->
+<script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="assets/css/effects.css">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ══ LIGHT THEME VARIABLES ══════════════════════════════════════════ */
@@ -36,6 +42,20 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
 }
 
+/* ══ DARK THEME VARIABLES ═══════════════════════════════════════════ */
+html.dark {
+  --bg:       #0f1117;
+  --surface:  #1a1d27;
+  --surface2: #222535;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --hint:     #64748b;
+  --shadow:   0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+}
+
 *,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
 html { font-size: 15px; }
 body {
@@ -44,6 +64,7 @@ body {
   font-family: var(--sans);
   min-height: 100vh;
   line-height: 1.6;
+  transition: background .3s ease, color .3s ease;
 }
 
 /* ══ LAYOUT ═════════════════════════════════════════════════════════ */
@@ -518,17 +539,122 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .footer-bottom-links a:hover { color: #374151; }
 .footer-license { font-size: 11px; color: #c0c7d0; margin-top: 8px; line-height: 1.6; }
 
+/* ══ THEME TOGGLE BUTTON ═════════════════════════════════════════════ */
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.32); transform: rotate(25deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun  { display: block; }
+.theme-toggle .icon-moon { display: none; }
+html.dark .theme-toggle .icon-sun  { display: none; }
+html.dark .theme-toggle .icon-moon { display: block; }
+
+/* ══ DARK MODE — COMPONENT OVERRIDES ════════════════════════════════ */
+/* All components use var(--*) colors. These override the hardcoded rgba/hex */
+html.dark .card {
+  background: rgba(30,36,54,0.82);
+  border-color: rgba(255,255,255,0.08);
+}
+html.dark .card:hover {
+  border-color: rgba(255,255,255,0.14);
+}
+html.dark .metric-glass {
+  background: rgba(26,32,48,0.78);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.2);
+}
+html.dark .metric-wrap:hover .metric-glass {
+  background: rgba(34,42,64,0.88);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(2,136,214,0.2);
+}
+html.dark .metric-glass::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 55%, transparent 100%);
+}
+html.dark .user-dropdown {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .user-dropdown a, html.dark .user-dropdown button { color: var(--text); }
+html.dark .user-dropdown a:hover, html.dark .user-dropdown button:hover { background: var(--surface2); }
+html.dark .user-dropdown button.danger:hover { background: rgba(220,38,38,0.12); }
+html.dark .btn-ghost {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--muted);
+}
+html.dark .btn-ghost:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+html.dark .dropzone { background: var(--surface2); border-color: rgba(255,255,255,0.13); }
+html.dark .dropzone.has-file { background: rgba(1,161,4,0.1); border-color: rgba(1,161,4,0.4); }
+html.dark .drop-icon { background: var(--surface); border-color: var(--border2); }
+html.dark .schema-tabs { background: var(--surface2); }
+html.dark .schema-tab.active { background: var(--surface); }
+html.dark .sc-active { background: rgba(2,136,214,0.18); border-color: rgba(2,136,214,0.4); }
+html.dark .sc-done   { background: rgba(1,161,4,0.15);   border-color: rgba(1,161,4,0.4); }
+html.dark .sc-error  { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.4); }
+html.dark .badge-success { background: rgba(22,163,74,0.18);  border-color: rgba(22,163,74,0.35);  color: #4ade80; }
+html.dark .badge-info    { background: rgba(29,78,216,0.2);   border-color: rgba(29,78,216,0.35);  color: #60a5fa; }
+html.dark .badge-warn    { background: rgba(146,64,14,0.2);   border-color: rgba(146,64,14,0.35);  color: #fbbf24; }
+html.dark .badge-err     { background: rgba(185,28,28,0.2);   border-color: rgba(185,28,28,0.35);  color: #f87171; }
+html.dark .site-footer {
+  background: #0d1018;
+  color: var(--text);
+  border-top-color: rgba(255,255,255,0.07);
+}
+html.dark .footer-brand-desc,
+html.dark .footer-contact-item,
+html.dark .footer-links a,
+html.dark .footer-bottom-copy,
+html.dark .footer-bottom-links a,
+html.dark .footer-license { color: var(--muted); }
+html.dark .footer-col-title { color: var(--text); }
+html.dark .footer-contact-item a { color: var(--muted); }
+html.dark .footer-divider { background: rgba(255,255,255,0.07); }
+html.dark .json-val-str  { color: #38bdf8; }
+html.dark .json-val-num  { color: #a78bfa; }
+html.dark .json-val-bool { color: #34d399; }
+html.dark #logoutModalBox {
+  background: var(--surface);
+  color: var(--text);
+}
+html.dark #logoutModalBox h3 { color: var(--text); }
+html.dark #logoutModalBox p  { color: var(--muted); }
+html.dark #logoutModalBox button:first-child {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--muted);
+}
+
+/* Transition for smooth theme switch on key elements */
+.card, .sidebar, .metric-glass, .user-dropdown, .site-footer,
+.dropzone, .schema-tabs, .nav-item, .btn-ghost, input, textarea {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+}
+
 /* ══ RESPONSIVE ══════════════════════════════════════════════════════ */
 /* Плавные переходы на sidebar */
-.sidebar { transition: left .28s cubic-bezier(.4,0,.2,1), box-shadow .28s ease; }
+.sidebar { transition: left .28s cubic-bezier(.4,0,.2,1), box-shadow .28s ease, background .3s, border-color .3s; }
 .sidebar-overlay { transition: opacity .28s ease; opacity: 0; pointer-events: none; }
 .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
 
+/* — Tablet landscape (1024px) — */
 @media (max-width: 1024px) {
   .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
   .site-footer { padding: 40px 28px 24px; }
   .metrics { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 24px 24px; }
 }
+
+/* — Tablet portrait / large phone (768px) — */
 @media (max-width: 768px) {
   .shell { grid-template-columns: 1fr !important; grid-template-rows: 64px 1fr auto !important; }
   .topbar { height: 64px; padding: 0 16px; gap: 10px; }
@@ -541,11 +667,50 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
   }
   .sidebar.open { left: 0; box-shadow: 6px 0 32px rgba(0,0,0,0.18); }
   .sidebar-overlay { display: block !important; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 299; }
-  .main { padding: 20px 16px; }
-  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 16px 14px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .page-title { font-size: 22px; }
   .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px; }
   .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .btn-row { flex-wrap: wrap; }
+  .btn-row .btn { flex: 1; min-width: 120px; justify-content: center; }
+}
+
+/* — Phone (480px) — */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .topbar { gap: 8px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-subtitle { display: none; }
+  .sber-logo-sm { height: 28px !important; }
+  .user-pill { padding: 6px 10px; gap: 7px; font-size: 13px; }
+  .user-pill-avatar, .user-avatar { width: 30px; height: 30px; font-size: 11px; }
+  #topbarUserName { display: none; }
+  .theme-toggle { width: 32px; height: 32px; }
+  .main { padding: 14px 12px; }
+  .metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .metric-content { padding: 14px; }
+  .metric-value { font-size: 26px; }
+  .metric-sub { font-size: 10px; }
+  .page-title { font-size: 20px; margin-bottom: 2px; }
+  .page-sub { font-size: 13px; margin-bottom: 20px; }
+  .card { padding: 16px; }
+  .card-title { font-size: 10px; }
+  .btn { padding: 10px 18px; font-size: 13px; }
+  .btn-row { gap: 8px; margin-top: 14px; }
+  .pipe-step { grid-template-columns: 32px 1fr auto; gap: 10px; padding: 12px 0; }
+  .step-circle { width: 32px; height: 32px; font-size: 11px; }
+  .pipe-name { font-size: 13px; }
+  .pipe-desc { font-size: 11px; }
+  .hist-table th, .hist-table td { padding: 8px 8px; font-size: 12px; }
+  .schema-tab { font-size: 11px; padding: 5px 6px; }
+  .dropzone { padding: 24px 14px; }
+  .drop-icon { width: 42px; height: 42px; }
+  .drop-title { font-size: 13px; }
+  .site-footer { padding: 24px 12px 16px; }
+  .footer-bottom-links { gap: 12px; }
+  .user-dropdown { min-width: 140px; right: -10px; }
 }
 
 /* ══ USER DROPDOWN ═══════════════════════════════════════════════════ */
@@ -769,11 +934,28 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
   <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm" style="filter:brightness(0) invert(1);">
   <div style="display:flex;flex-direction:column;gap:2px">
     <span class="topbar-title">Converter Agent</span>
-    <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;">Platform V · GigaChat</span>
+    <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;"
+          data-typewriter
+          data-tw-phrases='["Platform V · GigaChat","AI-конвертация файлов","Self-healing · 3× retry","CSV · JSON · XLS · PDF"]'
+          data-tw-speed="55"
+          data-tw-delete-speed="28"
+          data-tw-pause="2800">Platform V · GigaChat</span>
   </div>
   <span class="topbar-badge">AI-конвертация файлов</span>
   <div class="topbar-divider"></div>
   <span class="topbar-badge" id="tokenGlobal">0 tokens</span>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему" title="Тёмная / светлая тема">
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
   <div class="user-pill-wrap">
     <div class="user-pill" onclick="toggleUserDropdown(event)">
       <div class="user-avatar" id="topbarAvatar"></div>
@@ -822,7 +1004,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 
   <!-- ── UPLOAD SCREEN ────────────────────────────────────────────── -->
   <div class="screen active" id="screen-upload">
-    <div class="page-title">Новая конвертация</div>
+    <div class="page-title" data-typewriter data-tw-speed="60" data-tw-loop="false">Новая конвертация</div>
     <div class="page-sub">Загрузите файл с данными и укажите целевую JSON-структуру</div>
 
     <div class="metrics">
@@ -1769,6 +1951,12 @@ function showToast(msg) {
   setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2800);
 }
 
+/* ── Theme toggle ───────────────────────────────────────────────── */
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
 /* ── Sidebar mobile toggle ──────────────────────────────────────── */
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
@@ -1870,5 +2058,6 @@ document.addEventListener('keydown', function(e) {
 /* ══ METRIC CARD TILT — removed: backdrop-filter + 3D transform conflict
    causes irreducible text resampling. Hover polish handled in CSS only. ════ */
 </script>
+<script src="assets/js/effects.js"></script>
 </body>
 </html>

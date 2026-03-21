@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Сбербанк · Профиль</title>
+<!-- Favicon — SVG data URI, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230288d6'/%3E%3Cstop offset='.5' stop-color='%2301a104'/%3E%3Cstop offset='1' stop-color='%2316da03'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url(%23g)'/%3E%3Cpath d='M8 19 Q8 10 17 10 L14 7 M17 10 L14 13' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M24 13 Q24 22 15 22 L18 25 M15 22 L18 19' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none' opacity='.8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAI3SURBVFhH7ZdNaBNBFMd/m82mmzQEDRqDiiAiHjxIERU8iYpERA+iePLgyZtHQUREPCjowYMHL548iHhQxA+sWMGDBy8+ioiiRSwaExNjPhqzSTbZ3fV/kxRXaBOzJgv2Bw+2k5n3/u+b2d19oygKiqKgKAqKoigYhmGY5z4AAAAASUVORK5CYII=">
+<!-- Apply saved theme before first paint — prevents flash of wrong theme -->
+<script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/effects.css">
 <link rel="stylesheet" href="assets/css/sber.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -13,13 +19,41 @@
 html { font-size: 15px; }           /* sber.css sets 16px → all text 6.7% larger without this */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── VARIABLE OVERRIDES (sber.css differs from dashboard on these) ──── */
+/* ── VARIABLES ───────────────────────────────────────────────────────── */
 :root {
-  --muted:   #6b7280;   /* sber.css uses #4b5563 — darker than dashboard */
-  --surface: #ffffff;
+  --bg:       #f4f6f9;
+  --surface:  #ffffff;
+  --surface2: #f0f2f6;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #111827;
+  --muted:    #6b7280;
+  --hint:     #9ca3af;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; line-height: 1.6; }
+/* ── DARK THEME ──────────────────────────────────────────────────────── */
+html.dark {
+  --bg:       #0f1117;
+  --surface:  #1a1d27;
+  --surface2: #222535;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --hint:     #64748b;
+  --shadow:   0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background .3s ease, color .3s ease;
+}
 
 /* ── LAYOUT ─────────────────────────────────────────────────────────── */
 .layout {
@@ -306,20 +340,128 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
   filter: blur(var(--oblur,5px)); z-index: 10;
 }
 
+/* ── THEME TOGGLE ────────────────────────────────────────────────────── */
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.32); transform: rotate(25deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun  { display: block; }
+.theme-toggle .icon-moon { display: none; }
+html.dark .theme-toggle .icon-sun  { display: none; }
+html.dark .theme-toggle .icon-moon { display: block; }
+
+/* ── DARK MODE — COMPONENT OVERRIDES ─────────────────────────────────── */
+html.dark .profile-merged {
+  background: rgba(26,32,50,0.85);
+  border-color: rgba(255,255,255,0.09);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+html.dark .profile-identity h2 { color: var(--text); }
+html.dark .profile-identity p  { color: var(--muted); }
+html.dark .profile-hero-role {
+  background: rgba(22,163,74,0.15);
+  border-color: rgba(22,163,74,0.3);
+  color: #4ade80;
+}
+html.dark .profile-vdivider { background: rgba(255,255,255,0.08); }
+html.dark .info-row { border-bottom-color: rgba(255,255,255,0.07); }
+html.dark .info-label { color: var(--muted); }
+html.dark .info-value { color: var(--text); }
+html.dark .card {
+  background: rgba(26,32,50,0.82);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+html.dark .section-title { color: var(--muted); }
+html.dark .welcome-banner {
+  background: linear-gradient(135deg, rgba(2,136,214,0.12), rgba(1,161,4,0.12));
+  border-color: rgba(1,161,4,0.25);
+}
+html.dark .welcome-banner h3 { color: var(--text); }
+html.dark .welcome-banner p  { color: var(--muted); }
+html.dark .photo-upload-zone {
+  background: var(--surface2);
+  border-color: rgba(255,255,255,0.12);
+}
+html.dark .photo-upload-zone:hover { background: rgba(1,161,4,0.08); border-color: rgba(1,161,4,0.4); }
+html.dark .photo-upload-zone .upload-title { color: var(--text); }
+html.dark .photo-upload-zone .upload-hint  { color: var(--muted); }
+html.dark .photo-upload-icon {
+  background: rgba(22,163,74,0.15);
+  border-color: rgba(22,163,74,0.3);
+}
+html.dark .logout-modal {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+html.dark .logout-modal h3 { color: var(--text); }
+html.dark .logout-modal p  { color: var(--muted); }
+html.dark .logout-modal-icon {
+  background: rgba(220,38,38,0.15);
+  border-color: rgba(220,38,38,0.3);
+}
+html.dark .user-dropdown {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .user-dropdown a, html.dark .user-dropdown button { color: var(--text); }
+html.dark .user-dropdown a:hover, html.dark .user-dropdown button:hover { background: var(--surface2); }
+html.dark .user-dropdown button.danger:hover { background: rgba(220,38,38,0.12); }
+html.dark .sidebar {
+  background: var(--surface) !important;
+  border-right-color: rgba(255,255,255,0.08) !important;
+}
+html.dark .site-footer {
+  background: #0d1018;
+  border-top-color: rgba(255,255,255,0.07);
+}
+html.dark .footer-brand-desc,
+html.dark .footer-contact-item,
+html.dark .footer-links a,
+html.dark .footer-bottom-copy,
+html.dark .footer-bottom-links a,
+html.dark .footer-license { color: var(--muted); }
+html.dark .footer-col-title { color: var(--text); }
+html.dark .footer-contact-item a { color: var(--muted); }
+html.dark .footer-divider { background: rgba(255,255,255,0.07); }
+
+/* Smooth transition for theme switch */
+.card, .sidebar, .profile-merged, .photo-upload-zone,
+.user-dropdown, .site-footer, .nav-item {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+}
+.sidebar { transition-property: left, box-shadow, background, border-color !important; transition-duration: .28s, .28s, .3s, .3s !important; }
+
 /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+
+/* — Tablet (1024px) — */
 @media (max-width: 1024px) {
+  .main { padding: 32px 28px; }
+  .profile-merged { gap: 36px; padding: 36px 32px; }
+  .profile-identity { min-width: 200px; }
+  .avatar-large, .avatar-large-placeholder { width: 160px !important; height: 160px !important; }
+  .avatar-large-placeholder { font-size: 56px !important; }
   .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
   .site-footer { padding: 40px 28px 24px; }
 }
+
+/* — Tablet portrait / large phone (768px) — */
 @media (max-width: 768px) {
-  /* Grid rows: 64px matches dashboard.html exactly (was 72px — mismatched) */
   .layout { grid-template-columns: 1fr !important; grid-template-rows: 64px 1fr auto !important; }
   .topbar { height: 64px !important; padding: 0 16px !important; gap: 10px !important; }
   .topbar-badge { display: none !important; }
   .menu-toggle { display: flex !important; align-items: center; justify-content: center; }
-  /* sidebar-wrap: zero-size container with overflow:visible so fixed-pos sidebar can escape */
   .sidebar-wrap {
-    display: block !important;         /* override sber.css display:none !important */
+    display: block !important;
     position: fixed !important; top: 64px !important; left: 0 !important;
     width: 0 !important; height: 0 !important; overflow: visible !important;
     z-index: 300; pointer-events: none;
@@ -327,14 +469,15 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
   .sidebar {
     position: fixed !important; left: -260px; top: 64px;
     height: calc(100vh - 64px) !important; z-index: 300; width: 248px;
-    background: rgba(255,255,255,0.94) !important;
+    background: rgba(255,255,255,0.96) !important;
     backdrop-filter: blur(20px) saturate(1.6) !important;
     -webkit-backdrop-filter: blur(20px) saturate(1.6) !important;
     display: flex !important; flex-direction: column; gap: 2px;
-    transition: left .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease;
+    transition: left .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease, background .3s !important;
     box-shadow: none !important; border-right: 1px solid rgba(0,0,0,0.1) !important;
     min-height: unset !important; padding: 16px 10px !important; pointer-events: auto;
   }
+  html.dark .sidebar { background: rgba(22,26,40,0.97) !important; border-right-color: rgba(255,255,255,0.1) !important; }
   .sidebar.open { left: 0; box-shadow: 6px 0 32px rgba(0,0,0,0.18) !important; }
   .sidebar-overlay {
     display: block !important; position: fixed; inset: 0;
@@ -343,20 +486,53 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
   }
   .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
   .main { padding: 20px 16px; width: 100%; }
-  /* Profile-specific mobile */
-  .profile-merged { flex-direction: column; gap: 24px; padding: 28px 16px; align-items: center !important; }
+  .profile-merged { flex-direction: column; gap: 20px; padding: 28px 20px; align-items: center !important; }
   .profile-vdivider { width: 90% !important; height: 1px !important; }
   .profile-data { width: 100%; }
-  .card { padding: 24px 16px; }
-  .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px !important; }
-  .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .card { padding: 24px 18px; border-radius: 14px; }
   .avatar-large, .avatar-large-placeholder { width: 140px !important; height: 140px !important; }
   .avatar-large-placeholder { font-size: 48px !important; }
   .profile-identity h2 { font-size: 26px !important; }
   .profile-identity { min-width: unset !important; }
+  .info-row { padding: 16px 0; }
   .info-label { font-size: 13px !important; }
   .info-value { font-size: 14px !important; }
+  .logout-modal-btns { flex-direction: column; gap: 10px; }
+  .logout-modal-btns button { width: 100%; }
+  .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px !important; }
+  .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* — Phone (480px) — */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .topbar { gap: 8px !important; }
+  .topbar-title { font-size: 15px; }
+  .topbar-subtitle { display: none; }
+  .sber-logo-sm { height: 28px !important; }
+  .user-pill { padding: 6px 10px !important; gap: 6px !important; font-size: 13px !important; }
+  .user-pill-avatar, .user-avatar { width: 30px !important; height: 30px !important; font-size: 11px !important; }
+  #topbarUserName { display: none; }
+  .theme-toggle { width: 32px; height: 32px; }
+  .main { padding: 14px 12px; }
+  .profile-merged { padding: 20px 14px; gap: 16px; border-radius: 14px; }
+  .avatar-large, .avatar-large-placeholder { width: 110px !important; height: 110px !important; }
+  .avatar-large-placeholder { font-size: 36px !important; }
+  .profile-identity h2 { font-size: 22px !important; }
+  .profile-identity p { font-size: 13px !important; }
+  .profile-hero-role { font-size: 12px !important; padding: 4px 12px !important; }
+  .info-row { padding: 12px 0; }
+  .info-label { font-size: 12px !important; }
+  .info-value { font-size: 13px !important; }
+  .card { padding: 16px 12px; border-radius: 12px; }
+  .section-title { font-size: 10px !important; margin-bottom: 14px !important; }
+  .photo-upload-zone { padding: 28px 14px; }
+  .logout-modal { padding: 32px 20px 28px; border-radius: 18px; }
+  .logout-modal h3 { font-size: 18px; }
+  .site-footer { padding: 24px 12px 16px !important; }
+  .footer-bottom-links { gap: 12px; }
+  .user-dropdown { min-width: 140px; right: -8px; }
 }
 
 /* ── User dropdown (identical to dashboard) ── */
@@ -387,6 +563,77 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
 .user-dropdown button.danger:hover { background: #fef2f2; color: #dc2626; }
 .user-dropdown svg { width: 15px; height: 15px; flex-shrink: 0; }
 .dropdown-sep { height: 1px; background: rgba(0,0,0,0.08); margin: 4px 0; }
+/* ══ FORMAT PIE CHART ════════════════════════════════════════════════ */
+.pie-section-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+}
+.pie-mock-badge {
+  display: none; align-items: center; gap: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .04em;
+  background: var(--surface2); color: var(--hint);
+  border: 1px solid var(--border2); border-radius: 4px; padding: 2px 8px;
+}
+.pie-mock-badge.visible { display: inline-flex; }
+.pie-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.pie-canvas-wrap {
+  position: relative;
+  width: 220px; height: 220px;
+  flex-shrink: 0;
+}
+#fmtPieChart { width: 100%; height: 100%; display: block; }
+.pie-legend {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pie-legend-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 8px;
+  cursor: pointer; transition: background .15s, opacity .2s;
+  user-select: none; -webkit-user-select: none;
+}
+.pie-legend-item:hover,
+.pie-legend-item.active { background: var(--surface2); }
+.pie-legend-item.hidden { opacity: 0.38; }
+.pie-legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.pie-legend-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 600; color: var(--text); flex: 1; letter-spacing: .04em;
+}
+.pie-legend-pct {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 700; color: var(--muted);
+}
+.pie-tooltip {
+  position: absolute; display: none; pointer-events: none; z-index: 200;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,0,0,0.1); border-radius: 10px;
+  padding: 9px 13px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+  white-space: nowrap; min-width: 110px;
+}
+html.dark .pie-tooltip {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+.pie-tt-row { display: flex; align-items: center; gap: 8px; }
+.pie-tt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pie-tt-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); }
+.pie-tt-pct   { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #01a104; margin-left: auto; padding-left: 14px; }
+.pie-tt-count { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+
+@media (max-width: 640px) {
+  .pie-layout { grid-template-columns: 1fr; justify-items: center; }
+  .pie-canvas-wrap { width: 180px; height: 180px; }
+  .pie-legend { width: 100%; max-width: 280px; }
+}
 </style>
 </head>
 <body>
@@ -418,11 +665,28 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
     <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm" style="filter:brightness(0) invert(1);">
     <div style="display:flex;flex-direction:column;gap:2px">
       <span class="topbar-title">Профиль</span>
-      <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;">Управление аккаунтом</span>
+      <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;"
+            data-typewriter
+            data-tw-phrases='["Управление аккаунтом","Настройки профиля","Загрузка фото","История токенов"]'
+            data-tw-speed="55"
+            data-tw-delete-speed="28"
+            data-tw-pause="2800">Управление аккаунтом</span>
     </div>
     <span class="topbar-badge">Мой аккаунт</span>
     <div class="topbar-divider"></div>
     <a href="dashboard.html" class="topbar-badge" style="text-decoration:none">← Дашборд</a>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему" title="Тёмная / светлая тема">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
     <div class="user-pill-wrap">
       <div class="user-pill" onclick="toggleProfileDropdown(event)">
         <div class="user-pill-avatar" id="topbarAvatar"></div>
@@ -573,6 +837,33 @@ body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #111827; li
       <canvas id="tokenChart" height="120"></canvas>
       <div id="tokenChartEmpty" style="display:none;text-align:center;padding:32px;font-size:13px;color:#9ca3af;font-family:'JetBrains Mono',monospace">
         Нет данных · запустите конвертацию
+      </div>
+    </div>
+
+    <!-- ── Format statistics pie chart ──────────────────────────────── -->
+    <div class="card" aria-label="Статистика форматов файлов">
+      <div class="pie-section-header">
+        <div class="section-title" style="margin-bottom:0">Форматы файлов</div>
+        <span class="pie-mock-badge" id="pieMockBadge">демо-данные</span>
+      </div>
+      <div class="pie-layout">
+        <!-- Canvas: donut chart drawn by JS -->
+        <div class="pie-canvas-wrap">
+          <canvas id="fmtPieChart"
+                  role="img"
+                  aria-label="Круговая диаграмма распределения форматов файлов"></canvas>
+          <!-- Floating tooltip (positioned by JS) -->
+          <div class="pie-tooltip" id="fmtPieTooltip" role="tooltip" aria-live="polite">
+            <div class="pie-tt-row">
+              <span class="pie-tt-dot" id="fmtTtDot"></span>
+              <span class="pie-tt-label" id="fmtTtLabel"></span>
+              <span class="pie-tt-pct"   id="fmtTtPct"></span>
+            </div>
+            <div class="pie-tt-count"   id="fmtTtCount"></div>
+          </div>
+        </div>
+        <!-- Legend: built by JS -->
+        <div class="pie-legend" id="fmtPieLegend" role="list" aria-label="Легенда диаграммы"></div>
       </div>
     </div>
 
@@ -938,6 +1229,453 @@ document.addEventListener('keydown', function(e) {
   });
 })();
 
+/* ── Effects.js included at end of body — see script tag below ───── */
+
+/* ══ FORMAT PIE CHART ════════════════════════════════════════════════
+   Pure Canvas implementation — no external libraries.
+   • Donut chart with animated draw-in (cubic ease-out, 850ms)
+   • Hover: sector expands +8px with glow, tooltip appears
+   • Legend click: toggle sector visibility
+   • Data: real history first, falls back to mock demo data
+   • Dark/light theme aware (reads CSS vars at render time)
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ── Brand colour palette per format ─────────────────────────────── */
+  var PALETTE = {
+    CSV:  { color: '#0288d6', glow: 'rgba(2,136,214,.45)'  },
+    JSON: { color: '#01a104', glow: 'rgba(1,161,4,.45)'    },
+    XLS:  { color: '#16da03', glow: 'rgba(22,218,3,.45)'   },
+    XLSX: { color: '#16da03', glow: 'rgba(22,218,3,.45)'   },
+    PDF:  { color: '#f59e0b', glow: 'rgba(245,158,11,.45)' },
+    DOCX: { color: '#7c3aed', glow: 'rgba(124,58,237,.45)' },
+    DOC:  { color: '#7c3aed', glow: 'rgba(124,58,237,.45)' },
+    PNG:  { color: '#02e97e', glow: 'rgba(2,233,126,.45)'  },
+    JPG:  { color: '#fb923c', glow: 'rgba(251,146,60,.45)' },
+    JPEG: { color: '#fb923c', glow: 'rgba(251,146,60,.45)' },
+  };
+  var FALLBACK_COLORS = [
+    '#0288d6','#01a104','#f59e0b','#7c3aed','#02e97e',
+    '#fb923c','#ec4899','#14b8a6','#ef4444','#6366f1'
+  ];
+
+  /* ── Mock data shown when conversion history is empty ─────────────── */
+  var MOCK = [
+    { label: 'PDF',  value: 35 },
+    { label: 'PNG',  value: 25 },
+    { label: 'CSV',  value: 18 },
+    { label: 'JSON', value: 12 },
+    { label: 'XLS',  value:  5 },
+    { label: 'DOCX', value:  3 },
+    { label: 'JPG',  value:  2 },
+  ];
+
+  /* ── Read history and build format counts ─────────────────────────── */
+  function buildData() {
+    var history = (typeof loadHistory === 'function') ? loadHistory() : [];
+    if (!history.length) return { segments: buildSegments(MOCK), isMock: true };
+
+    var counts = {};
+    history.forEach(function (h) {
+      var fmt = ((h.format || h.outputFormat || h.type || '')).replace(/^\./, '').toUpperCase();
+      if (fmt) counts[fmt] = (counts[fmt] || 0) + 1;
+    });
+    if (!Object.keys(counts).length) return { segments: buildSegments(MOCK), isMock: true };
+
+    var total = Object.values(counts).reduce(function (a, b) { return a + b; }, 0);
+    var raw = Object.entries(counts)
+      .sort(function (a, b) { return b[1] - a[1]; })
+      .map(function (entry) { return { label: entry[0], value: entry[1], count: entry[1] }; });
+
+    return { segments: buildSegments(raw, total), isMock: false };
+  }
+
+  /* ── Convert raw data array into segment objects ──────────────────── */
+  function buildSegments(raw, total) {
+    total = total || raw.reduce(function (s, d) { return s + d.value; }, 0);
+    var angle = -Math.PI / 2;  // start at 12 o'clock
+    var colorIdx = 0;
+
+    return raw.map(function (d) {
+      var pct   = Math.round(d.value / total * 100);
+      var sweep = (d.value / total) * Math.PI * 2;
+      var pal   = PALETTE[d.label] || { color: FALLBACK_COLORS[colorIdx % FALLBACK_COLORS.length], glow: 'rgba(100,100,100,.4)' };
+      colorIdx++;
+      var seg = {
+        label: d.label,
+        value: d.value,
+        count: d.count || null,
+        pct:   pct,
+        color: pal.color,
+        glow:  pal.glow,
+        startAngle: angle,
+        sweep: sweep,
+        visible: true,
+        /* runtime — filled during draw: */
+        _drawnStart: 0, _drawnEnd: 0,
+        _ox: 0, _oy: 0,
+      };
+      angle += sweep;
+      return seg;
+    });
+  }
+
+  /* ── Easing ───────────────────────────────────────────────────────── */
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  /* ── CSS variable reader ──────────────────────────────────────────── */
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  /* ══ PieChart class ══════════════════════════════════════════════════ */
+  function PieChart(canvasEl, legendEl, tooltipEl) {
+    this.canvas     = canvasEl;
+    this.ctx        = canvasEl.getContext('2d');
+    this.legendEl   = legendEl;
+    this.tooltipEl  = tooltipEl;
+    this.segments   = [];
+    this.hoverProg  = [];   /* per-segment 0..1 hover animation */
+    this.drawProg   = 0;    /* 0..1 overall entrance animation  */
+    this.hovered    = -1;
+    this.rafId      = null;
+    this._cw = this._ch = this._cx = this._cy = this._R = this._ri = 0;
+    this._init();
+  }
+
+  PieChart.prototype._init = function () {
+    var result = buildData();
+    this.segments  = result.segments;
+    this.hoverProg = this.segments.map(function () { return 0; });
+
+    if (result.isMock) {
+      var badge = document.getElementById('pieMockBadge');
+      if (badge) badge.classList.add('visible');
+    }
+
+    this._buildLegend();
+    this._resize();
+    this._startEntrance();
+
+    /* Re-layout on container resize */
+    var self = this;
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { self._resize(); self._scheduleRender(); })
+        .observe(this.canvas.parentElement);
+    }
+  };
+
+  /* ── Canvas sizing (DPR-aware for crisp retina rendering) ─────────── */
+  PieChart.prototype._resize = function () {
+    var dpr  = window.devicePixelRatio || 1;
+    var rect = this.canvas.getBoundingClientRect();
+    var size = Math.min(rect.width || 220, rect.height || 220);
+    this.canvas.width  = size * dpr;
+    this.canvas.height = size * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this._cw = size; this._ch = size;
+    this._cx = size / 2; this._cy = size / 2;
+    this._R  = size * 0.41;   /* outer radius */
+    this._ri = size * 0.235;  /* inner radius (donut hole) */
+  };
+
+  /* ── Entrance: animate drawProg 0→1 over 850ms ───────────────────── */
+  PieChart.prototype._startEntrance = function () {
+    var self = this;
+    var start = null;
+    var DURATION = 850;
+    function tick(ts) {
+      if (!start) start = ts;
+      self.drawProg = Math.min((ts - start) / DURATION, 1);
+      self._render();
+      if (self.drawProg < 1) self.rafId = requestAnimationFrame(tick);
+      else { self.rafId = null; self.drawProg = 1; }
+    }
+    this.rafId = requestAnimationFrame(tick);
+  };
+
+  /* ── Schedule a single render frame ──────────────────────────────── */
+  PieChart.prototype._scheduleRender = function () {
+    if (this.rafId) return;
+    var self = this;
+    this.rafId = requestAnimationFrame(function () {
+      self.rafId = null;
+      self._render();
+    });
+  };
+
+  /* ── Hover animation loop ─────────────────────────────────────────── */
+  PieChart.prototype._animateHover = function () {
+    var self = this;
+    function tick() {
+      var needMore = false;
+      self.hoverProg.forEach(function (p, i) {
+        var target = (i === self.hovered) ? 1 : 0;
+        var d = (target - p) * 0.2;
+        if (Math.abs(d) > 0.005) { self.hoverProg[i] += d; needMore = true; }
+        else self.hoverProg[i] = target;
+      });
+      self._render();
+      if (needMore) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  };
+
+  /* ── Main draw routine ────────────────────────────────────────────── */
+  PieChart.prototype._render = function () {
+    var ctx = this.ctx;
+    var cx = this._cx, cy = this._cy, R = this._R, ri = this._ri;
+    var eased = easeOutCubic(this.drawProg);
+    var GAP   = 0.013;  /* small gap between sectors in radians */
+
+    ctx.clearRect(0, 0, this._cw, this._ch);
+
+    /* Recalculate angles from visible segments only */
+    var visTotal = this.segments.reduce(function (s, seg) {
+      return s + (seg.visible ? seg.value : 0);
+    }, 0) || 1;
+
+    var angle = -Math.PI / 2;
+
+    for (var i = 0; i < this.segments.length; i++) {
+      var seg = this.segments[i];
+
+      if (!seg.visible) {
+        seg._drawnStart = angle; seg._drawnEnd = angle;
+        seg._ox = 0; seg._oy = 0;
+        continue;
+      }
+
+      var sweep    = (seg.value / visTotal) * Math.PI * 2 * eased;
+      var hp       = this.hoverProg[i];
+      var expand   = hp * 8;
+      var midAngle = angle + sweep / 2;
+      var ox = Math.cos(midAngle) * expand;
+      var oy = Math.sin(midAngle) * expand;
+
+      /* Glow shadow on hover */
+      if (hp > 0.01) {
+        ctx.shadowColor = seg.glow;
+        ctx.shadowBlur  = 18 * hp;
+      }
+
+      /* Draw donut sector */
+      ctx.beginPath();
+      ctx.arc(cx + ox, cy + oy, R + expand, angle + GAP, angle + sweep - GAP);
+      ctx.arc(cx + ox, cy + oy, ri,         angle + sweep - GAP, angle + GAP, true);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      /* Store for hit-testing */
+      seg._drawnStart = angle;
+      seg._drawnEnd   = angle + sweep;
+      seg._ox = ox; seg._oy = oy;
+
+      angle += sweep;
+    }
+
+    /* Center label */
+    var textColor  = cssVar('--text')  || '#111827';
+    var mutedColor = cssVar('--muted') || '#6b7280';
+
+    if (this.hovered >= 0 && this.drawProg >= 0.5) {
+      var s = this.segments[this.hovered];
+      /* big percentage */
+      ctx.font = 'bold ' + Math.round(R * 0.52) + "px 'Exo 2', sans-serif";
+      ctx.fillStyle   = textColor;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.pct + '%', cx, cy - Math.round(R * 0.12));
+      /* format name below */
+      ctx.font = '600 ' + Math.round(R * 0.22) + "px 'JetBrains Mono', monospace";
+      ctx.fillStyle = mutedColor;
+      ctx.fillText(s.label, cx, cy + Math.round(R * 0.25));
+    } else if (this.drawProg >= 1) {
+      /* total count */
+      var visCount = this.segments.filter(function (s) { return s.visible; }).length;
+      ctx.font = 'bold ' + Math.round(R * 0.44) + "px 'Exo 2', sans-serif";
+      ctx.fillStyle   = textColor;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(visCount, cx, cy - Math.round(R * 0.1));
+      ctx.font = '500 ' + Math.round(R * 0.19) + "px 'Inter', sans-serif";
+      ctx.fillStyle = mutedColor;
+      ctx.fillText('форматов', cx, cy + Math.round(R * 0.26));
+    }
+  };
+
+  /* ── Hit test: which sector contains (x, y)? ─────────────────────── */
+  PieChart.prototype._hitTest = function (x, y) {
+    var cx = this._cx, cy = this._cy, R = this._R, ri = this._ri;
+    var TWO_PI = Math.PI * 2;
+
+    for (var i = 0; i < this.segments.length; i++) {
+      var seg = this.segments[i];
+      if (!seg.visible || seg._drawnStart === seg._drawnEnd) continue;
+
+      var dx = x - (cx + seg._ox);
+      var dy = y - (cy + seg._oy);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < ri - 4 || dist > R + 12) continue;
+
+      /* Normalize mouse angle to our drawing range */
+      var ang = Math.atan2(dy, dx);
+      while (ang < seg._drawnStart) ang += TWO_PI;
+      while (ang > seg._drawnStart + TWO_PI) ang -= TWO_PI;
+      if (ang >= seg._drawnStart && ang <= seg._drawnEnd) return i;
+    }
+    return -1;
+  };
+
+  /* ── Event wiring ─────────────────────────────────────────────────── */
+  PieChart.prototype._bindEvents = function () {
+    var self = this;
+    var canvas = this.canvas;
+    var dpr = window.devicePixelRatio || 1;
+
+    canvas.addEventListener('mousemove', function (e) {
+      if (self.drawProg < 0.5) return;
+      var rect  = canvas.getBoundingClientRect();
+      var scale = (canvas.width / dpr) / rect.width;
+      var x = (e.clientX - rect.left) * scale;
+      var y = (e.clientY - rect.top)  * scale;
+      var hit = self._hitTest(x, y);
+
+      if (hit !== self.hovered) {
+        self.hovered = hit;
+        self._updateLegendActive(hit);
+        self._animateHover();
+        if (hit >= 0) self._showTooltip(e, hit);
+        else          self._hideTooltip();
+      } else if (hit >= 0) {
+        self._moveTooltip(e);
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('mouseleave', function () {
+      if (self.hovered !== -1) {
+        self.hovered = -1;
+        self._updateLegendActive(-1);
+        self._animateHover();
+        self._hideTooltip();
+      }
+    });
+
+    canvas.addEventListener('click', function () {
+      if (self.hovered >= 0) {
+        var seg = self.segments[self.hovered];
+        seg.visible = !seg.visible;
+        self._buildLegend();
+        self._scheduleRender();
+      }
+    });
+  };
+
+  /* ── Tooltip helpers ──────────────────────────────────────────────── */
+  PieChart.prototype._showTooltip = function (e, idx) {
+    var seg = this.segments[idx];
+    var dot   = document.getElementById('fmtTtDot');
+    var label = document.getElementById('fmtTtLabel');
+    var pct   = document.getElementById('fmtTtPct');
+    var count = document.getElementById('fmtTtCount');
+    if (!dot) return;
+    dot.style.background   = seg.color;
+    label.textContent      = seg.label;
+    pct.textContent        = seg.pct + '%';
+    count.textContent      = seg.count ? seg.count + ' конверта' + (seg.count === 1 ? '' : seg.count < 5 ? 'ции' : 'ций') : '';
+    count.style.display    = seg.count ? 'block' : 'none';
+    this.tooltipEl.style.display = 'block';
+    this._moveTooltip(e);
+  };
+  PieChart.prototype._moveTooltip = function (e) {
+    var wrap = this.canvas.parentElement.getBoundingClientRect();
+    var x = e.clientX - wrap.left + 14;
+    var y = e.clientY - wrap.top  - 14;
+    var ttW = this.tooltipEl.offsetWidth  || 120;
+    var ttH = this.tooltipEl.offsetHeight || 56;
+    if (x + ttW + 6 > wrap.width)  x = e.clientX - wrap.left - ttW - 14;
+    if (y + ttH + 6 > wrap.height) y = e.clientY - wrap.top  - ttH - 14;
+    if (x < 0) x = 4;
+    if (y < 0) y = 4;
+    this.tooltipEl.style.left = x + 'px';
+    this.tooltipEl.style.top  = y + 'px';
+  };
+  PieChart.prototype._hideTooltip = function () {
+    this.tooltipEl.style.display = 'none';
+  };
+
+  /* ── Legend ───────────────────────────────────────────────────────── */
+  PieChart.prototype._buildLegend = function () {
+    var self = this;
+    this.legendEl.innerHTML = '';
+    this.segments.forEach(function (seg, i) {
+      var item = document.createElement('div');
+      item.className   = 'pie-legend-item' + (seg.visible ? '' : ' hidden');
+      item.setAttribute('role', 'listitem');
+      item.setAttribute('aria-label', seg.label + ' ' + seg.pct + '%' + (seg.visible ? '' : ' (скрыт)'));
+      item.setAttribute('title', 'Нажмите, чтобы ' + (seg.visible ? 'скрыть' : 'показать'));
+
+      var dot  = document.createElement('span'); dot.className  = 'pie-legend-dot';  dot.style.background = seg.color; dot.style.boxShadow = '0 0 6px ' + seg.color;
+      var name = document.createElement('span'); name.className = 'pie-legend-name'; name.textContent = seg.label;
+      var pct  = document.createElement('span'); pct.className  = 'pie-legend-pct';  pct.textContent  = seg.pct + '%';
+      item.appendChild(dot); item.appendChild(name); item.appendChild(pct);
+
+      item.addEventListener('mouseenter', function () {
+        self.hovered = i;
+        self._updateLegendActive(i);
+        self._animateHover();
+      });
+      item.addEventListener('mouseleave', function () {
+        self.hovered = -1;
+        self._updateLegendActive(-1);
+        self._animateHover();
+      });
+      item.addEventListener('click', function () {
+        seg.visible = !seg.visible;
+        item.classList.toggle('hidden', !seg.visible);
+        self._scheduleRender();
+      });
+
+      self.legendEl.appendChild(item);
+    });
+  };
+
+  PieChart.prototype._updateLegendActive = function (idx) {
+    var items = this.legendEl.querySelectorAll('.pie-legend-item');
+    items.forEach(function (item, i) {
+      item.classList.toggle('active', i === idx);
+    });
+  };
+
+  /* ── Bootstrap ────────────────────────────────────────────────────── */
+  function init() {
+    var canvas  = document.getElementById('fmtPieChart');
+    var legend  = document.getElementById('fmtPieLegend');
+    var tooltip = document.getElementById('fmtPieTooltip');
+    if (!canvas || !legend || !tooltip) return;
+
+    /* Reduced-motion: skip entrance animation */
+    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var chart = new PieChart(canvas, legend, tooltip);
+    if (prefersReduced) { chart.drawProg = 1; chart._render(); }
+    chart._bindEvents();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+})();
+
+/* ── Theme toggle ───────────────────────────────────────────────── */
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
 /* ── Sidebar mobile toggle ──────────────────────────────────────── */
 function toggleMobileSidebar() {
   document.getElementById('mobileSidebar').classList.toggle('open');
@@ -948,5 +1686,6 @@ function closeMobileSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
 </script>
+<script src="assets/js/effects.js"></script>
 </body>
 </html>
