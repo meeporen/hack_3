@@ -1825,6 +1825,8 @@ function setTokens(total, prompt, completion, retries) {
   document.getElementById('tokRetries').textContent = retries;
   document.getElementById('tokenBarFill').style.width = Math.min(total / 10, 100) + '%';
   document.getElementById('tokenGlobal').textContent = (state.totalTokens + total) + ' tokens';
+  const resTokens = document.getElementById('resTokens');
+  if (resTokens) resTokens.textContent = total;
 }
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -1870,7 +1872,7 @@ async function runPipeline() {
         stepAdvanced = true;
         setStep(2, 'done');
         document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · попытка ' + (update.retries || 1);
-        setTokens(update.tokens_used, Math.floor(update.tokens_used * 0.8), Math.floor(update.tokens_used * 0.2), update.retries || 0);
+        setTokens(update.tokens_used, update.prompt_tokens || 0, update.completion_tokens || 0, update.retries || 0);
         setStep(3, 'active');
         document.getElementById('step3-desc').textContent = 'tsc компиляция + runtime проверка...';
       }
@@ -1902,7 +1904,7 @@ async function runPipeline() {
 
   const records = job.json_output || [];
   const tokens  = job.tokens_used || 0;
-  setTokens(tokens, Math.floor(tokens * 0.8), Math.floor(tokens * 0.2), job.retries || 0);
+  setTokens(tokens, job.prompt_tokens || 0, job.completion_tokens || 0, job.retries || 0);
   setStep(4, 'done');
   document.getElementById('step4-desc').textContent = records.length + ' записей · valid';
   state.totalTokens += tokens;

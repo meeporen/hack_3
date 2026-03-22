@@ -42,8 +42,10 @@ class JobResult(BaseModel):
     filename:    str
     file_format: str
     records:     int = 0
-    tokens_used: int = 0
-    retries:     int = 0
+    tokens_used:       int = 0
+    prompt_tokens:     int = 0
+    completion_tokens: int = 0
+    retries:           int = 0
     ts_code:        Optional[str] = None
     console_output: Optional[str] = None
     json_output:    Optional[list[dict]] = None

@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     # OpenRouter
     OPENROUTER_API_KEY: str = ""
 
+    # Langfuse
+    LANGFUSE_SECRET_KEY: str = ""
+    LANGFUSE_PUBLIC_KEY: str = ""
+    LANGFUSE_HOST: str = "https://cloud.langfuse.com"
+
     # GigaChat / LLM
     GIGACHAT_CREDENTIALS: str = ""
     GIGACHAT_SCOPE: str = "GIGACHAT_API_CORP"
@@ -34,6 +39,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 settings = Settings()

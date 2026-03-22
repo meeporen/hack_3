@@ -5,8 +5,12 @@ import json
 import shutil
 import os as _os
 
-TS_NODE = shutil.which("ts-node") or r"C:\Users\meepo\AppData\Roaming\npm\ts-node.cmd"
-TSC     = shutil.which("tsc")     or r"C:\Users\meepo\AppData\Roaming\npm\tsc.cmd"
+TS_NODE = shutil.which("ts-node") or "ts-node"
+TSC     = shutil.which("tsc")     or "tsc"
+
+# Корень проекта (на уровень выше agent/)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_NODE_MODULES = os.path.join(_PROJECT_ROOT, "node_modules")
 
 _TEXT_TYPES = {"csv", "tsv", "json", "jsonl"}
 
@@ -89,7 +93,7 @@ process.stdout.write(JSON.stringify(result));
             errors="replace",
             env={
                 **_os.environ,
-                "NODE_PATH": r"C:\work\hack_3\node_modules",  # ← путь к node_modules
+                "NODE_PATH": _NODE_MODULES,
             }
         )
         if r.returncode != 0:

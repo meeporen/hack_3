@@ -13,6 +13,7 @@ from agent.prompts import CODE_PROMPT, get_boilerplate
 from agent.output_parsers import extract_ts_code
 from agent.validator import run_tsc, run_ts_function
 from utils.converter import convert_to_csv
+from utils.langfuse_client import get_langfuse_client
 
 llm = GigaChat(verify_ssl_certs=False, temperature=0)
 
@@ -21,11 +22,24 @@ _PRESERVE_TYPES = {"xlsx", "xls"}
 
 class TokenCounter(BaseCallbackHandler):
     def __init__(self):
-        self.total = 0
+        self.total             = 0
+        self.prompt_tokens     = 0
+        self.completion_tokens = 0
+        self.last_prompt       = ""
+        self.last_completion   = ""
+
+    def on_llm_start(self, serialized, prompts, **kwargs):
+        self.last_prompt = prompts[0] if prompts else ""
 
     def on_llm_end(self, response, **kwargs):
         usage = (response.llm_output or {}).get("token_usage", {})
-        self.total += usage.get("total_tokens", 0)
+        self.prompt_tokens     += usage.get("prompt_tokens", 0)
+        self.completion_tokens += usage.get("completion_tokens", 0)
+        self.total             += usage.get("total_tokens", 0)
+        try:
+            self.last_completion = response.generations[0][0].text
+        except Exception:
+            pass
 
 
 _PROP_LINE_RE = re.compile(r'^\s{2,}[a-zA-Z_][a-zA-Z0-9_]*\s*:')
@@ -140,6 +154,9 @@ async def generate_code(state: AgentState) -> dict:
     errors = state.get("errors", [])
     retry  = state.get("retry_count", 0)
     tokens = state.get("tokens_used", 0)
+    prompt_acc     = state.get("prompt_tokens", 0)
+    completion_acc = state.get("completion_tokens", 0)
+    job_id = state.get("job_id", "")
 
     if errors:
         errors_str = f"Попытка {retry}. Исправь эти ошибки:\n" + "\n".join(errors)
@@ -149,26 +166,53 @@ async def generate_code(state: AgentState) -> dict:
     file_type = schema["file_type"]
     separator = schema.get("separator") or ";"
 
-    raw = await chain.ainvoke(
-        {
-            "file_type":   file_type,
-            "separator":   separator,
-            "row_count":   schema["row_count"],
-            "col_count":   schema["col_count"],
-            "columns":     schema["columns"],
-            "target_json": state["target_json"],
-            "errors":      errors_str,
-            "boilerplate": get_boilerplate(file_type, separator),
-        },
-        config={"callbacks": [counter]}
-    )
+    langfuse = get_langfuse_client()
+    trace_name = f"generate_code attempt={retry + 1} job={job_id[:8] if job_id else 'unknown'}"
+
+    async def _invoke():
+        return await chain.ainvoke(
+            {
+                "file_type":   file_type,
+                "separator":   separator,
+                "row_count":   schema["row_count"],
+                "col_count":   schema["col_count"],
+                "columns":     schema["columns"],
+                "target_json": state["target_json"],
+                "errors":      errors_str,
+                "boilerplate": get_boilerplate(file_type, separator),
+            },
+            config={"callbacks": [counter]}
+        )
+
+    if langfuse:
+        with langfuse.start_as_current_observation(
+            as_type="generation",
+            name=trace_name,
+            model="GigaChat",
+            metadata={"job_id": job_id},
+        ) as generation:
+            raw = await _invoke()
+            generation.update(
+                input=counter.last_prompt,
+                output=counter.last_completion,
+                usage_details={
+                    "input":  counter.prompt_tokens,
+                    "output": counter.completion_tokens,
+                }
+            )
+        langfuse.flush()
+        print(f"[langfuse] trace отправлен: {trace_name} | prompt={counter.prompt_tokens} completion={counter.completion_tokens}")
+    else:
+        raw = await _invoke()
 
     ts_code = extract_ts_code(raw)
     ts_code = fix_common_errors(ts_code)
 
     return {
-        "ts_code":     ts_code,
-        "tokens_used": tokens + counter.total,
+        "ts_code":          ts_code,
+        "tokens_used":      tokens + counter.total,
+        "prompt_tokens":    prompt_acc + counter.prompt_tokens,
+        "completion_tokens": completion_acc + counter.completion_tokens,
     }
 
 

@@ -6,7 +6,7 @@ _BOILERPLATE_CSV = """\
 export default function(base64file: string): TargetData[] {{
   const text = atob(base64file).replace(/^\\uFEFF/, '')
   const lines = text.split('\\n').filter((l: string) => l.trim())
-  const headers = lines[0].split('{sep}')
+  const headers = lines[0].split('{sep}').map((h: string) => h.trim())
 
   const parseLine = (line: string): string[] => {{
     const result: string[] = []
@@ -24,8 +24,10 @@ export default function(base64file: string): TargetData[] {{
     return result
   }}
 
+  const _norm = (s: string) => s.replace(/\s+/g, '').toLowerCase()
+  const _normHeaders = headers.map(_norm)
   const get = (cells: string[], name: string): string | null => {{
-    const idx = headers.indexOf(name)
+    const idx = _normHeaders.indexOf(_norm(name))
     return idx === -1 ? null : (cells[idx]?.trim() || null)
   }}
   const toNum = (v: string | null): number | null =>

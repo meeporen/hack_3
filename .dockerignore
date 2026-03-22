@@ -1,0 +1,14 @@
+.git
+.env
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+node_modules
+uploads/*
+data/users.json
+data/history.json
+*.md
+.dockerignore
+docker-compose.yml
