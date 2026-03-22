@@ -42,7 +42,7 @@ def generate_schema_hint(filepath: str) -> dict:
     from src.config import settings
 
     ext = filepath.lower().rsplit(".", 1)[-1]
-    mime = "image/png"  # _preprocess всегда сохраняет PNG
+    mime = "image/png"
 
     print(f"\n[image_parser] ── шаг 1: чтение и предобработка ───────────")
     print(f"[image_parser] filepath : {filepath}")
@@ -59,7 +59,6 @@ def generate_schema_hint(filepath: str) -> dict:
         api_key=settings.OPENROUTER_API_KEY,
     )
 
-    # Запрос 1 — только заголовки
     print(f"\n[image_parser] ── шаг 2: запрос заголовков ─────────────────")
     total_in, total_out = 0, 0
 
@@ -80,7 +79,6 @@ def generate_schema_hint(filepath: str) -> dict:
     headers = json.loads(raw_headers)
     print(f"[image_parser] заголовки ({len(headers)}): {headers}")
 
-    # Запрос 2 — данные с явными заголовками
     print(f"\n[image_parser] ── шаг 3: запрос данных ────────────────────")
     numbered = "\n".join(f"{i+1}. {h}" for i, h in enumerate(headers))
     prompt_data = _PROMPT_DATA.format(
@@ -110,7 +108,6 @@ def generate_schema_hint(filepath: str) -> dict:
         raw = raw.split("```")[1].lstrip("json").strip()
         print(f"[image_parser] (markdown-обёртка снята)")
 
-    # JSON → DataFrame → CSV bytes
     print(f"\n[image_parser] ── шаг 5: JSON → DataFrame → CSV ─────────")
     try:
         rows = json.loads(raw)
@@ -131,7 +128,6 @@ def generate_schema_hint(filepath: str) -> dict:
     for line in lines:
         print(f"[image_parser]   {line}")
 
-    # CSV → schema hint
     print(f"\n[image_parser] ── шаг 7: csv_parser → schema ───────────────")
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False, mode="wb") as tmp:
         tmp.write(csv_bytes)
@@ -148,7 +144,6 @@ def generate_schema_hint(filepath: str) -> dict:
         print(f"[image_parser]   {col['name']!r:30s} dtype={col['dtype']:8s} sample={col['sample']}")
     print(f"[image_parser] ────────────────────────────────────────────\n")
 
-    # Удаляем временный preprocessed файл
     if processed != filepath:
         try:
             os.unlink(processed)
@@ -163,7 +158,6 @@ def generate_schema_hint(filepath: str) -> dict:
 
 
 def _preprocess(filepath: str) -> str:
-    """Увеличивает контрастность и резкость изображения перед отправкой в модель."""
     img = Image.open(filepath).convert("RGB")
 
     w, h = img.size

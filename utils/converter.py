@@ -25,7 +25,17 @@ def convert_to_csv(raw_bytes: bytes, file_type: str) -> tuple[bytes, str]:
 
     if ft in ("xlsx", "xls"):
         engine = "openpyxl" if ft == "xlsx" else "xlrd"
-        df = pd.read_excel(BytesIO(raw_bytes), engine=engine)
+        df = pd.read_excel(BytesIO(raw_bytes), engine=engine, header=None)
+        # find first row where majority of cells are non-null strings (header row)
+        header_row = 0
+        for i, row in df.iterrows():
+            non_null = row.dropna()
+            if len(non_null) >= max(2, len(df.columns) // 2):
+                str_count = sum(1 for v in non_null if isinstance(v, str))
+                if str_count >= len(non_null) // 2:
+                    header_row = i
+                    break
+        df = pd.read_excel(BytesIO(raw_bytes), engine=engine, header=header_row)
     elif ft == "tsv":
         df = pd.read_csv(StringIO(_decode(raw_bytes)), sep="\t")
     elif ft == "json":

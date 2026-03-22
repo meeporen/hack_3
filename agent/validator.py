@@ -8,7 +8,6 @@ import os as _os
 TS_NODE = shutil.which("ts-node") or "ts-node"
 TSC     = shutil.which("tsc")     or "tsc"
 
-# Корень проекта (на уровень выше agent/)
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _NODE_MODULES = os.path.join(_PROJECT_ROOT, "node_modules")
 
@@ -19,7 +18,6 @@ def run_tsc(ts_code: str) -> tuple[bool, list[str], str]:
     if not ts_code:
         return False, ["ts_code пустой"], ""
 
-    # добавляем объявления чтобы tsc не ругался на внешние зависимости
     prelude = "declare const XLSX: any;\ntype TargetData = Record<string, any>;\n\n"
     full_code = prelude + ts_code
 
@@ -47,14 +45,12 @@ def run_tsc(ts_code: str) -> tuple[bool, list[str], str]:
 def run_ts_function(ts_code: str, file_b64: str, file_type: str = "csv") -> tuple[bool, list[dict], str]:
     import base64 as b64lib
 
-    # для текстовых форматов убираем BOM и перекодируем в чистый utf-8
     if file_type in _TEXT_TYPES:
         csv_text  = b64lib.b64decode(file_b64).decode("utf-8-sig")
         clean_b64 = b64lib.b64encode(csv_text.encode("utf-8")).decode()
     else:
-        clean_b64 = file_b64  # для xlsx передаём бинарный base64 как есть
+        clean_b64 = file_b64
 
-    # пишем base64 в отдельный файл — безопасно от кавычек в f-string
     with tempfile.NamedTemporaryFile(
         suffix=".txt", delete=False,
         mode="w", encoding="utf-8"

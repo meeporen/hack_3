@@ -40,6 +40,25 @@ async def upload_and_convert(
     except json.JSONDecodeError:
         raise HTTPException(status_code=422, detail="target_schema: невалидный JSON")
 
+    # Flatten nested schema: find first dict with only scalar values
+    def _flatten(obj):
+        if isinstance(obj, list) and obj:
+            return _flatten(obj[0])
+        if isinstance(obj, dict):
+            flat = {k: v for k, v in obj.items() if not isinstance(v, (dict, list))}
+            if flat:
+                return flat
+            for v in obj.values():
+                result = _flatten(v)
+                if result:
+                    return result
+        return obj
+
+    if isinstance(schema_dict, (dict, list)):
+        flat = _flatten(schema_dict)
+        if isinstance(flat, dict):
+            schema_dict = flat
+
     # Save uploaded file
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     file_ext = os.path.splitext(file.filename or "file")[1]

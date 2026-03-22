@@ -51,7 +51,6 @@ def generate_schema_hint(filepath: str, api_key: str | None = None) -> dict:
 
 
 def _try_pdfplumber(filepath: str) -> dict | None:
-    """Возвращает schema dict если нашли таблицы, иначе None."""
     all_tables = []
     with pdfplumber.open(filepath) as pdf:
         for page in pdf.pages:

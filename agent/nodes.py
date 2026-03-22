@@ -47,7 +47,6 @@ _VALUE_END_RE  = re.compile(r'[)\]"\'a-zA-Z0-9_]$')
 
 
 def _add_missing_commas(ts_code: str) -> str:
-    """Построчно добавляет запятые перед строками-свойствами объекта."""
     lines = ts_code.split('\n')
     result = []
     for i, line in enumerate(lines):
@@ -63,22 +62,29 @@ def _add_missing_commas(ts_code: str) -> str:
 
 
 def fix_common_errors(ts_code: str) -> str:
-    # исправляем toNum(get(VAR, '...(с НДС)'), → toNum(get(VAR, '...(с НДС)')),
-    # VAR может быть cells (CSV) или row (XLSX/JSON)
     ts_code = re.sub(
         r"toNum\(get\((\w+),\s*'([^']+\(с НДС\))'\),",
         r"toNum(get(\1, '\2')),",
         ts_code
     )
-    # исправляем ccells → cells
     ts_code = ts_code.replace('ccells', 'cells')
-    # исправляем toBool(get(...) === '...') → get(...) === '...'
     ts_code = re.sub(
         r'toBool\((get\(cells,\s*\'[^\']+\'\)\s*===\s*\'[^\']+\')\)',
         r'\1',
         ts_code
     )
-    # добавляем пропущенные запятые между свойствами объекта
+    # fix: get(row, '...').split(...) → (get(row, '...') ?? '').split(...)
+    ts_code = re.sub(
+        r"(get\(\w+,\s*'[^']+'\))\.split\(",
+        r"(String(\1 ?? '')).split(",
+        ts_code
+    )
+    # fix: get(row, '...').replace(...) → (get(row, '...') ?? '').replace(...)
+    ts_code = re.sub(
+        r"(get\(\w+,\s*'[^']+'\))\.replace\(",
+        r"(String(\1 ?? '')).replace(",
+        ts_code
+    )
     ts_code = _add_missing_commas(ts_code)
     return ts_code
 
@@ -119,7 +125,6 @@ async def parse_file(state: AgentState) -> dict:
     finally:
         os.unlink(tmp_path)
 
-    # Подхватываем токены vision-модели (qwen) если парсер их вернул
     v_in  = schema_hint.pop("_vision_prompt_tokens",     0) or 0
     v_out = schema_hint.pop("_vision_completion_tokens", 0) or 0
     schema_hint.pop("_strategy", None)
@@ -143,7 +148,6 @@ async def parse_file(state: AgentState) -> dict:
             "tokens_used":       state.get("tokens_used", 0)       + v_in + v_out,
         }
 
-    # Для изображений image_parser кладёт CSV в schema_hint["_csv_bytes_b64"].
     csv_b64 = schema_hint.pop("_csv_bytes_b64", None)
     schema_hint.pop("_original_type", None)
     if csv_b64:
@@ -154,8 +158,6 @@ async def parse_file(state: AgentState) -> dict:
             **vision_token_update,
         }
 
-    # Для xlsx/xls/json/jsonl — schema_hint строится из CSV-представления,
-    # но в TypeScript передаём оригинальный файл.
     if original_type in _PRESERVE_TYPES:
         schema_hint["file_type"] = original_type
         return {

@@ -1,7 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-# ── Boilerplate templates (plain Python strings, not LangChain format) ──────
-
 _BOILERPLATE_CSV = """\
 export default function(base64file: string): TargetData[] {{
   const text = atob(base64file).replace(/^\\uFEFF/, '')
@@ -111,9 +109,6 @@ def get_boilerplate(file_type: str, separator: str = ";") -> str:
     else:
         return _BOILERPLATE_CSV.format(sep=separator)
 
-
-# ── LangChain prompt ─────────────────────────────────────────────────────────
-
 CODE_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """Ты генерируешь TypeScript функцию трансформации файла в JSON.
 
@@ -162,6 +157,7 @@ export default function(base64file: string): TargetData[] {{ ... }}
 - sample ['Да','Нет'] → toBool()
 - nullable: true → string | null
 - НИКОГДА не используй cells[0], cells[1], row[0], row[1] и т.д. — только через get()
+- НИКОГДА не вызывай методы строк (.replace, .split, .trim и т.д.) напрямую на результат get() — он может быть null. Всегда оборачивай в toStr() сначала
 - НИКОГДА не вызывай функции которые сам не определил
 - НИКОГДА не пиши опечатки в переменных
 - Верни ТОЛЬКО TypeScript код. Без markdown. Без пояснений.

@@ -7,7 +7,6 @@ _NUM_DASH_NUM = re.compile(r'^\d+[-]\d+$')
 def _generate_schema_hint(filepath: str, sample_size: int = 2) -> dict:
     separator = _detect_separator(filepath)
 
-    # utf-8-sig убирает BOM
     df = pd.read_csv(filepath, sep=separator, encoding="utf-8-sig")
 
     columns = []
@@ -18,7 +17,6 @@ def _generate_schema_hint(filepath: str, sample_size: int = 2) -> dict:
 
         dtype = _map_dtype(series)
 
-        # список из 2 значений вместо одного
         sample = []
         for val in non_null.head(sample_size):
             if hasattr(val, "item"):
