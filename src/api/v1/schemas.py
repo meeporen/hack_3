@@ -44,8 +44,9 @@ class JobResult(BaseModel):
     records:     int = 0
     tokens_used: int = 0
     retries:     int = 0
-    ts_code:     Optional[str] = None
-    json_output: Optional[list[dict]] = None
+    ts_code:        Optional[str] = None
+    console_output: Optional[str] = None
+    json_output:    Optional[list[dict]] = None
     pipeline:    list[PipelineStep] = []
     error:       Optional[str] = None
     created_at:  str

@@ -1013,8 +1013,14 @@ window.handlePhotoUpload = function(inputEl) {
 };
 
 // ── Token usage chart ────────────────────────────────────────────────
-(function buildChart() {
-  const history = loadHistory();
+(async function buildChart() {
+  let history = [];
+  try {
+    const res = await Api.history.list();
+    history = (res.items || []);
+  } catch (_) {
+    history = loadHistory();
+  }
   if (!history.length) {
     document.getElementById('tokenChart').style.display = 'none';
     document.getElementById('tokenChartEmpty').style.display = 'block';
@@ -1024,7 +1030,7 @@ window.handlePhotoUpload = function(inputEl) {
   // Group by date → sum tokens
   const byDate = {};
   history.forEach((h, i) => {
-    const key = h.date || ('запись ' + (i + 1));
+    const key = h.date || (h.time ? h.time.slice(0, 10) : ('запись ' + (i + 1)));
     byDate[key] = (byDate[key] || 0) + (h.tokens || 0);
   });
 
@@ -1242,6 +1248,8 @@ document.addEventListener('keydown', function(e) {
 (function () {
   'use strict';
 
+  var _historyData = [];
+
   /* ── Brand colour palette per format ─────────────────────────────── */
   var PALETTE = {
     CSV:  { color: '#0288d6', glow: 'rgba(2,136,214,.45)'  },
@@ -1273,12 +1281,12 @@ document.addEventListener('keydown', function(e) {
 
   /* ── Read history and build format counts ─────────────────────────── */
   function buildData() {
-    var history = (typeof loadHistory === 'function') ? loadHistory() : [];
+    var history = _historyData;
     if (!history.length) return { segments: buildSegments(MOCK), isMock: true };
 
     var counts = {};
     history.forEach(function (h) {
-      var fmt = ((h.format || h.outputFormat || h.type || '')).replace(/^\./, '').toUpperCase();
+      var fmt = ((h.format || h.file_format || h.outputFormat || h.type || '')).replace(/^\./, '').toUpperCase();
       if (fmt) counts[fmt] = (counts[fmt] || 0) + 1;
     });
     if (!Object.keys(counts).length) return { segments: buildSegments(MOCK), isMock: true };
@@ -1665,8 +1673,18 @@ document.addEventListener('keydown', function(e) {
     chart._bindEvents();
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  async function _loadAndInit() {
+    try {
+      var res = await Api.history.list();
+      _historyData = res.items || [];
+    } catch (_) {
+      _historyData = (typeof loadHistory === 'function') ? loadHistory() : [];
+    }
+    init();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _loadAndInit);
+  else _loadAndInit();
 
 })();
 

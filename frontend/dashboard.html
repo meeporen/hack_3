@@ -990,6 +990,7 @@ html.dark #logoutModalBox button:first-child {
 .term-warn    { color: #ffbd2e; }
 .term-err     { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,.3); }
 .term-success { color: #27c93f; font-weight: 700; text-shadow: 0 0 14px rgba(39,201,63,.55); }
+.term-code    { color: rgba(180,220,255,0.85); font-size: 11px; padding-left: 4px; }
 .term-cursor  {
   display: inline-block; width: 8px; height: 14px;
   background: rgba(39,201,63,0.85); vertical-align: middle;
@@ -1119,15 +1120,15 @@ html.dark #logoutModalBox button:first-child {
         <div class="metric-glass"><div class="ray-inner"></div></div>
         <div class="metric-content">
           <div class="metric-label">Форматов</div>
-          <div class="metric-value c-blue">7</div>
-          <div class="metric-sub">CSV · JSON · XLS · PDF · DOCX · PNG · JPG</div>
+          <div class="metric-value c-blue">8</div>
+          <div class="metric-sub">CSV · XLSX · XLS · JSON · JPEG · PNG · PDF · DOCX</div>
         </div>
       </div>
       <div class="metric-wrap" style="--ray-size:170px;--ray-speed:14s;--ray-delay:-4s;--ray2-size:95px;--ray2-speed:8s;--ray2-delay:-1s;--ray-blur:8px">
         <div class="metric-glass"><div class="ray-inner"></div></div>
         <div class="metric-content">
           <div class="metric-label">Avg tokens</div>
-          <div class="metric-value c-green">~340</div>
+          <div class="metric-value c-green">~2500</div>
           <div class="metric-sub">schema-only prompting</div>
         </div>
       </div>
@@ -1146,7 +1147,7 @@ html.dark #logoutModalBox button:first-child {
           <div class="metric-value" style="font-size:14px;padding-top:6px">
             <span class="badge badge-success badge-dot">ready</span>
           </div>
-          <div class="metric-sub">GigaChat-2-Max</div>
+          <div class="metric-sub">GigaChat</div>
         </div>
       </div>
     </div>
@@ -1270,7 +1271,7 @@ html.dark #logoutModalBox button:first-child {
   <!-- ── PROCESSING SCREEN ─────────────────────────────────────────── -->
   <div class="screen" id="screen-processing">
     <div class="page-title">Статус Pipeline</div>
-    <div class="page-sub">LangGraph StateGraph · GigaChat-2-Max · обработка файла</div>
+    <div class="page-sub">LangGraph StateGraph · GigaChat · обработка файла</div>
 
     <div class="card grad-top" style="margin-bottom:14px">
       <div class="card-title">Прогресс выполнения</div>
@@ -1314,7 +1315,7 @@ html.dark #logoutModalBox button:first-child {
       <div class="card-title">Token usage</div>
       <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--text)">
         <span id="tokenCurrent">0</span>
-        <span style="color:var(--hint)">/ 1000 limit</span>
+        <span style="color:var(--hint)"></span>
       </div>
       <div class="token-bar-track">
         <div class="token-bar-fill" id="tokenBarFill" style="width:0%"></div>
@@ -1557,14 +1558,28 @@ let state = {
   schemaMode:      'text', // 'text' | 'file' | 'photo'
   schemaPhoto:     null,
   totalTokens:     0,
-  history:         loadHistory(),
+  history:         [],
   lastResult:      null,
 };
-// Restore total tokens from history
-state.totalTokens = state.history.reduce((s, h) => s + (h.tokens || 0), 0);
-document.getElementById('tokenGlobal').textContent = state.totalTokens + ' tokens';
-// Render loaded history
-if (state.history.length) updateHistory();
+(async () => {
+  try {
+    const res = await Api.history.list();
+    state.history = (res.items || []).map(h => ({
+      status:  h.status,
+      file:    h.filename,
+      format:  h.file_format,
+      tokens:  h.tokens,
+      retries: h.retries,
+      time:    h.time ? new Date(h.time).toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'}) : '',
+      date:    h.time ? h.time.slice(0, 10) : '',
+    }));
+  } catch (_) {
+    state.history = loadHistory();
+  }
+  state.totalTokens = state.history.reduce((s, h) => s + (h.tokens || 0), 0);
+  document.getElementById('tokenGlobal').textContent = state.totalTokens + ' tokens';
+  if (state.history.length) updateHistory();
+})();
 
 /* ── Screen navigation ──────────────────────────────────────────── */
 function showScreen(id) {
@@ -2085,7 +2100,7 @@ function _buildTermSteps(ext, fileName, fileSize, jobId) {
 
   const llm = [
     ['empty',   null, 100, 0, null],
-    ['type',    'Connecting to GigaChat-2-Max API...',                        0,  14,  60],
+    ['type',    'Connecting to GigaChat API...',                              0,  14,  60],
     ['instant', 'POST /api/v1/prediction/upload  →  202 Accepted',          260,   0, null],
     ['instant', 'job_id: "' + jobId + '"  ·  status: processing',           100,   0, null],
     ['empty',   null,  60, 0, null],
@@ -2112,7 +2127,7 @@ function _buildTermSteps(ext, fileName, fileSize, jobId) {
 }
 
 // Main terminal animation — call once when result screen opens
-async function runTerminal(fileName) {
+async function runTerminal(fileName, job = null) {
   const body   = document.getElementById('terminalBody');
   const cursor = document.getElementById('termCursor');
   if (!body) return;
@@ -2123,7 +2138,7 @@ async function runTerminal(fileName) {
 
   const ext      = (fileName.split('.').pop() || 'csv').toLowerCase();
   const fileSize = state.dataFile ? (state.dataFile.size / 1024).toFixed(1) + ' KB' : '14.2 KB';
-  const jobId    = 'job_' + Math.random().toString(36).slice(2, 10);
+  const jobId    = job?.job_id || ('job_' + Math.random().toString(36).slice(2, 10));
   const steps    = _buildTermSteps(ext, fileName, fileSize, jobId);
 
   for (const [type, text, wait, speed, progress] of steps) {
@@ -2151,6 +2166,34 @@ async function runTerminal(fileName) {
     if (progress !== null) _setTermProgress(progress);
   }
 
+  // Show real tsc/ts-node output
+  if (job?.console_output) {
+    await new Promise(r => setTimeout(r, 300));
+    _tAppend('', '');
+    await _tType(_ts() + ' > ts-node --transpile-only converter.ts', 'term-step', 14);
+    await new Promise(r => setTimeout(r, 150));
+    const lines = job.console_output.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cls = line.includes('error') || line.includes('Error') ? 'term-err'
+                : line.includes('✓') || line.includes('warning') ? 'term-warn'
+                : 'term-code';
+      _tAppend('  ' + line, cls);
+      if (i % 8 === 7) await new Promise(r => setTimeout(r, 15));
+    }
+    await new Promise(r => setTimeout(r, 200));
+    _tAppend(_ts() + ' > Done — ' + (job.records || 0) + ' records written to stdout  ✓', 'term-ok');
+  } else if (job?.ts_code) {
+    await new Promise(r => setTimeout(r, 300));
+    _tAppend('', '');
+    await _tType(_ts() + ' > ts-node --transpile-only converter.ts', 'term-step', 14);
+    await new Promise(r => setTimeout(r, 400));
+    _tAppend(_ts() + ' > tsc → 0 errors  ✓', 'term-ok');
+    await new Promise(r => setTimeout(r, 200));
+    _tAppend(_ts() + ' > Done — ' + (job.records || 0) + ' records written to stdout  ✓', 'term-ok');
+  }
+
   await new Promise(r => setTimeout(r, 500));
   _setTermProgress(100);
   badge.textContent = '✓ done'; badge.className = 'terminal-badge is-done';
@@ -2161,6 +2204,7 @@ async function runTerminal(fileName) {
 function showResult(records, fname, job) {
   enableNav('nav-result');
   gotoScreen('result', document.getElementById('nav-result'));
+  runTerminal(fname, job);
 
   document.getElementById('resRecords').textContent = records.length;
   document.getElementById('recordsBadge').textContent = records.length + ' records';
@@ -2246,7 +2290,6 @@ function newConversion() {
 
 /* ── History ─────────────────────────────────────────────────────── */
 function updateHistory() {
-  saveHistory(state.history);
   const tbody = document.getElementById('historyBody');
   if (!state.history.length) return;
   tbody.innerHTML = state.history.map(h => {
@@ -2264,6 +2307,7 @@ function updateHistory() {
 
 function clearHistory() {
   state.history = [];
+  Api.history.clear().catch(() => {});
   clearHistoryStorage();
   document.getElementById('historyBody').innerHTML =
     '<tr><td colspan="6" style="text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px;padding:28px">Нет записей</td></tr>';

@@ -183,21 +183,31 @@ async def validate_code(state: AgentState) -> dict:
             "result_json": [],
         }
 
-    is_valid, errors = await asyncio.to_thread(run_tsc, ts_code)
+    is_valid, errors, tsc_out = await asyncio.to_thread(run_tsc, ts_code)
+
+    console_lines = []
+    if tsc_out:
+        console_lines.append(tsc_out)
+    else:
+        console_lines.append("tsc → 0 errors ✓")
 
     result_json = []
+    node_stderr = ""
     if is_valid:
-        is_valid, result_json, err = await asyncio.to_thread(run_ts_function,
+        is_valid, result_json, err, node_stderr = await asyncio.to_thread(run_ts_function,
             ts_code,
             state["file_b64"],
             state.get("file_type", "csv"),
         )
+        if node_stderr:
+            console_lines.append(node_stderr)
         if not is_valid:
             errors = [err]
 
     return {
-        "is_valid":    is_valid,
-        "errors":      errors,
-        "retry_count": state.get("retry_count", 0) + 1,
-        "result_json": result_json,
+        "is_valid":      is_valid,
+        "errors":        errors,
+        "retry_count":   state.get("retry_count", 0) + 1,
+        "result_json":   result_json,
+        "console_output": "\n".join(console_lines),
     }

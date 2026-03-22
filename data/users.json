@@ -25,5 +25,14 @@
     "photo": null,
     "createdAt": "2026-03-21T07:40:22.437058+00:00",
     "id": 3
+  },
+  {
+    "id": 4,
+    "name": "Карен Карамян",
+    "email": "meeporen@gmail.com",
+    "password": "password",
+    "role": "admin",
+    "photo": null,
+    "createdAt": "2026-01-10T10:00:00.000Z"
   }
 ]

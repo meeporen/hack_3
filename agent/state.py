@@ -7,7 +7,8 @@ class AgentState(TypedDict):
     schema_hint: dict
     ts_code:     str
     tokens_used: int
-    is_valid:    bool
-    errors:      list[str]
-    retry_count: int
-    result_json: list[dict]
+    is_valid:       bool
+    errors:         list[str]
+    retry_count:    int
+    result_json:    list[dict]
+    console_output: str

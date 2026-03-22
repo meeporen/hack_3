@@ -101,18 +101,21 @@ function refreshSessionPhoto(photoBase64) {
 }
 
 // ── History persistence ──
-const HISTORY_KEY = 'sber_history';
+function _historyKey() {
+  const session = getSession();
+  return session ? `sber_history_${session.userId}` : 'sber_history';
+}
 
 function saveHistory(history) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  localStorage.setItem(_historyKey(), JSON.stringify(history));
 }
 
 function loadHistory() {
   try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    return JSON.parse(localStorage.getItem(_historyKey())) || [];
   } catch { return []; }
 }
 
 function clearHistoryStorage() {
-  localStorage.removeItem(HISTORY_KEY);
+  localStorage.removeItem(_historyKey());
 }

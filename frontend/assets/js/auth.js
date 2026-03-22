@@ -53,6 +53,7 @@ async function doLogin() {
   } catch (err) {
     showAlert(err.message || 'Неверный email или пароль');
   }
+}
 
 // ── REGISTER ──
 async function doRegister() {

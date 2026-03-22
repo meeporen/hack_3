@@ -11,9 +11,9 @@ TSC     = shutil.which("tsc")     or r"C:\Users\meepo\AppData\Roaming\npm\tsc.cm
 _TEXT_TYPES = {"csv", "tsv", "json", "jsonl"}
 
 
-def run_tsc(ts_code: str) -> tuple[bool, list[str]]:
+def run_tsc(ts_code: str) -> tuple[bool, list[str], str]:
     if not ts_code:
-        return False, ["ts_code пустой"]
+        return False, ["ts_code пустой"], ""
 
     # добавляем объявления чтобы tsc не ругался на внешние зависимости
     prelude = "declare const XLSX: any;\ntype TargetData = Record<string, any>;\n\n"
@@ -32,9 +32,10 @@ def run_tsc(ts_code: str) -> tuple[bool, list[str]]:
         )
         ok     = r.returncode == 0
         errors = r.stdout.strip().splitlines() if not ok else []
-        return ok, errors
+        tsc_out = r.stdout.strip() if r.stdout.strip() else ("tsc → 0 errors" if ok else "")
+        return ok, errors, tsc_out
     except FileNotFoundError:
-        return True, []
+        return True, [], "tsc not found, skipped"
     finally:
         os.unlink(fname)
 
@@ -93,15 +94,15 @@ process.stdout.write(JSON.stringify(result));
         )
         if r.returncode != 0:
             print(f"DEBUG stderr: {r.stderr[:500]}")
-            return False, [], r.stderr.strip()
+            return False, [], r.stderr.strip(), r.stderr.strip()
         if not r.stdout:
             print(f"DEBUG stdout empty, stderr: {r.stderr[:200]}")
-            return False, [], "stdout empty"
+            return False, [], "stdout empty", r.stderr.strip()
         data = json.loads(r.stdout)
-        return True, data, ""
+        return True, data, "", r.stderr.strip()
     except (json.JSONDecodeError, FileNotFoundError) as e:
         print(f"DEBUG exception: {e}")
-        return False, [], str(e)
+        return False, [], str(e), ""
     finally:
         os.unlink(fname)
         os.unlink(b64_fname)

@@ -64,8 +64,9 @@ async def upload_and_convert(
         "records":     0,
         "tokens_used": 0,
         "retries":     0,
-        "ts_code":     None,
-        "json_output": None,
+        "ts_code":        None,
+        "console_output": None,
+        "json_output":    None,
         "pipeline":    [],
         "error":       None,
         "created_at":  now,
@@ -117,8 +118,9 @@ async def _run_pipeline(job_id: str, user_id: int):
             "tokens_used": 0,
             "is_valid":    False,
             "errors":      [],
-            "retry_count": 0,
-            "result_json": [],
+            "retry_count":   0,
+            "result_json":   [],
+            "console_output": "",
         })
 
         errors = state.get("errors") or []
@@ -133,7 +135,8 @@ async def _run_pipeline(job_id: str, user_id: int):
         job["records"]     = len(job["json_output"])
         job["tokens_used"] = state.get("tokens_used", 0)
         job["retries"]     = state.get("retry_count", 0)
-        job["ts_code"]     = state.get("ts_code") or None
+        job["ts_code"]        = state.get("ts_code") or None
+        job["console_output"] = state.get("console_output") or None
         job["status"]      = JobStatus.done if state.get("is_valid") else JobStatus.error
         job["error"]       = "; ".join(errors) if errors and not state.get("is_valid") else None
         job["finished_at"] = datetime.now(timezone.utc).isoformat()
