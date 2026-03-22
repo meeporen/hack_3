@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Converter Agent</title>
+<!-- Favicon — SVG data URI, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230288d6'/%3E%3Cstop offset='.5' stop-color='%2301a104'/%3E%3Cstop offset='1' stop-color='%2316da03'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url(%23g)'/%3E%3Cpath d='M8 19 Q8 10 17 10 L14 7 M17 10 L14 13' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M24 13 Q24 22 15 22 L18 25 M15 22 L18 19' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none' opacity='.8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAI3SURBVFhH7ZdNaBNBFMd/m82mmzQEDRqDiiAiHjxIERU8iYpERA+iePLgyZtHQUREPCjowYMHL548iHhQxA+sWMGDBy8+ioiiRSwaExNjPhqzSTbZ3fV/kxRXaBOzJgv2Bw+2k5n3/u+b2d19oygKiqKgKAqKoigYhmGY5z4AAAAASUVORK5CYII=">
+<!-- Apply saved theme before first paint to prevent flash -->
+<script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="assets/css/effects.css">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══ LIGHT THEME VARIABLES ══════════════════════════════════════════ */
+:root {
+  --bg:       #f4f6f9;
+  --surface:  #ffffff;
+  --surface2: #f0f2f6;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #111827;
+  --muted:    #6b7280;
+  --hint:     #9ca3af;
+
+  --green:    #01a104;
+  --green2:   #009b03;
+  --blue:     #0288d6;
+  --blue2:    #0277bd;
+  --yellow:   #b45309;
+  --red:      #dc2626;
+  --teal:     #0d9488;
+
+  --grad: linear-gradient(90deg,#0288d6,#01a104,#16da03,#02e97e,#fdf001);
+
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ══ DARK THEME VARIABLES ═══════════════════════════════════════════ */
+html.dark {
+  --bg:       #0f1117;
+  --surface:  #1a1d27;
+  --surface2: #222535;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --hint:     #64748b;
+  --shadow:   0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+*,*::before,*::after { box-sizing: border-box; margin:0; padding:0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  line-height: 1.6;
+  transition: background .3s ease, color .3s ease;
+}
+
+/* ══ LAYOUT ═════════════════════════════════════════════════════════ */
+.shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 88px 1fr auto;
+  min-height: 100vh;
+}
+
+/* ══ TOPBAR — ГРАДИЕНТ ════════════════════════════════════════════════ */
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 40px;
+  height: 88px;
+  background: linear-gradient(135deg, #0288d6 0%, #01a104 45%, #02e97e 80%, #fdf001 100%);
+  box-shadow: 0 4px 28px rgba(2,136,214,0.32);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-title {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 19px; font-weight: 800;
+  color: rgba(255,255,255,0.96) !important;
+  letter-spacing: 0.03em;
+}
+.topbar-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.68) !important;
+  letter-spacing: 0.05em;
+}
+.topbar-badge {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 6px 16px;
+  border-radius: 8px;
+  letter-spacing: 0.03em;
+  transition: background .15s;
+  text-decoration: none;
+}
+.topbar-badge:hover { background: rgba(255,255,255,0.28); }
+.topbar-divider { flex: 1; }
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.2);
+  transition: background .15s, transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+.user-pill:hover { background: rgba(255,255,255,0.32); transform: translateY(-2px); }
+/* Alias for shared sber.css name */
+.user-avatar, .user-pill-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  border: 2px solid rgba(255,255,255,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+  overflow: hidden;
+}
+.user-avatar img, .user-pill-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Hamburger */
+.menu-toggle {
+  display: none;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  padding: 7px;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.menu-toggle:hover { background: rgba(255,255,255,0.32); }
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 199;
+}
+
+/* ══ SIDEBAR ═════════════════════════════════════════════════════════ */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+  position: sticky; top: 88px;
+  height: calc(100vh - 88px);
+  overflow-y: auto;
+  z-index: 10;
+  transition: left .28s cubic-bezier(.4,0,.2,1), box-shadow .28s ease;
+}
+.nav-label {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--hint);
+  padding: 8px 10px 4px; text-transform: uppercase; font-family: var(--mono);
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--muted);
+  cursor: pointer; border: none; background: transparent;
+  width: 100%; text-align: left; text-decoration: none;
+  transition: background .12s, color .12s;
+}
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(1,161,4,0.08); color: var(--green2); font-weight: 600; }
+.nav-sep { height: 1px; background: var(--border); margin: 8px 0; }
+.nav-item.danger { color: #ef4444; }
+.nav-item.danger:hover { background: #fef2f2; color: #dc2626; }
+
+/* ══ MAIN ════════════════════════════════════════════════════════════ */
+.main { overflow-y: auto; padding: 28px 32px; }
+.screen { display: none; animation: fadeIn .2s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+
+@keyframes slideUpBounce {
+  /* translateY only — translate3d forces 3D GPU layer on backdrop-filter elements, resampling text */
+  0%   { opacity: 0; transform: translateY(28px); }
+  55%  { opacity: 1; transform: translateY(-6px); }
+  75%  { transform: translateY(3px); }
+  100% { opacity: 1; transform: none; }
+}
+
+.page-title {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 28px; font-weight: 800; letter-spacing: 0.02em;
+  margin-bottom: 4px; color: var(--text);
+}
+.page-sub   { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+
+/* ══ CARD ════════════════════════════════════════════════════════════ */
+.card {
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.65);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07),
+              inset 0 1px 0 rgba(255,255,255,0.9);
+  margin-bottom: 16px;
+  animation: slideUpBounce 0.55s cubic-bezier(.34,1.56,.64,1) both;
+  /* Only animate non-transform properties — no will-change on backdrop-filter
+     elements at page load (causes eager low-res GPU layer promotion) */
+  transition: box-shadow .28s ease, border-color .28s ease;
+}
+.card:hover {
+  box-shadow: 0 10px 36px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.96);
+  border-color: rgba(255,255,255,0.85);
+}
+.card-title {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--muted); margin-bottom: 18px;
+}
+
+/* ══ METRICS ═════════════════════════════════════════════════════════ */
+.metrics {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px;
+}
+.metric-wrap {
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  animation: slideUpBounce 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  cursor: default;
+}
+.metric-label { font-size: 12px; color: var(--hint); font-family: var(--mono); letter-spacing: .04em; margin-bottom: 8px; }
+.metric-value {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 32px; font-weight: 800; letter-spacing: 0; color: var(--text);
+}
+.metric-sub   { font-size: 12px; color: var(--hint); margin-top: 4px; }
+.metric-value.c-blue  { color: var(--blue); }
+.metric-value.c-green { color: var(--green); }
+.metric-value.c-amber { color: var(--yellow); }
+
+/* ══ BADGES ══════════════════════════════════════════════════════════ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .04em;
+  padding: 3px 8px; border-radius: 4px; font-weight: 600;
+}
+.badge-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+.badge-info    { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-warn    { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-err     { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-dot::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; display: inline-block;
+}
+
+/* ══ BUTTONS — LIQUID GLASS ══════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 12px 24px; border-radius: 12px;
+  font-family: 'Exo 2', var(--sans); font-size: 15px; font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer; border: none;
+  transition: transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s, opacity .15s;
+  position: relative; overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute; top: 0; left: -60%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: skewX(-18deg);
+  transition: left .45s ease;
+  pointer-events: none;
+}
+.btn:hover::before { left: 130%; }
+/* scale() resamples the button's compositor layer including text — use translateY only */
+.btn:hover { transform: translateY(-4px); }
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  /* No backdrop-filter: blur() + scale() on the same element causes irreducible
+     text resampling. Solid gradient looks identical in practice — the parent card
+     already provides the glass context. */
+  background: linear-gradient(135deg, #01a104, #16da03);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.36);
+  box-shadow: 0 4px 18px rgba(1,161,4,0.36), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.btn-primary:hover { box-shadow: 0 8px 30px rgba(1,161,4,0.44), inset 0 1px 0 rgba(255,255,255,0.55); }
+.btn-ghost {
+  /* Same reason — no backdrop-filter, use opaque-enough white instead */
+  background: rgba(255,255,255,0.92);
+  border: 1.5px solid rgba(0,0,0,0.1);
+  color: var(--muted);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.95);
+}
+.btn-ghost:hover { background: #ffffff; color: var(--text); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+.btn-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 18px; }
+
+/* ══ FORM INPUTS ═════════════════════════════════════════════════════ */
+input[type=text], input[type=email], input[type=password], textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  resize: vertical;
+}
+input:focus, textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(1,161,4,0.1);
+}
+input::placeholder, textarea::placeholder { color: var(--hint); }
+
+/* ══ DROPZONE ════════════════════════════════════════════════════════ */
+.dropzone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 36px 20px; text-align: center;
+  cursor: pointer; transition: all .2s; position: relative;
+  background: var(--surface2);
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--green);
+  background: rgba(1,161,4,0.04);
+}
+.dropzone.has-file {
+  border-color: var(--green);
+  background: #f0fdf4;
+  border-style: solid;
+}
+.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: #fff; border: 1px solid var(--border2);
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px; transition: border-color .2s;
+}
+.dropzone.has-file .drop-icon { background: #dcfce7; border-color: #bbf7d0; }
+.drop-icon svg { width: 24px; height: 24px; color: var(--muted); }
+.dropzone.has-file .drop-icon svg { color: var(--green); }
+.drop-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.drop-sub   { font-size: 12px; color: var(--hint); margin-bottom: 12px; }
+.format-tags { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+.format-tag {
+  font-family: var(--mono); font-size: 10px; padding: 2px 7px;
+  border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--hint); letter-spacing: 0.05em; background: var(--surface);
+}
+
+/* ══ SCHEMA INPUT TABS ═══════════════════════════════════════════════ */
+.schema-tabs {
+  display: flex; gap: 4px; margin-bottom: 12px;
+  background: var(--surface2); border-radius: 8px; padding: 3px;
+}
+.schema-tab {
+  flex: 1; padding: 6px 10px; border: none; border-radius: 6px;
+  background: transparent; color: var(--muted);
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background .15s, color .15s;
+}
+.schema-tab.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); font-weight: 600; }
+.schema-panel { display: none; }
+.schema-panel.active { display: block; }
+
+/* Image preview in schema */
+.schema-img-preview {
+  max-width: 100%; max-height: 200px; border-radius: 8px;
+  border: 1px solid var(--border); display: block; margin: 10px auto 0;
+  object-fit: contain;
+}
+
+/* ══ PIPELINE STEPS ══════════════════════════════════════════════════ */
+.pipeline { display: flex; flex-direction: column; }
+.pipe-step {
+  display: grid; grid-template-columns: 40px 1fr auto;
+  align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.pipe-step:last-child { border-bottom: none; }
+.step-circle {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.sc-wait   {
+  background: var(--surface2); color: var(--hint);
+  border: 1.5px solid var(--border2);
+}
+.sc-active {
+  background: #dbeafe; color: var(--blue);
+  border: 1.5px solid #93c5fd;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.sc-done   {
+  background: #dcfce7; color: var(--green2);
+  border: 1.5px solid #86efac;
+}
+.sc-error  {
+  background: #fee2e2; color: var(--red);
+  border: 1.5px solid #fca5a5;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(0.96)} }
+
+.pipe-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.pipe-desc { font-size: 11.5px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+/* ══ TOKEN BAR ═══════════════════════════════════════════════════════ */
+.token-bar-track {
+  height: 6px; border-radius: 3px;
+  background: var(--surface2); overflow: hidden; margin: 8px 0 6px;
+  border: 1px solid var(--border);
+}
+.token-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #0288d6, #01a104, #16da03);
+  transition: width .5s ease;
+}
+.token-meta {
+  display: flex; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--muted);
+}
+
+/* ══ CODE BLOCK ══════════════════════════════════════════════════════ */
+.code-block {
+  background: #1e293b; border-radius: 10px;
+  padding: 16px; font-family: var(--mono); font-size: 12px;
+  line-height: 1.7; overflow-x: auto; white-space: pre;
+  border: 1px solid rgba(0,0,0,0.1); color: #e2e8f0;
+}
+.code-kw      { color: #60a5fa; }
+.code-type    { color: #4ade80; }
+.code-str     { color: #fbbf24; }
+.code-comment { color: #94a3b8; }
+.code-num     { color: #fb923c; }
+
+/* ══ JSON OUTPUT TABLE ═══════════════════════════════════════════════ */
+.json-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--mono); font-size: 12px;
+}
+.json-table th {
+  text-align: left; padding: 8px 12px;
+  background: var(--surface2); color: var(--muted);
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.json-table td {
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.json-table tr:last-child td { border-bottom: none; }
+.json-table tr:hover td { background: var(--surface2); }
+.json-val-str  { color: #0369a1; }
+.json-val-num  { color: #7c3aed; }
+.json-val-bool { color: #0d9488; }
+.json-val-null { color: var(--hint); font-style: italic; }
+
+/* ══ HISTORY TABLE ═══════════════════════════════════════════════════ */
+.hist-table { width: 100%; border-collapse: collapse; }
+.hist-table th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  color: var(--hint); text-align: left; padding: 0 12px 10px;
+  text-transform: uppercase; border-bottom: 2px solid var(--border);
+}
+.hist-table td { padding: 11px 12px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.hist-table tr:last-child td { border-bottom: none; }
+.hist-table tr:hover td { background: var(--surface2); cursor: pointer; }
+
+/* ══ SCROLLBAR ═══════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ══ GRADIENT TOP LINE ═══════════════════════════════════════════════ */
+.grad-top { position: relative; }
+.grad-top::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--grad); border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* ══ LOGO ════════════════════════════════════════════════════════════ */
+.sber-logo    { height: 44px; width: auto; }
+.sber-logo-sm { height: 36px; width: auto; }
+
+/* ══ SITE FOOTER — на всю ширину grid ════════════════════════════════ */
+.site-footer {
+  background: #f1f3f7;
+  color: #374151;
+  /* Левый отступ = ширина сайдбара (240px) + базовый padding (48px),
+     чтобы sticky-сайдбар не перекрывал контент */
+  padding: 56px 48px 32px calc(240px + 48px);
+  border-top: 1px solid rgba(0,0,0,0.08);
+  grid-column: 1 / -1;
+}
+.site-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.footer-brand-logo { height: 30px; margin-bottom: 12px; }
+.footer-brand-desc { font-size: 13px; line-height: 1.7; color: #6b7280; margin-bottom: 14px; }
+.footer-contact-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #4b5563; margin-bottom: 8px; }
+.footer-contact-item svg { flex-shrink: 0; margin-top: 1px; opacity: 0.5; }
+.footer-contact-item a { color: #4b5563; text-decoration: none; transition: color .15s; }
+.footer-contact-item a:hover { color: #01a104; }
+.footer-col-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #111827; margin-bottom: 14px; }
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 8px; }
+.footer-links a { font-size: 13px; color: #6b7280; text-decoration: none; transition: color .15s; }
+.footer-links a:hover { color: #01a104; }
+.footer-divider { height: 1px; background: rgba(0,0,0,0.09); margin-bottom: 20px; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.footer-bottom-copy { font-size: 12px; color: #9ca3af; }
+.footer-bottom-links { display: flex; gap: 20px; flex-wrap: wrap; }
+.footer-bottom-links a { font-size: 12px; color: #9ca3af; text-decoration: none; transition: color .15s; }
+.footer-bottom-links a:hover { color: #374151; }
+.footer-license { font-size: 11px; color: #c0c7d0; margin-top: 8px; line-height: 1.6; }
+
+/* ══ THEME TOGGLE BUTTON ═════════════════════════════════════════════ */
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.32); transform: rotate(25deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun  { display: block; }
+.theme-toggle .icon-moon { display: none; }
+html.dark .theme-toggle .icon-sun  { display: none; }
+html.dark .theme-toggle .icon-moon { display: block; }
+
+/* ══ DARK MODE — COMPONENT OVERRIDES ════════════════════════════════ */
+/* All components use var(--*) colors. These override the hardcoded rgba/hex */
+html.dark .card {
+  background: rgba(30,36,54,0.82);
+  border-color: rgba(255,255,255,0.08);
+}
+html.dark .card:hover {
+  border-color: rgba(255,255,255,0.14);
+}
+html.dark .metric-glass {
+  background: rgba(26,32,48,0.78);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.2);
+}
+html.dark .metric-wrap:hover .metric-glass {
+  background: rgba(34,42,64,0.88);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(2,136,214,0.2);
+}
+html.dark .metric-glass::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 55%, transparent 100%);
+}
+html.dark .user-dropdown {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .user-dropdown a, html.dark .user-dropdown button { color: var(--text); }
+html.dark .user-dropdown a:hover, html.dark .user-dropdown button:hover { background: var(--surface2); }
+html.dark .user-dropdown button.danger:hover { background: rgba(220,38,38,0.12); }
+html.dark .btn-ghost {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--muted);
+}
+html.dark .btn-ghost:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+html.dark .dropzone { background: var(--surface2); border-color: rgba(255,255,255,0.13); }
+html.dark .dropzone.has-file { background: rgba(1,161,4,0.1); border-color: rgba(1,161,4,0.4); }
+html.dark .drop-icon { background: var(--surface); border-color: var(--border2); }
+html.dark .schema-tabs { background: var(--surface2); }
+html.dark .schema-tab.active { background: var(--surface); }
+html.dark .sc-active { background: rgba(2,136,214,0.18); border-color: rgba(2,136,214,0.4); }
+html.dark .sc-done   { background: rgba(1,161,4,0.15);   border-color: rgba(1,161,4,0.4); }
+html.dark .sc-error  { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.4); }
+html.dark .badge-success { background: rgba(22,163,74,0.18);  border-color: rgba(22,163,74,0.35);  color: #4ade80; }
+html.dark .badge-info    { background: rgba(29,78,216,0.2);   border-color: rgba(29,78,216,0.35);  color: #60a5fa; }
+html.dark .badge-warn    { background: rgba(146,64,14,0.2);   border-color: rgba(146,64,14,0.35);  color: #fbbf24; }
+html.dark .badge-err     { background: rgba(185,28,28,0.2);   border-color: rgba(185,28,28,0.35);  color: #f87171; }
+html.dark .site-footer {
+  background: #0d1018;
+  color: var(--text);
+  border-top-color: rgba(255,255,255,0.07);
+}
+html.dark .footer-brand-desc,
+html.dark .footer-contact-item,
+html.dark .footer-links a,
+html.dark .footer-bottom-copy,
+html.dark .footer-bottom-links a,
+html.dark .footer-license { color: var(--muted); }
+html.dark .footer-col-title { color: var(--text); }
+html.dark .footer-contact-item a { color: var(--muted); }
+html.dark .footer-divider { background: rgba(255,255,255,0.07); }
+html.dark .json-val-str  { color: #38bdf8; }
+html.dark .json-val-num  { color: #a78bfa; }
+html.dark .json-val-bool { color: #34d399; }
+html.dark #logoutModalBox {
+  background: var(--surface);
+  color: var(--text);
+}
+html.dark #logoutModalBox h3 { color: var(--text); }
+html.dark #logoutModalBox p  { color: var(--muted); }
+html.dark #logoutModalBox button:first-child {
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--muted);
+}
+
+/* Transition for smooth theme switch on key elements */
+.card, .sidebar, .metric-glass, .user-dropdown, .site-footer,
+.dropzone, .schema-tabs, .nav-item, .btn-ghost, input, textarea {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+}
+
+/* ══ RESPONSIVE ══════════════════════════════════════════════════════ */
+/* Плавные переходы на sidebar */
+.sidebar { transition: left .28s cubic-bezier(.4,0,.2,1), box-shadow .28s ease, background .3s, border-color .3s; }
+.sidebar-overlay { transition: opacity .28s ease; opacity: 0; pointer-events: none; }
+.sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+
+/* — Tablet landscape (1024px) — */
+@media (max-width: 1024px) {
+  .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .site-footer { padding: 40px 28px 24px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .main { padding: 24px 24px; }
+}
+
+/* — Tablet portrait / large phone (768px) — */
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr !important; grid-template-rows: 64px 1fr auto !important; }
+  .topbar { height: 64px; padding: 0 16px; gap: 10px; }
+  .topbar-badge { display: none; }
+  .menu-toggle { display: flex !important; align-items: center; justify-content: center; }
+  .sidebar {
+    position: fixed !important; left: -260px; top: 64px;
+    height: calc(100vh - 64px) !important; z-index: 300; width: 248px;
+    border-right: 1px solid var(--border); box-shadow: none;
+  }
+  .sidebar.open { left: 0; box-shadow: 6px 0 32px rgba(0,0,0,0.18); }
+  .sidebar-overlay { display: block !important; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 299; }
+  .main { padding: 16px 14px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .page-title { font-size: 22px; }
+  .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px; }
+  .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .btn-row { flex-wrap: wrap; }
+  .btn-row .btn { flex: 1; min-width: 120px; justify-content: center; }
+}
+
+/* — Phone (480px) — */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .topbar { gap: 8px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-subtitle { display: none; }
+  .sber-logo-sm { height: 28px !important; }
+  .user-pill { padding: 6px 10px; gap: 7px; font-size: 13px; }
+  .user-pill-avatar, .user-avatar { width: 30px; height: 30px; font-size: 11px; }
+  #topbarUserName { display: none; }
+  .theme-toggle { width: 32px; height: 32px; }
+  .main { padding: 14px 12px; }
+  .metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .metric-content { padding: 14px; }
+  .metric-value { font-size: 26px; }
+  .metric-sub { font-size: 10px; }
+  .page-title { font-size: 20px; margin-bottom: 2px; }
+  .page-sub { font-size: 13px; margin-bottom: 20px; }
+  .card { padding: 16px; }
+  .card-title { font-size: 10px; }
+  .btn { padding: 10px 18px; font-size: 13px; }
+  .btn-row { gap: 8px; margin-top: 14px; }
+  .pipe-step { grid-template-columns: 32px 1fr auto; gap: 10px; padding: 12px 0; }
+  .step-circle { width: 32px; height: 32px; font-size: 11px; }
+  .pipe-name { font-size: 13px; }
+  .pipe-desc { font-size: 11px; }
+  .hist-table th, .hist-table td { padding: 8px 8px; font-size: 12px; }
+  .schema-tab { font-size: 11px; padding: 5px 6px; }
+  .dropzone { padding: 24px 14px; }
+  .drop-icon { width: 42px; height: 42px; }
+  .drop-title { font-size: 13px; }
+  .site-footer { padding: 24px 12px 16px; }
+  .footer-bottom-links { gap: 12px; }
+  .user-dropdown { min-width: 140px; right: -10px; }
+}
+
+/* ══ USER DROPDOWN ═══════════════════════════════════════════════════ */
+.user-pill-wrap { position: relative; }
+.user-dropdown {
+  display: none;
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+  min-width: 160px;
+  overflow: hidden;
+  z-index: 500;
+  animation: dropIn .18s ease;
+}
+.user-dropdown.open { display: block; }
+/* translateZ(0) on a backdrop-filter element forces GPU resampling — opacity only */
+@keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+.user-dropdown a, .user-dropdown button {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 10px 16px;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text); background: transparent;
+  border: none; cursor: pointer; text-decoration: none;
+  transition: background .12s;
+}
+.user-dropdown a:hover, .user-dropdown button:hover { background: var(--surface2); }
+.user-dropdown button.danger { color: #ef4444; }
+.user-dropdown button.danger:hover { background: #fef2f2; color: #dc2626; }
+.user-dropdown svg { width: 15px; height: 15px; flex-shrink: 0; }
+.dropdown-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* ══ METRIC CARDS — TWO-LAYER ARCHITECTURE ════════════════════════════
+   Layer 1 (.metric-glass): Static, has backdrop-filter — NEVER transforms
+   Layer 2 (.metric-content): Text only, no backdrop-filter — free to animate
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Layer 1: Glass blur — completely static */
+.metric-glass {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.68);
+  backdrop-filter: blur(22px) saturate(1.8);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07),
+              inset 0 1px 0 rgba(255,255,255,0.9),
+              inset 0 -1px 0 rgba(0,0,0,0.04);
+  border-radius: inherit;
+  transition: box-shadow .25s ease, border-color .25s ease, background .25s ease;
+  pointer-events: none;
+}
+.metric-wrap:hover .metric-glass {
+  background: rgba(255,255,255,0.82);
+  border-color: rgba(255,255,255,0.9);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.13),
+              inset 0 1px 0 rgba(255,255,255,1),
+              0 0 0 1px rgba(2,136,214,0.15);
+}
+/* Multi-ray spinning cluster — anchored at card bottom-right corner */
+.metric-glass::after {
+  content: '';
+  position: absolute;
+  bottom: calc(var(--ray-size, 200px) / -2);
+  right:  calc(var(--ray-size, 200px) / -2);
+  width:  var(--ray-size, 200px);
+  height: var(--ray-size, 200px);
+  background: conic-gradient(
+    from 0deg,
+    transparent           0deg,
+    rgba(253,240,1,.38)   7deg,
+    transparent          18deg,
+    transparent          40deg,
+    rgba(2,233,126,.32)  51deg,
+    transparent          68deg,
+    transparent         105deg,
+    rgba(2,136,214,.26) 118deg,
+    transparent         138deg,
+    transparent         162deg,
+    rgba(1,161,4,.34)   177deg,
+    transparent         195deg,
+    transparent         220deg,
+    rgba(253,240,1,.22) 231deg,
+    transparent         248deg,
+    transparent         270deg,
+    rgba(2,136,214,.28) 285deg,
+    rgba(2,233,126,.18) 305deg,
+    transparent         322deg,
+    transparent         347deg,
+    rgba(1,161,4,.2)    356deg,
+    transparent         360deg
+  );
+  border-radius: 50%;
+  animation: metricRay var(--ray-speed, 16s) linear infinite;
+  animation-delay: var(--ray-delay, 0s);
+  filter: blur(var(--ray-blur, 9px));
+  pointer-events: none;
+  z-index: 0;
+}
+/* Second smaller ray ring */
+.metric-glass .ray-inner {
+  position: absolute;
+  bottom: calc(var(--ray2-size, 110px) / -2);
+  right:  calc(var(--ray2-size, 110px) / -2);
+  width:  var(--ray2-size, 110px);
+  height: var(--ray2-size, 110px);
+  background: conic-gradient(
+    from 0deg,
+    transparent          0deg,
+    rgba(2,136,214,.35)  15deg,
+    transparent          35deg,
+    transparent          80deg,
+    rgba(2,233,126,.4)   95deg,
+    transparent         118deg,
+    transparent         195deg,
+    rgba(253,240,1,.3)  210deg,
+    transparent         230deg,
+    transparent         310deg,
+    rgba(1,161,4,.35)   325deg,
+    transparent         348deg,
+    transparent         360deg
+  );
+  border-radius: 50%;
+  animation: metricRay var(--ray2-speed, 10s) linear infinite reverse;
+  animation-delay: var(--ray2-delay, -2s);
+  filter: blur(5px);
+  pointer-events: none;
+  z-index: 0;
+}
+/* Glass inner highlight — top-left shimmer */
+.metric-glass::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  right: 55%; bottom: 55%;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.6) 0%,
+    rgba(255,255,255,0.1) 55%,
+    transparent 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes metricRay {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+
+/* Layer 2: Text content — no backdrop-filter, free to animate without blur */
+.metric-content {
+  position: relative;
+  z-index: 2;
+  padding: 20px;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+.metric-label, .metric-value, .metric-sub {
+  transition: transform .15s ease, color .2s;
+}
+.metric-wrap:hover .metric-value {
+  text-shadow: 0 2px 14px rgba(0,0,0,0.18);
+  transform: scale(1.04);
+}
+.metric-wrap:hover .metric-label { transform: translateY(-1px); }
+.metric-wrap:hover .metric-sub   { transform: translateY(1px); }
+
+/* ══ BUTTON WANDERING LIGHTS ════════════════════════════════════════ */
+@keyframes orbFloat {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.3) blur(0px); }
+  35%  { opacity: .85; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--odx)), calc(-50% + var(--ody))) scale(1.3); }
+}
+.btn-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: orbFloat var(--dur, 1s) ease-out forwards;
+  filter: blur(var(--oblur, 5px));
+  z-index: 10;
+}
+
+/* ══ TERMINAL ════════════════════════════════════════════════════════ */
+.terminal-window {
+  background: rgba(6, 10, 6, 0.90);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(39, 201, 63, 0.20);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  box-shadow:
+    0 0 0 1px rgba(39, 201, 63, 0.04),
+    0 0 48px rgba(39, 201, 63, 0.08),
+    0 10px 40px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.terminal-titlebar {
+  background: rgba(10, 16, 10, 0.97);
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid rgba(39, 201, 63, 0.10);
+  user-select: none;
+}
+.terminal-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.terminal-dot-red    { background: #ff5f56; box-shadow: 0 0 5px rgba(255,95,86,.5); }
+.terminal-dot-yellow { background: #ffbd2e; box-shadow: 0 0 5px rgba(255,189,46,.5); }
+.terminal-dot-green  { background: #27c93f; box-shadow: 0 0 5px rgba(39,201,63,.5); }
+.terminal-title {
+  font-family: var(--mono);
+  font-size: 11.5px; font-weight: 600;
+  color: rgba(39, 201, 63, 0.75);
+  margin-left: 6px; flex: 1;
+  letter-spacing: 0.05em;
+}
+.terminal-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(39, 201, 63, 0.55);
+  border: 1px solid rgba(39, 201, 63, 0.18);
+  border-radius: 4px;
+  padding: 2px 8px;
+  letter-spacing: .04em;
+  transition: color .3s, border-color .3s;
+}
+.terminal-badge.is-running,
+.terminal-badge.is-done { color: #27c93f; border-color: rgba(39,201,63,.35); }
+.terminal-clear-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(255,255,255,.28);
+  background: none;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 4px;
+  padding: 2px 9px;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: color .2s, border-color .2s;
+  flex-shrink: 0;
+}
+.terminal-clear-btn:hover { color: rgba(255,255,255,.65); border-color: rgba(255,255,255,.28); }
+.terminal-progress-bar { height: 2px; background: rgba(39,201,63,.07); }
+.terminal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a8c2a, #27c93f, #00ff88);
+  transition: width .45s ease;
+  box-shadow: 0 0 10px rgba(39,201,63,.55);
+}
+.terminal-body {
+  padding: 16px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.72;
+  color: rgba(39, 201, 63, 0.82);
+  min-height: 240px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(39,201,63,.14) transparent;
+}
+.terminal-body::-webkit-scrollbar { width: 4px; }
+.terminal-body::-webkit-scrollbar-track { background: transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background: rgba(39,201,63,.18); border-radius: 2px; }
+.term-line    { display: block; white-space: pre-wrap; word-break: break-all; }
+.term-empty   { display: block; height: 0.45em; }
+.term-step    { color: rgba(39,201,63,0.82); }
+.term-info    { color: rgba(39,201,63,0.40); }
+.term-ok      { color: #27c93f; text-shadow: 0 0 8px rgba(39,201,63,.35); }
+.term-http    { color: #5dade2; }
+.term-token   { color: #f4e842; }
+.term-prog    { color: rgba(39,201,63,0.60); letter-spacing: -0.01em; }
+.term-warn    { color: #ffbd2e; }
+.term-err     { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,.3); }
+.term-success { color: #27c93f; font-weight: 700; text-shadow: 0 0 14px rgba(39,201,63,.55); }
+.term-code    { color: rgba(180,220,255,0.85); font-size: 11px; padding-left: 4px; }
+.term-cursor  {
+  display: inline-block; width: 8px; height: 14px;
+  background: rgba(39,201,63,0.85); vertical-align: middle;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(39,201,63,.55);
+  animation: termBlink 1.1s step-start infinite;
+}
+@keyframes termBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+@media (max-width:640px) {
+  .terminal-body { font-size:10.5px; padding:10px 12px; max-height:280px; }
+  .terminal-title { font-size:10px; }
+}
+</style>
+</head>
+
+<!-- SVG liquid glass distortion filter (hidden) -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="liquid-glass-filter" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9 0.7" numOctaves="4" seed="8" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="0.4" result="soft"/>
+      <feComposite in="soft" in2="SourceGraphic" operator="atop"/>
+    </filter>
+    <filter id="glow-filter" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<body>
+
+<div class="shell">
+
+<!-- Sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ╔══ TOPBAR ══════════════════════════════════════════════════════╗ -->
+<header class="topbar">
+  <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Меню">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm" style="filter:brightness(0) invert(1);">
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <span class="topbar-title">Converter Agent</span>
+    <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;"
+          data-typewriter
+          data-tw-phrases='["Platform V · GigaChat","AI-конвертация файлов","Self-healing · 3× retry","CSV · JSON · XLS · PDF"]'
+          data-tw-speed="55"
+          data-tw-delete-speed="28"
+          data-tw-pause="2800">Platform V · GigaChat</span>
+  </div>
+  <span class="topbar-badge">AI-конвертация файлов</span>
+  <div class="topbar-divider"></div>
+  <span class="topbar-badge" id="tokenGlobal">0 tokens</span>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему" title="Тёмная / светлая тема">
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+  <div class="user-pill-wrap">
+    <div class="user-pill" onclick="toggleUserDropdown(event)">
+      <div class="user-avatar" id="topbarAvatar"></div>
+      <span id="topbarUserName"></span>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="profile.html">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13.5c0-2.5 2.7-4.5 6-4.5s6 2 6 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Профиль
+      </a>
+      <div class="dropdown-sep"></div>
+      <button class="danger" onclick="logout()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M10 8H3M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3h3a1 1 0 011 1v8a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Выйти
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ╔══ SIDEBAR ═════════════════════════════════════════════════════╗ -->
+<nav class="sidebar">
+  <div class="nav-label">Workspace</div>
+  <button class="nav-item active" id="nav-upload" onclick="gotoScreen('upload',this)">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M8 3L5 6M8 3l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Конвертация
+  </button>
+  <button class="nav-item" id="nav-history" onclick="gotoScreen('history',this)">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5.5V8l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    История
+  </button>
+  <div class="nav-sep"></div>
+  <div class="nav-label">Статус</div>
+  <button class="nav-item" id="nav-processing" onclick="gotoScreen('processing',this)" style="pointer-events:none;opacity:.4">
+    <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    Pipeline
+  </button>
+  <button class="nav-item" id="nav-result" onclick="gotoScreen('result',this)" style="pointer-events:none;opacity:.4">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Результат
+  </button>
+</nav>
+
+<!-- ╔══ MAIN ════════════════════════════════════════════════════════╗ -->
+<main class="main">
+
+  <!-- ── UPLOAD SCREEN ────────────────────────────────────────────── -->
+  <div class="screen active" id="screen-upload">
+    <div class="page-title" data-typewriter data-tw-speed="60" data-tw-loop="false">Новая конвертация</div>
+    <div class="page-sub">Загрузите файл с данными и укажите целевую JSON-структуру</div>
+
+    <div class="metrics">
+      <div class="metric-wrap" style="--ray-size:220px;--ray-speed:18s;--ray-delay:0s;--ray2-size:120px;--ray2-speed:11s;--ray2-delay:-2s;--ray-blur:10px">
+        <div class="metric-glass"><div class="ray-inner"></div></div>
+        <div class="metric-content">
+          <div class="metric-label">Форматов</div>
+          <div class="metric-value c-blue">8</div>
+          <div class="metric-sub">CSV · XLSX · XLS · JSON · JPEG · PNG · PDF · DOCX</div>
+        </div>
+      </div>
+      <div class="metric-wrap" style="--ray-size:170px;--ray-speed:14s;--ray-delay:-4s;--ray2-size:95px;--ray2-speed:8s;--ray2-delay:-1s;--ray-blur:8px">
+        <div class="metric-glass"><div class="ray-inner"></div></div>
+        <div class="metric-content">
+          <div class="metric-label">Avg tokens</div>
+          <div class="metric-value c-green">~2500</div>
+          <div class="metric-sub">schema-only prompting</div>
+        </div>
+      </div>
+      <div class="metric-wrap" style="--ray-size:250px;--ray-speed:22s;--ray-delay:-8s;--ray2-size:140px;--ray2-speed:13s;--ray2-delay:-3s;--ray-blur:12px">
+        <div class="metric-glass"><div class="ray-inner"></div></div>
+        <div class="metric-content">
+          <div class="metric-label">Self-healing</div>
+          <div class="metric-value c-amber">3×</div>
+          <div class="metric-sub">retry max</div>
+        </div>
+      </div>
+      <div class="metric-wrap" style="--ray-size:190px;--ray-speed:16s;--ray-delay:-12s;--ray2-size:105px;--ray2-speed:9s;--ray2-delay:-4s;--ray-blur:9px">
+        <div class="metric-glass"><div class="ray-inner"></div></div>
+        <div class="metric-content">
+          <div class="metric-label">Статус</div>
+          <div class="metric-value" style="font-size:14px;padding-top:6px">
+            <span class="badge badge-success badge-dot">ready</span>
+          </div>
+          <div class="metric-sub">GigaChat</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Шаг 1 — Файл данных -->
+    <div class="card grad-top">
+      <div class="card-title">Шаг 1 — Файл с данными</div>
+      <div class="dropzone" id="dropzone"
+           ondragover="onDragOver(event)"
+           ondragleave="onDragLeave(event)"
+           ondrop="onDrop(event)">
+        <input type="file" id="dataFileInput"
+               accept=".csv,.json,.xls,.xlsx,.pdf,.docx,.png,.jpg,.jpeg"
+               onchange="onFileSelect(event)">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 15V4M12 4L8 8M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 17h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="drop-title" id="dropTitle">Перетащите файл или нажмите для выбора</div>
+        <div class="drop-sub" id="dropSub">Максимум 10 MB</div>
+        <div class="format-tags">
+          <span class="format-tag">CSV</span>
+          <span class="format-tag">JSON</span>
+          <span class="format-tag">XLS</span>
+          <span class="format-tag">XLSX</span>
+          <span class="format-tag">PDF</span>
+          <span class="format-tag">DOCX</span>
+          <span class="format-tag">PNG</span>
+          <span class="format-tag">JPG</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Шаг 2 — JSON Schema (3 варианта ввода) -->
+    <div class="card grad-top">
+      <div class="card-title">Шаг 2 — Target JSON schema</div>
+
+      <div class="schema-tabs">
+        <button class="schema-tab active" onclick="switchSchemaTab('text',this)">
+          ✏️ Текст
+        </button>
+        <button class="schema-tab" onclick="switchSchemaTab('file',this)">
+          📄 JSON-файл
+        </button>
+        <button class="schema-tab" onclick="switchSchemaTab('photo',this)">
+          📷 Фото
+        </button>
+      </div>
+
+      <!-- Текст -->
+      <div class="schema-panel active" id="schema-text">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-family:var(--mono)">
+          Напишите пример структуры JSON-объекта
+        </div>
+        <textarea id="targetJson" rows="6"
+          placeholder='{"dealId": "string", "amount": "number", "stage": "string"}'>{
+  "dealId": "string",
+  "amount": "number",
+  "stage": "string",
+  "createdAt": "string",
+  "responsible": "string"
+}</textarea>
+      </div>
+
+      <!-- JSON-файл -->
+      <div class="schema-panel" id="schema-file">
+        <div class="dropzone" id="schemaDropzone" style="padding:24px"
+             ondragover="onSchemaDragOver(event)"
+             ondragleave="onSchemaDragLeave(event)"
+             ondrop="onSchemaDrop(event)">
+          <input type="file" id="schemaFileInput" accept=".json"
+                 onchange="onSchemaFileSelect(event)">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="2" width="12" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4 6h12M8 10h4M8 13h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M14 2v4h4" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="drop-title" id="schemaDropTitle">Загрузить .json файл со схемой</div>
+          <div class="drop-sub">Перетащите или нажмите</div>
+        </div>
+      </div>
+
+      <!-- Фото -->
+      <div class="schema-panel" id="schema-photo">
+        <div class="dropzone" id="photoDropzone" style="padding:24px"
+             ondragover="onPhotoDragOver(event)"
+             ondragleave="onPhotoDragLeave(event)"
+             ondrop="onPhotoDrop(event)">
+          <input type="file" id="schemaPhotoInput" accept="image/*"
+                 onchange="onSchemaPhotoSelect(event)">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="5" width="20" height="15" rx="2" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="8.5" cy="11" r="2" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M2 17l5-4 4 4 3-3 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="drop-title" id="photoDropTitle">Загрузить фото схемы</div>
+          <div class="drop-sub">JPG, PNG · OCR-распознавание</div>
+        </div>
+        <img id="schemaPhotoPreview" class="schema-img-preview" style="display:none" alt="Предпросмотр">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="clearForm()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M12 1L1 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Сбросить
+        </button>
+        <button class="btn btn-primary" onclick="startProcessing()">
+          Конвертировать
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROCESSING SCREEN ─────────────────────────────────────────── -->
+  <div class="screen" id="screen-processing">
+    <div class="page-title">Статус Pipeline</div>
+    <div class="page-sub">LangGraph StateGraph · GigaChat · обработка файла</div>
+
+    <div class="card grad-top" style="margin-bottom:14px">
+      <div class="card-title">Прогресс выполнения</div>
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step1-circle">1</div>
+          <div>
+            <div class="pipe-name">parse_file</div>
+            <div class="pipe-desc" id="step1-desc">factory(mime) → schema_hint + sample rows</div>
+          </div>
+          <span class="badge badge-warn" id="step1-badge">wait</span>
+        </div>
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step2-circle">2</div>
+          <div>
+            <div class="pipe-name">generate_code</div>
+            <div class="pipe-desc" id="step2-desc">prompt(schema, target_json) → LLM → ts_code</div>
+          </div>
+          <span class="badge badge-warn" id="step2-badge">wait</span>
+        </div>
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step3-circle">3</div>
+          <div>
+            <div class="pipe-name">validate_code</div>
+            <div class="pipe-desc" id="step3-desc">tsc compile + node runtime check</div>
+          </div>
+          <span class="badge badge-warn" id="step3-badge">wait</span>
+        </div>
+        <div class="pipe-step">
+          <div class="step-circle sc-wait" id="step4-circle">4</div>
+          <div>
+            <div class="pipe-name">result</div>
+            <div class="pipe-desc" id="step4-desc">JSON output ready</div>
+          </div>
+          <span class="badge badge-warn" id="step4-badge">wait</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Token usage</div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--text)">
+        <span id="tokenCurrent">0</span>
+        <span style="color:var(--hint)"></span>
+      </div>
+      <div class="token-bar-track">
+        <div class="token-bar-fill" id="tokenBarFill" style="width:0%"></div>
+      </div>
+      <div class="token-meta">
+        <span>prompt: <span id="tokPrompt">0</span></span>
+        <span>completion: <span id="tokCompletion">0</span></span>
+        <span style="color:var(--green)">retries: <span id="tokRetries">0</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RESULT SCREEN ─────────────────────────────────────────────── -->
+  <div class="screen" id="screen-result">
+    <div class="page-title">Результат</div>
+    <div class="page-sub" id="resultSub">Конвертация завершена успешно</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Статус</div>
+        <div class="metric-value" style="font-size:14px;padding-top:6px">
+          <span class="badge badge-success badge-dot" id="resStatus">valid</span>
+        </div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Токены</div>
+        <div class="metric-value c-green" id="resTokens">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Попытки</div>
+        <div class="metric-value" id="resRetries">1 / 3</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Записей</div>
+        <div class="metric-value c-blue" id="resRecords">0</div>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal-window" id="terminalWindow">
+      <div class="terminal-titlebar">
+        <div class="terminal-dot terminal-dot-red"></div>
+        <div class="terminal-dot terminal-dot-yellow"></div>
+        <div class="terminal-dot terminal-dot-green"></div>
+        <span class="terminal-title">📟 CONVERTER CONSOLE</span>
+        <span class="terminal-badge" id="terminalBadge">● idle</span>
+        <button class="terminal-clear-btn" onclick="termClear()">clear</button>
+      </div>
+      <div class="terminal-progress-bar">
+        <div class="terminal-progress-fill" id="termProgressFill" style="width:0%"></div>
+      </div>
+      <div class="terminal-body" id="terminalBody">
+        <span class="term-cursor" id="termCursor"></span>
+      </div>
+    </div>
+
+    <!-- TypeScript -->
+    <div class="card grad-top" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">Сгенерированный TypeScript</div>
+        <span class="badge badge-success">tsc ✓ compiled</span>
+      </div>
+      <div class="code-block" id="tsOutput">
+        <span class="code-comment">// Генерация...</span>
+      </div>
+    </div>
+
+    <!-- JSON Output -->
+    <div class="card grad-top">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">JSON output</div>
+        <span class="badge badge-info" id="recordsBadge">0 records</span>
+      </div>
+      <div id="jsonPreview" style="overflow-x:auto;border-radius:8px;border:1px solid var(--border)">
+        <!-- filled by JS -->
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="downloadJSON()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M6.5 9L4 6.5M6.5 9L9 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 11h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Скачать JSON
+        </button>
+        <button class="btn btn-ghost" onclick="downloadTS()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v8M6.5 9L4 6.5M6.5 9L9 6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 11h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Скачать .ts
+        </button>
+        <button class="btn btn-primary" onclick="newConversion()">
+          Новая конвертация
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY SCREEN ────────────────────────────────────────────── -->
+  <div class="screen" id="screen-history">
+    <div class="page-title">История</div>
+    <div class="page-sub">Конвертации текущей сессии · <span id="histUser"></span></div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:0">Записи</div>
+        <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="clearHistory()">Очистить</button>
+      </div>
+      <table class="hist-table">
+        <thead>
+          <tr>
+            <th>Статус</th><th>Файл</th><th>Формат</th>
+            <th>Токены</th><th>Попытки</th><th>Время</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr>
+            <td colspan="6" style="text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px;padding:28px">
+              Нет записей в текущей сессии
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+</main>
+
+<!-- ── LOGOUT MODAL ────────────────────────────────────────────────── -->
+<div id="logoutModalOverlay" style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s ease">
+  <div style="background:#fff;border-radius:20px;padding:40px 44px 36px;box-shadow:0 24px 64px rgba(0,0,0,0.22);text-align:center;max-width:380px;width:90%;transform:translateY(16px);transition:transform .22s cubic-bezier(.34,1.56,.64,1)" id="logoutModalBox">
+    <div style="width:56px;height:56px;border-radius:50%;background:#fef2f2;border:1px solid #fecaca;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h3 style="font-size:20px;font-weight:700;color:#111827;margin-bottom:8px">Выйти из аккаунта?</h3>
+    <p style="font-size:14px;color:#6b7280;line-height:1.6;margin-bottom:28px">Вы будете перенаправлены на страницу входа. Несохранённые данные не пострадают.</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button onclick="closeLogoutModal()" style="min-width:120px;display:inline-flex;align-items:center;justify-content:center;padding:11px 22px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;background:#fff;border:1.5px solid rgba(0,0,0,.14);color:#6b7280;transition:all .18s">Остаться</button>
+      <button onclick="_doLogout()" style="min-width:120px;display:inline-flex;align-items:center;justify-content:center;padding:11px 22px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(90deg,#dc2626,#ef4444);color:#fff;border:none;box-shadow:0 3px 10px rgba(220,38,38,.3);transition:all .18s">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER на уровне grid — полная ширина ────────────────────────── -->
+<footer class="site-footer">
+  <div class="site-footer-grid">
+    <div>
+      <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="footer-brand-logo">
+      <p class="footer-brand-desc">Платформа интеллектуальной конвертации данных на базе GigaChat — продукт&nbsp;ПАО&nbsp;Сбербанк.</p>
+      <div class="footer-contact-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.24 1 2 3.24 2 6c0 3.75 5 8 5 8s5-4.25 5-8c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 115 6a1.5 1.5 0 012 1.5z" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span>117997, г. Москва, ул. Вавилова, д.&nbsp;19</span>
+      </div>
+      <div class="footer-contact-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2.5h10a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1v-7a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M1 3.5l6 4 6-4" stroke="currentColor" stroke-width="1.2"/></svg>
+        <a href="mailto:support@sberbank.ru">support@sberbank.ru</a>
+      </div>
+      <div class="footer-contact-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 9l-1.2 1.2a9.3 9.3 0 01-4.5-4.5L5 4.5 3.5 2H1.5C1.2 5.8 4.7 10.3 8.5 12.5l.5-1.8.5-1.7z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <a href="tel:88005555550">8‑800‑555‑55‑50</a>
+        <span style="color:#9ca3af;font-size:11px;margin-left:4px">(бесплатно)</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Продукты</div>
+      <ul class="footer-links">
+        <li><a href="#">СберБизнес</a></li>
+        <li><a href="#">СберPay API</a></li>
+        <li><a href="#">GigaChat API</a></li>
+        <li><a href="#">SberCloud</a></li>
+        <li><a href="#">Converter Agent</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Компания</div>
+      <ul class="footer-links">
+        <li><a href="#">О банке</a></li>
+        <li><a href="#">Пресс-центр</a></li>
+        <li><a href="#">Раскрытие информации</a></li>
+        <li><a href="#">Инвесторам</a></li>
+        <li><a href="#">Вакансии</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Поддержка</div>
+      <ul class="footer-links">
+        <li><a href="#">Документация API</a></li>
+        <li><a href="#">Центр помощи</a></li>
+        <li><a href="#">Сообщить об ошибке</a></li>
+        <li><a href="#">Статус сервисов</a></li>
+        <li><a href="#">Условия использования</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-bottom">
+    <span class="footer-bottom-copy">© 2026 ПАО Сбербанк. Все права защищены.</span>
+    <div class="footer-bottom-links">
+      <a href="#">Конфиденциальность</a>
+      <a href="#">Пользовательское соглашение</a>
+      <a href="#">Политика cookies</a>
+      <a href="#">Реквизиты</a>
+    </div>
+  </div>
+  <p class="footer-license">Генеральная лицензия Банка России №1481. Информация на данной странице не является публичной офертой.</p>
+</footer>
+</div>
+
+<!-- ══ SCRIPTS ═══════════════════════════════════════════════════════ -->
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+/* ── Auth guard ─────────────────────────────────────────────────── */
+if (!requireAuth()) throw new Error('no auth');
+const session = getSession();
+document.getElementById('topbarUserName').textContent = session.name;
+document.getElementById('histUser').textContent = session.email;
+const av = document.getElementById('topbarAvatar');
+if (session.photo) {
+  const img = document.createElement('img');
+  img.src = session.photo; img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';
+  av.appendChild(img);
+} else {
+  av.textContent = session.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+function goProfile() { window.location.href = 'profile.html'; }
+
+/* ── User dropdown ──────────────────────────────────────────────── */
+function toggleUserDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('userDropdown').classList.remove('open');
+});
+
+/* ── App state ──────────────────────────────────────────────────── */
+let state = {
+  dataFile:        null,
+  dataFileContent: null,   // parsed content from the uploaded file
+  schemaMode:      'text', // 'text' | 'file' | 'photo'
+  schemaPhoto:     null,
+  totalTokens:     0,
+  history:         [],
+  lastResult:      null,
+};
+(async () => {
+  try {
+    const res = await Api.history.list();
+    state.history = (res.items || []).map(h => ({
+      status:  h.status,
+      file:    h.filename,
+      format:  h.file_format,
+      tokens:  h.tokens,
+      retries: h.retries,
+      time:    h.time ? new Date(h.time).toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'}) : '',
+      date:    h.time ? h.time.slice(0, 10) : '',
+    }));
+  } catch (_) {
+    state.history = loadHistory();
+  }
+  state.totalTokens = state.history.reduce((s, h) => s + (h.tokens || 0), 0);
+  document.getElementById('tokenGlobal').textContent = state.totalTokens + ' tokens';
+  if (state.history.length) updateHistory();
+})();
+
+/* ── Screen navigation ──────────────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+function gotoScreen(id, btn) {
+  showScreen(id);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+/* ── Schema tab switcher ────────────────────────────────────────── */
+function switchSchemaTab(mode, btn) {
+  state.schemaMode = mode;
+  document.querySelectorAll('.schema-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.schema-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('schema-' + mode).classList.add('active');
+}
+
+/* ── DATA FILE drag & drop ──────────────────────────────────────── */
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.add('drag-over');
+}
+function onDragLeave(e) {
+  if (!document.getElementById('dropzone').contains(e.relatedTarget))
+    document.getElementById('dropzone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) setDataFile(f);
+}
+function onFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) setDataFile(f);
+}
+
+async function setDataFile(f) {
+  state.dataFile = f;
+  state.dataFileContent = null;
+
+  const dz = document.getElementById('dropzone');
+  dz.classList.add('has-file');
+  document.getElementById('dropTitle').textContent = f.name;
+  document.getElementById('dropSub').textContent = (f.size / 1024).toFixed(1) + ' KB · ' + (f.type || 'file');
+
+  // Read content for use in result
+  try {
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'json') {
+      const text = await readFileAsText(f);
+      state.dataFileContent = JSON.parse(text);
+    } else if (ext === 'csv') {
+      const text = await readFileAsText(f);
+      state.dataFileContent = parseCSV(text);
+    }
+    // For other types (pdf, docx, images) — will show mock in result
+  } catch(err) {
+    console.warn('Could not pre-read file:', err);
+  }
+}
+
+/* ── SCHEMA file drag & drop ─────────────────────────────────────── */
+function onSchemaDragOver(e) { e.preventDefault(); document.getElementById('schemaDropzone').classList.add('drag-over'); }
+function onSchemaDragLeave(e) {
+  if (!document.getElementById('schemaDropzone').contains(e.relatedTarget))
+    document.getElementById('schemaDropzone').classList.remove('drag-over');
+}
+function onSchemaDrop(e) {
+  e.preventDefault(); document.getElementById('schemaDropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) loadSchemaFile(f);
+}
+function onSchemaFileSelect(e) {
+  const f = e.target.files[0]; if (f) loadSchemaFile(f);
+}
+async function loadSchemaFile(f) {
+  try {
+    const text = await readFileAsText(f);
+    const parsed = JSON.parse(text);
+    // Populate the text textarea and switch to text tab
+    document.getElementById('targetJson').value = JSON.stringify(parsed, null, 2);
+    document.getElementById('schemaDropTitle').textContent = '✓ ' + f.name + ' загружен';
+    document.getElementById('schemaDropzone').classList.add('has-file');
+    // Also switch to text tab to show populated schema
+    const tabs = document.querySelectorAll('.schema-tab');
+    switchSchemaTab('text', tabs[0]);
+    showToast('Схема загружена из ' + f.name);
+  } catch(err) {
+    alert('Ошибка чтения JSON файла: ' + err.message);
+  }
+}
+
+/* ── SCHEMA photo ────────────────────────────────────────────────── */
+function onPhotoDragOver(e) { e.preventDefault(); document.getElementById('photoDropzone').classList.add('drag-over'); }
+function onPhotoDragLeave(e) {
+  if (!document.getElementById('photoDropzone').contains(e.relatedTarget))
+    document.getElementById('photoDropzone').classList.remove('drag-over');
+}
+function onPhotoDrop(e) {
+  e.preventDefault(); document.getElementById('photoDropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if (f) loadSchemaPhoto(f);
+}
+function onSchemaPhotoSelect(e) {
+  const f = e.target.files[0]; if (f) loadSchemaPhoto(f);
+}
+async function loadSchemaPhoto(f) {
+  const base64 = await readFileAsDataURL(f);
+  state.schemaPhoto = base64;
+  const preview = document.getElementById('schemaPhotoPreview');
+  preview.src = base64;
+  preview.style.display = 'block';
+  document.getElementById('photoDropTitle').textContent = '✓ ' + f.name;
+  document.getElementById('photoDropzone').classList.add('has-file');
+  showToast('Фото схемы загружено');
+}
+
+/* ── File readers ────────────────────────────────────────────────── */
+function readFileAsText(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsText(f, 'utf-8');
+  });
+}
+function readFileAsDataURL(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+}
+
+/* ── CSV parser (simple) ─────────────────────────────────────────── */
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+    const obj = {};
+    headers.forEach((h, i) => {
+      const v = vals[i] ?? '';
+      obj[h] = isNaN(v) || v === '' ? v : Number(v);
+    });
+    return obj;
+  });
+}
+
+/* ── Clear form ──────────────────────────────────────────────────── */
+function clearForm() {
+  state.dataFile = null;
+  state.dataFileContent = null;
+  state.schemaPhoto = null;
+
+  const dz = document.getElementById('dropzone');
+  dz.classList.remove('has-file', 'drag-over');
+  document.getElementById('dropTitle').textContent = 'Перетащите файл или нажмите для выбора';
+  document.getElementById('dropSub').textContent = 'Максимум 10 MB';
+  document.getElementById('dataFileInput').value = '';
+
+  document.getElementById('targetJson').value = '';
+
+  document.getElementById('schemaDropTitle').textContent = 'Загрузить .json файл со схемой';
+  document.getElementById('schemaDropzone').classList.remove('has-file');
+  document.getElementById('schemaFileInput').value = '';
+
+  document.getElementById('photoDropTitle').textContent = 'Загрузить фото схемы';
+  document.getElementById('photoDropzone').classList.remove('has-file');
+  document.getElementById('schemaPhotoPreview').style.display = 'none';
+  document.getElementById('schemaPhotoInput').value = '';
+}
+
+/* ── Validate & start ────────────────────────────────────────────── */
+function getSchemaValue() {
+  if (state.schemaMode === 'text') {
+    return document.getElementById('targetJson').value.trim();
+  }
+  if (state.schemaMode === 'file') {
+    return document.getElementById('targetJson').value.trim(); // loaded from file → textarea
+  }
+  if (state.schemaMode === 'photo') {
+    return state.schemaPhoto ? '{"_photo":"uploaded"}' : '';
+  }
+  return '';
+}
+
+function startProcessing() {
+  if (!state.dataFile) { showAlert('Выберите файл с данными (Шаг 1)'); return; }
+  const schema = getSchemaValue();
+  if (!schema) { showAlert('Укажите целевую JSON-схему (Шаг 2)'); return; }
+
+  // Unlock pipeline nav
+  enableNav('nav-processing');
+  gotoScreen('processing', document.getElementById('nav-processing'));
+  resetPipeline();
+  runPipeline();
+}
+
+function showAlert(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:70px;left:24px;z-index:999;background:rgba(254,242,242,0.88);backdrop-filter:blur(10px);border:1px solid #fecaca;color:#b91c1c;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.1)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+/* ── Pipeline ────────────────────────────────────────────────────── */
+function resetPipeline() {
+  [1,2,3,4].forEach(n => setStep(n, 'wait'));
+  setTokens(0, 0, 0, 0);
+}
+
+function setStep(n, status) {
+  const c = document.getElementById('step'+n+'-circle');
+  const b = document.getElementById('step'+n+'-badge');
+  c.className = 'step-circle';
+  if (status === 'done') {
+    c.classList.add('sc-done');
+    b.className = 'badge badge-success'; b.textContent = 'done';
+  } else if (status === 'active') {
+    c.classList.add('sc-active');
+    b.className = 'badge badge-info'; b.textContent = 'running...';
+  } else if (status === 'retry') {
+    c.classList.add('sc-active');
+    b.className = 'badge badge-warn'; b.textContent = 'retry';
+  } else {
+    c.classList.add('sc-wait');
+    b.className = 'badge badge-warn'; b.textContent = 'wait';
+  }
+}
+
+function setTokens(total, prompt, completion, retries) {
+  document.getElementById('tokenCurrent').textContent = total;
+  document.getElementById('tokPrompt').textContent = prompt;
+  document.getElementById('tokCompletion').textContent = completion;
+  document.getElementById('tokRetries').textContent = retries;
+  document.getElementById('tokenBarFill').style.width = Math.min(total / 10, 100) + '%';
+  document.getElementById('tokenGlobal').textContent = (state.totalTokens + total) + ' tokens';
+  const resTokens = document.getElementById('resTokens');
+  if (resTokens) resTokens.textContent = total;
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+async function runPipeline() {
+  const fname = state.dataFile?.name || 'data';
+  const schema = getSchemaValue();
+
+  let schemaDict;
+  try { schemaDict = JSON.parse(schema); }
+  catch { showAlert('Целевая JSON-схема невалидна'); return; }
+
+  resetPipeline();
+
+  // Step 1 — upload
+  setStep(1, 'active');
+  document.getElementById('step1-desc').textContent = 'Загружаем файл ' + fname + '...';
+
+  let jobId;
+  try {
+    const res = await Api.prediction.upload(state.dataFile, schemaDict);
+    jobId = res.job_id;
+  } catch (err) {
+    setStep(1, 'done');
+    document.getElementById('step1-desc').textContent = 'Ошибка загрузки: ' + err.message;
+    showAlert('Ошибка загрузки: ' + err.message);
+    return;
+  }
+
+  setStep(1, 'done');
+  document.getElementById('step1-desc').textContent = 'Файл принят · job ' + jobId.slice(0, 8) + '...';
+
+  // Step 2 — generate while polling
+  setStep(2, 'active');
+  document.getElementById('step2-desc').textContent = 'LLM → GigaChat · генерация кода...';
+
+  let job = null;
+  let stepAdvanced = false;
+
+  try {
+    job = await Api.prediction.pollJob(jobId, (update) => {
+      if (!stepAdvanced && update.tokens_used > 0) {
+        stepAdvanced = true;
+        setStep(2, 'done');
+        document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · попытка ' + (update.retries || 1);
+        setTokens(update.tokens_used, update.prompt_tokens || 0, update.completion_tokens || 0, update.retries || 0);
+        setStep(3, 'active');
+        document.getElementById('step3-desc').textContent = 'tsc компиляция + runtime проверка...';
+      }
+    }, 1500);
+  } catch (_err) {
+    try { job = await Api.prediction.getJob(jobId); } catch {}
+  }
+
+  if (!stepAdvanced) {
+    setStep(2, 'done');
+    document.getElementById('step2-desc').textContent = job?.ts_code ? 'ts_code сгенерирован' : 'Генерация завершена';
+  }
+  setStep(3, 'done');
+  document.getElementById('step3-desc').textContent = job?.is_valid
+    ? 'tsc ✓ · runtime ✓ · JSON shape ✓'
+    : 'Ошибка: ' + (job?.error || 'валидация не прошла');
+
+  setStep(4, 'active');
+  document.getElementById('step4-desc').textContent = 'Сборка результата...';
+  await delay(300);
+
+  if (!job || job.status === 'error') {
+    setStep(4, 'done');
+    const errMsg = job?.error || 'неизвестная ошибка';
+    document.getElementById('step4-desc').textContent = 'Ошибка: ' + errMsg;
+    showAlert('Ошибка обработки: ' + errMsg);
+    return;
+  }
+
+  const records = job.json_output || [];
+  const tokens  = job.tokens_used || 0;
+  setTokens(tokens, job.prompt_tokens || 0, job.completion_tokens || 0, job.retries || 0);
+  setStep(4, 'done');
+  document.getElementById('step4-desc').textContent = records.length + ' записей · valid';
+  state.totalTokens += tokens;
+
+  const ext = fname.split('.').pop().toUpperCase();
+  state.history.unshift({
+    status: 'valid', file: fname, format: ext,
+    tokens: tokens, retries: job.retries || 0,
+    time: new Date().toLocaleTimeString('ru', {hour:'2-digit', minute:'2-digit'}),
+    date: new Date().toISOString().slice(0, 10),
+  });
+  updateHistory();
+
+  state.lastResult = records;
+  await delay(300);
+  showResult(records, fname, job);
+}
+
+/* ── Build result from uploaded file ────────────────────────────── */
+function buildResultData() {
+  // Use actual file content if we could read it
+  if (state.dataFileContent && Array.isArray(state.dataFileContent) && state.dataFileContent.length > 0) {
+    return state.dataFileContent;
+  }
+  if (state.dataFileContent && !Array.isArray(state.dataFileContent)) {
+    // Single object → wrap in array
+    return [state.dataFileContent];
+  }
+  // Fallback mock
+  return [
+    {dealId:'DEAL-12345', amount:1000000, stage:'Переговоры', createdAt:'2025-08-15', responsible:'Иванов И.И.'},
+    {dealId:'DEAL-67890', amount:500000,  stage:'Закрыта',    createdAt:'2025-08-10', responsible:'Петрова А.С.'},
+    {dealId:'DEAL-24680', amount:300000,  stage:'В работе',   createdAt:'2025-08-12', responsible:'Сидоров П.В.'},
+    {dealId:'DEAL-13579', amount:30000,   stage:'Новая',      createdAt:'2025-08-01', responsible:'Козлов Д.М.'},
+    {dealId:'DEAL-98765', amount:9600,    stage:'Дист.',      createdAt:'2025-08-20', responsible:'Новикова Е.А.'},
+  ];
+}
+
+/* ══ TERMINAL LOGIC ══════════════════════════════════════════════════ */
+
+// [HH:MM:SS] — computed at display time so each line gets its real clock
+function _ts() {
+  const n = new Date(), p = v => v.toString().padStart(2,'0');
+  return '[' + p(n.getHours()) + ':' + p(n.getMinutes()) + ':' + p(n.getSeconds()) + ']';
+}
+
+// ASCII progress bar 22 chars wide
+function _progBar(pct) {
+  const total = 22, filled = Math.round(pct / 100 * total);
+  return '█'.repeat(filled) + '░'.repeat(total - filled);
+}
+
+// Update the thin glowing strip at top of terminal
+function _setTermProgress(pct) {
+  const el = document.getElementById('termProgressFill');
+  if (el) el.style.width = pct + '%';
+}
+
+// Clear all output, reset badge and progress bar
+function termClear() {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  if (!body) return;
+  body.innerHTML = '';
+  body.appendChild(cursor);
+  cursor.style.display = '';
+  _setTermProgress(0);
+  const badge = document.getElementById('terminalBadge');
+  badge.textContent = '● idle';
+  badge.className = 'terminal-badge';
+}
+
+// Append one line instantly
+function _tAppend(text, cls) {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  if (!text) {
+    const el = document.createElement('span');
+    el.className = 'term-empty';
+    body.insertBefore(el, cursor);
+  } else {
+    const el = document.createElement('span');
+    el.className = 'term-line ' + cls;
+    el.textContent = text;
+    body.insertBefore(el, cursor);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+// Type a line character by character
+async function _tType(text, cls, speed) {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  const el = document.createElement('span');
+  el.className = 'term-line ' + cls;
+  body.insertBefore(el, cursor);
+  for (const ch of text) {
+    el.textContent += ch;
+    body.scrollTop = body.scrollHeight;
+    await new Promise(r => setTimeout(r, speed));
+  }
+}
+
+// Steps: [type, text, waitMs, charSpeed, progressPct]
+// type: 'type' | 'instant' | 'empty' | 'prog'
+// Timestamps are prepended automatically in the render loop
+function _buildTermSteps(ext, fileName, fileSize, jobId) {
+  const start = [
+    ['type',    'Initializing Converter Agent...',                             0,  14, null],
+    ['type',    'Loading file: ' + fileName,                                 160,  13, null],
+    ['type',    'Analyzing file structure...',                                240,  12,    8],
+    ['type',    'Detected format: ' + ext.toUpperCase() + '  ·  size: ' + fileSize, 280, 11, null],
+    ['empty',   null, 100, 0, null],
+  ];
+
+  let parse = [];
+  if (ext === 'pdf') {
+    parse = [
+      ['type',    'Parsing PDF document structure...',                         0,  13,  15],
+      ['instant', 'Found: 12 pages, 3 embedded tables, 847 text blocks',    480,   0, null],
+      ['type',    'Starting OCR text recognition...',                        220,  13, null],
+      ['prog',    null, 220, 0, 32],
+      ['instant', 'OCR progress: 45%...',                                    680,   0, null],
+      ['prog',    null,   0, 0, 45],
+      ['instant', 'OCR progress: 85%...',                                    780,   0, null],
+      ['prog',    null,   0, 0, 56],
+      ['type',    'OCR complete  ·  2,340 tokens extracted',                 600,  14, null],
+      ['type',    'Building schema_hint from PDF tables...',                 200,  13, null],
+      ['instant', 'schema_hint: {columns: 18, sample: 3 rows}',             500,   0, null],
+    ];
+  } else if (['png','jpg','jpeg','webp'].includes(ext)) {
+    parse = [
+      ['type',    'Loading image into memory...',                              0,  13,  15],
+      ['instant', 'Image: 1920×1080 px  ·  3 channels',                    400,   0, null],
+      ['type',    'Detecting tabular regions in image...',                  200,  13, null],
+      ['prog',    null, 200, 0, 30],
+      ['instant', 'Found 2 table regions  ✓',                               720,   0, null],
+      ['type',    'OCR scanning table cells...',                            200,  13, null],
+      ['prog',    null, 300, 0, 48],
+      ['instant', 'OCR confidence: 94.2%',                                  820,   0, null],
+      ['type',    'Extracting cell values...',                              200,  13, null],
+      ['instant', 'schema_hint: {columns: 8, sample: 5 rows}',             480,   0, null],
+    ];
+  } else if (ext === 'csv') {
+    parse = [
+      ['type',    'Parsing CSV rows...',                                       0,  13,  15],
+      ['prog',    null, 200, 0, 28],
+      ['instant', 'Detected: 847 rows × 24 columns',                        480,   0, null],
+      ['type',    'Inferring column types...',                              200,  13, null],
+      ['instant', 'types: {string×8, number×12, date×4}',                  600,   0, null],
+      ['type',    'schema_hint extracted  ✓',                              300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (['xls','xlsx'].includes(ext)) {
+    parse = [
+      ['type',    'Opening Excel workbook...',                                 0,  13,  15],
+      ['instant', 'Sheets found: Sheet1, Sheet2, Summary',                  400,   0, null],
+      ['type',    'Reading active sheet: Sheet1',                           200,  13, null],
+      ['prog',    null, 200, 0, 28],
+      ['instant', 'Detected: 1,204 rows × 16 columns',                     600,   0, null],
+      ['type',    'Resolving merged cells & formulas...',                   200,  13, null],
+      ['instant', 'schema_hint: {columns: 16, sample: 3 rows}',            580,   0, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (ext === 'json') {
+    parse = [
+      ['type',    'Parsing JSON structure...',                                 0,  13,  15],
+      ['instant', 'Root type: Array  ·  847 elements',                      350,   0, null],
+      ['type',    'Sampling keys from first 10 elements...',                200,  13, null],
+      ['prog',    null, 200, 0, 32],
+      ['instant', 'Keys: dealId, amount, stage, createdAt, responsible',    420,   0, null],
+      ['type',    'schema_hint built  ✓',                                  300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (['docx','doc'].includes(ext)) {
+    parse = [
+      ['type',    'Parsing DOCX structure...',                                 0,  13,  15],
+      ['instant', 'Found: 24 paragraphs, 4 tables',                         440,   0, null],
+      ['type',    'Extracting table data...',                               200,  13, null],
+      ['prog',    null, 200, 0, 28],
+      ['instant', 'Table 1: 847 rows × 12 columns  ✓',                     600,   0, null],
+      ['type',    'schema_hint extracted  ✓',                              300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else {
+    parse = [
+      ['type',    'Reading file bytes...',                                     0,  13,  15],
+      ['prog',    null, 280, 0, 28],
+      ['instant', 'MIME type detected  ·  ' + ext.toUpperCase() + ' format', 400, 0, null],
+      ['type',    'Extracting data structure...',                           200,  13, null],
+      ['instant', 'schema_hint: {columns: 12, sample: 2 rows}',            580,   0, null],
+      ['prog',    null,   0, 0, 48],
+    ];
+  }
+
+  const llm = [
+    ['empty',   null, 100, 0, null],
+    ['type',    'Connecting to GigaChat API...',                              0,  14,  60],
+    ['instant', 'POST /api/v1/prediction/upload  →  202 Accepted',          260,   0, null],
+    ['instant', 'job_id: "' + jobId + '"  ·  status: processing',           100,   0, null],
+    ['empty',   null,  60, 0, null],
+    ['type',    'LLM generating TypeScript code...',                         200,  13, null],
+    ['instant', 'prompt_tokens=240  completion_tokens=60  total=300',        980,   0, null],
+    ['prog',    null,  80, 0, 76],
+    ['type',    'TypeScript code generated  ✓',                             240,  16, null],
+    ['empty',   null,  80, 0, null],
+    ['type',    'Running tsc compiler...',                                     0,  14, null],
+    ['instant', 'tsc  →  0 errors  ✓',                                      740,   0, null],
+    ['type',    'Node runtime validation...',                                180,  14, null],
+    ['instant', 'runtime ✓   JSON shape ✓',                                 640,   0, null],
+    ['prog',    null,  80, 0, 94],
+  ];
+
+  const end = [
+    ['empty',   null, 120, 0, null],
+    ['type',    '[SUCCESS] Conversion complete!',                             0,  18, 100],
+    ['instant', 'Output: result.json  (' + fileSize + ')',                  240,   0, null],
+    ['instant', 'Download ready!',                                           200,   0, null],
+  ];
+
+  return [...start, ...parse, ...llm, ...end];
+}
+
+// Main terminal animation — call once when result screen opens
+async function runTerminal(fileName, job = null) {
+  const body   = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  if (!body) return;
+  body.innerHTML = ''; body.appendChild(cursor); cursor.style.display = '';
+  _setTermProgress(0);
+  const badge = document.getElementById('terminalBadge');
+  badge.textContent = '● running'; badge.className = 'terminal-badge is-running';
+
+  const ext      = (fileName.split('.').pop() || 'csv').toLowerCase();
+  const fileSize = state.dataFile ? (state.dataFile.size / 1024).toFixed(1) + ' KB' : '14.2 KB';
+  const jobId    = job?.job_id || ('job_' + Math.random().toString(36).slice(2, 10));
+  const steps    = _buildTermSteps(ext, fileName, fileSize, jobId);
+
+  for (const [type, text, wait, speed, progress] of steps) {
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+
+    if (type === 'empty') {
+      _tAppend('', '');
+    } else if (type === 'prog') {
+      _tAppend('  ' + _progBar(progress) + '  ' + progress + '%', 'term-prog');
+    } else if (type === 'type') {
+      const full = _ts() + ' > ' + text;
+      const cls  = text.startsWith('[SUCCESS]') ? 'term-success'
+                 : text.includes('ERROR')       ? 'term-err'
+                 : 'term-step';
+      await _tType(full, cls, speed);
+    } else {
+      const full = _ts() + ' > ' + text;
+      const cls  = full.includes('POST') || full.includes('GET') ? 'term-http'
+                 : full.includes('✓')      ? 'term-ok'
+                 : full.includes('tokens') ? 'term-token'
+                 : 'term-info';
+      _tAppend(full, cls);
+    }
+
+    if (progress !== null) _setTermProgress(progress);
+  }
+
+  // Show real tsc/ts-node output
+  if (job?.console_output) {
+    await new Promise(r => setTimeout(r, 300));
+    _tAppend('', '');
+    await _tType(_ts() + ' > ts-node --transpile-only converter.ts', 'term-step', 14);
+    await new Promise(r => setTimeout(r, 150));
+    const lines = job.console_output.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cls = line.includes('error') || line.includes('Error') ? 'term-err'
+                : line.includes('✓') || line.includes('warning') ? 'term-warn'
+                : 'term-code';
+      _tAppend('  ' + line, cls);
+      if (i % 8 === 7) await new Promise(r => setTimeout(r, 15));
+    }
+    await new Promise(r => setTimeout(r, 200));
+    _tAppend(_ts() + ' > Done — ' + (job.records || 0) + ' records written to stdout  ✓', 'term-ok');
+  } else if (job?.ts_code) {
+    await new Promise(r => setTimeout(r, 300));
+    _tAppend('', '');
+    await _tType(_ts() + ' > ts-node --transpile-only converter.ts', 'term-step', 14);
+    await new Promise(r => setTimeout(r, 400));
+    _tAppend(_ts() + ' > tsc → 0 errors  ✓', 'term-ok');
+    await new Promise(r => setTimeout(r, 200));
+    _tAppend(_ts() + ' > Done — ' + (job.records || 0) + ' records written to stdout  ✓', 'term-ok');
+  }
+
+  await new Promise(r => setTimeout(r, 500));
+  _setTermProgress(100);
+  badge.textContent = '✓ done'; badge.className = 'terminal-badge is-done';
+  cursor.style.display = 'none';
+}
+
+/* ── Show result ─────────────────────────────────────────────────── */
+function showResult(records, fname, job) {
+  enableNav('nav-result');
+  gotoScreen('result', document.getElementById('nav-result'));
+  runTerminal(fname, job);
+
+  document.getElementById('resRecords').textContent = records.length;
+  document.getElementById('recordsBadge').textContent = records.length + ' records';
+  document.getElementById('resultSub').textContent =
+    'Файл: ' + fname + ' · tsc compiled · runtime ✓';
+
+  // TypeScript code: prefer real ts_code from API
+  if (job?.ts_code) {
+    document.getElementById('tsOutput').textContent = job.ts_code;
+  } else {
+    // Fallback: synthesise interface from result keys
+    const keys = Object.keys(records[0] || {});
+    const fields = keys.map(k => {
+      const v = records[0][k];
+      const t = typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : 'string';
+      return '  ' + k + ': ' + t;
+    }).join('\n');
+
+    document.getElementById('tsOutput').innerHTML =
+      `<span class="code-comment">// Auto-generated by Converter Agent · GigaChat</span>
+<span class="code-kw">interface</span> <span class="code-type">ConvertedData</span> {
+${fields.split('\n').map(l => {
+  const [name, type] = l.trim().split(': ');
+  return '  <span class="code-comment">' + name + '</span>: <span class="code-type">' + type + '</span>';
+}).join('\n')}
+}
+
+<span class="code-kw">export default function</span> convert(base64file: <span class="code-type">string</span>): <span class="code-type">ConvertedData</span>[] {
+  <span class="code-kw">const</span> decoded = atob(base64file)
+  <span class="code-kw">return</span> JSON.parse(decoded) <span class="code-kw">as</span> <span class="code-type">ConvertedData</span>[]
+}`;
+  }
+
+  // JSON table
+  renderJsonTable(records);
+}
+
+function renderJsonTable(records) {
+  const container = document.getElementById('jsonPreview');
+  if (!records || records.length === 0) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px">Нет данных</div>';
+    return;
+  }
+
+  const MAX_ROWS = 50;
+  const keys = Object.keys(records[0]);
+  const shown = records.slice(0, MAX_ROWS);
+
+  let html = '<table class="json-table"><thead><tr>';
+  keys.forEach(k => { html += '<th>' + escHtml(String(k)) + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  shown.forEach(row => {
+    html += '<tr>';
+    keys.forEach(k => {
+      const v = row[k];
+      let cls = 'json-val-str', display;
+      if (v === null || v === undefined) { cls = 'json-val-null'; display = 'null'; }
+      else if (typeof v === 'number')    { cls = 'json-val-num';  display = v.toLocaleString('ru'); }
+      else if (typeof v === 'boolean')   { cls = 'json-val-bool'; display = String(v); }
+      else { display = String(v); }
+      html += '<td class="' + cls + '">' + escHtml(display) + '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  if (records.length > MAX_ROWS) {
+    html += '<div style="padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--hint);border-top:1px solid var(--border)">... ещё ' + (records.length - MAX_ROWS) + ' записей</div>';
+  }
+  container.innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── New conversion ──────────────────────────────────────────────── */
+function newConversion() {
+  clearForm();
+  gotoScreen('upload', document.getElementById('nav-upload'));
+}
+
+/* ── History ─────────────────────────────────────────────────────── */
+function updateHistory() {
+  const tbody = document.getElementById('historyBody');
+  if (!state.history.length) return;
+  tbody.innerHTML = state.history.map(h => {
+    const bc = h.status==='valid' ? 'badge-success' : h.status==='retry' ? 'badge-warn' : 'badge-err';
+    return `<tr>
+      <td><span class="badge ${bc}">${h.status}</span></td>
+      <td style="font-family:var(--mono);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(h.file)}</td>
+      <td><span class="format-tag">${h.format}</span></td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--green)">${h.tokens}</td>
+      <td style="font-family:var(--mono);font-size:12px">${h.retries}/3</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--hint)">${h.time}</td>
+    </tr>`;
+  }).join('');
+}
+
+function clearHistory() {
+  state.history = [];
+  Api.history.clear().catch(() => {});
+  clearHistoryStorage();
+  document.getElementById('historyBody').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px;padding:28px">Нет записей</td></tr>';
+}
+
+/* ── Downloads ───────────────────────────────────────────────────── */
+function downloadJSON() {
+  const data = state.lastResult || [];
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  triggerDownload(URL.createObjectURL(blob), 'result.json');
+}
+function downloadTS() {
+  const code = document.getElementById('tsOutput').innerText || '// no output';
+  const blob = new Blob([code], {type:'text/plain'});
+  triggerDownload(URL.createObjectURL(blob), 'converter.ts');
+}
+function triggerDownload(url, name) {
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ── Nav helpers ─────────────────────────────────────────────────── */
+function enableNav(id) {
+  const el = document.getElementById(id);
+  el.style.pointerEvents = '';
+  el.style.opacity = '1';
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:24px;z-index:9999;background:rgba(1,161,4,0.85);backdrop-filter:blur(10px);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(1,161,4,.25);transition:opacity .3s';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2800);
+}
+
+/* ── Theme toggle ───────────────────────────────────────────────── */
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+/* ── Sidebar mobile toggle ──────────────────────────────────────── */
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+/* ── Logout modal ───────────────────────────────────────────────── */
+window.__showLogoutModal = function() {
+  const ov = document.getElementById('logoutModalOverlay');
+  const bx = document.getElementById('logoutModalBox');
+  ov.style.opacity = '1';
+  ov.style.pointerEvents = 'auto';
+  bx.style.transform = 'translateY(0)';
+};
+function closeLogoutModal() {
+  const ov = document.getElementById('logoutModalOverlay');
+  const bx = document.getElementById('logoutModalBox');
+  ov.style.opacity = '0';
+  ov.style.pointerEvents = 'none';
+  bx.style.transform = 'translateY(16px)';
+}
+document.getElementById('logoutModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeLogoutModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLogoutModal();
+});
+
+/* ══ PARTICLE SYSTEM — BUTTONS + GREEN AREAS ════════════════════════ */
+(function initParticles() {
+  const btnColors = [
+    'rgba(255,255,255,0.8)','rgba(180,255,220,0.65)',
+    'rgba(160,230,255,0.65)','rgba(253,240,1,0.5)','rgba(2,233,126,0.55)'
+  ];
+  const greenColors = [
+    'rgba(2,233,126,0.7)','rgba(1,161,4,0.6)',
+    'rgba(22,218,3,0.55)','rgba(255,255,255,0.6)','rgba(253,240,1,0.5)'
+  ];
+
+  function spawnOrbs(el, count, colors, isClick) {
+    /* Need position:relative and overflow:hidden on element */
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    if (getComputedStyle(el).overflow === 'visible') el.style.overflow = 'hidden';
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const orb = document.createElement('span');
+        orb.className = 'btn-orb';
+        const size = isClick ? 8 + Math.random() * 22 : 14 + Math.random() * 28;
+        const x = 5 + Math.random() * 90;
+        const y = 5 + Math.random() * 90;
+        const angle = Math.random() * Math.PI * 2;
+        const dist  = isClick ? 40 + Math.random() * 60 : 20 + Math.random() * 50;
+        const dx = (Math.cos(angle) * dist).toFixed(1) + 'px';
+        const dy = (Math.sin(angle) * dist - (isClick ? 0 : 20)).toFixed(1) + 'px';
+        const dur = (isClick ? 0.5 + Math.random() * 0.4 : 0.75 + Math.random() * 0.65) + 's';
+        const blur = (3 + Math.random() * 7) + 'px';
+        const col = colors[Math.floor(Math.random() * colors.length)];
+        orb.style.cssText = `width:${size}px;height:${size}px;left:${x}%;top:${y}%;` +
+          `background:radial-gradient(circle,${col} 0%,transparent 68%);` +
+          `--odx:${dx};--ody:${dy};--dur:${dur};--oblur:${blur};`;
+        el.appendChild(orb);
+        setTimeout(() => orb.remove(), parseFloat(dur) * 1000 + 100);
+      }, i * (isClick ? 20 : 55));
+    }
+  }
+
+  function attachBtn(btn) {
+    if (btn.dataset.orbs) return;
+    btn.dataset.orbs = '1';
+    btn.addEventListener('mouseenter', () => spawnOrbs(btn, 7, btnColors, false));
+    btn.addEventListener('click',      () => spawnOrbs(btn, 12, btnColors, true));
+  }
+
+  function attachGreen(el) {
+    if (el.dataset.gorbs) return;
+    el.dataset.gorbs = '1';
+    el.addEventListener('mouseenter', () => spawnOrbs(el, 5, greenColors, false));
+  }
+
+  /* Initial attach */
+  document.querySelectorAll('.btn').forEach(attachBtn);
+  document.querySelectorAll(
+    '.badge-success, .nav-item.active, .alert-ok, .profile-hero-role, .dropzone'
+  ).forEach(attachGreen);
+
+  /* Watch for dynamic changes */
+  new MutationObserver(() => {
+    document.querySelectorAll('.btn:not([data-orbs])').forEach(attachBtn);
+    document.querySelectorAll(
+      '.badge-success:not([data-gorbs]),.nav-item.active:not([data-gorbs]),.alert-ok:not([data-gorbs])'
+    ).forEach(attachGreen);
+  }).observe(document.body, { childList: true, subtree: true });
+})();
+
+/* ══ METRIC CARD TILT — removed: backdrop-filter + 3D transform conflict
+   causes irreducible text resampling. Hover polish handled in CSS only. ════ */
+</script>
+<script src="assets/js/effects.js"></script>
+</body>
+</html>

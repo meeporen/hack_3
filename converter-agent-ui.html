@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Converter Agent · Platform V</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface2: #18181f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8e8f0;
+  --muted: rgba(232,232,240,0.45);
+  --hint: rgba(232,232,240,0.22);
+  --accent: #7c6cfa;
+  --accent2: #a594ff;
+  --teal: #2dd4a0;
+  --amber: #f0a020;
+  --red: #f05060;
+  --green: #2dd4a0;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── LAYOUT ── */
+.shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 56px 1fr;
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  grid-column: 1/-1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo-icon {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-icon svg { width: 16px; height: 16px; }
+.topbar-divider { flex: 1; }
+.topbar-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  transition: border-color .15s;
+}
+.user-pill:hover { border-color: var(--border2); }
+.avatar {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: #fff;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px 12px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  border: none; background: transparent; width: 100%; text-align: left;
+}
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active {
+  background: rgba(124,108,250,0.12);
+  color: var(--accent2);
+}
+.nav-item.active svg { opacity: 1; }
+.nav-sep { height: 1px; background: var(--border); margin: 10px 0; }
+.nav-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--hint); padding: 6px 12px 4px; }
+
+/* ── MAIN ── */
+.main {
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: var(--bg);
+}
+.screen { display: none; animation: fadeIn .2s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.page-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.card + .card { margin-top: 14px; }
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ── METRICS ROW ── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.metric-label { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: 0.04em; margin-bottom: 8px; }
+.metric-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.metric-value.accent { color: var(--accent2); }
+.metric-value.green { color: var(--teal); }
+.metric-value.amber { color: var(--amber); }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.badge-success { background: rgba(45,212,160,0.12); color: var(--teal); }
+.badge-info { background: rgba(124,108,250,0.12); color: var(--accent2); }
+.badge-warn { background: rgba(240,160,32,0.12); color: var(--amber); }
+.badge-err { background: rgba(240,80,96,0.12); color: var(--red); }
+.badge-dot::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+}
+
+/* ── DROPZONE ── */
+.dropzone {
+  border: 1.5px dashed var(--border2);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--accent);
+  background: rgba(124,108,250,0.04);
+}
+.dropzone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+.drop-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: rgba(124,108,250,0.1);
+  border: 1px solid rgba(124,108,250,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+}
+.drop-icon svg { width: 22px; height: 22px; color: var(--accent2); }
+.drop-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.drop-sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.format-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.format-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+/* ── TEXTAREA / INPUT ── */
+textarea, input[type=text], input[type=password] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .15s;
+  resize: vertical;
+}
+textarea:focus, input:focus { border-color: var(--accent); }
+textarea::placeholder, input::placeholder { color: var(--hint); }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity .15s, transform .1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.btn-ghost:hover { border-color: var(--border2); background: var(--surface2); color: var(--text); }
+.btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+
+/* ── PIPELINE STEPS ── */
+.pipeline { display: flex; flex-direction: column; gap: 0; }
+.pipe-step {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.pipe-step:last-child { border-bottom: none; }
+.step-circle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  flex-shrink: 0;
+}
+.sc-done { background: rgba(45,212,160,0.12); color: var(--teal); border: 1px solid rgba(45,212,160,0.25); }
+.sc-active { background: rgba(124,108,250,0.15); color: var(--accent2); border: 1px solid rgba(124,108,250,0.3); animation: pulse 1.6s ease-in-out infinite; }
+.sc-wait { background: var(--surface2); color: var(--hint); border: 1px solid var(--border); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.pipe-name { font-size: 14px; font-weight: 600; }
+.pipe-desc { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+/* ── TOKEN BAR ── */
+.token-bar-wrap { margin-top: 8px; }
+.token-bar-track {
+  height: 4px; border-radius: 2px;
+  background: var(--surface2);
+  overflow: hidden; margin: 8px 0 6px;
+}
+.token-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: var(--teal);
+  transition: width .4s ease;
+}
+.token-meta { display: flex; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--muted);
+  overflow-x: auto;
+  white-space: pre;
+}
+.code-kw { color: var(--accent2); }
+.code-type { color: var(--teal); }
+.code-str { color: var(--amber); }
+.code-comment { color: var(--hint); }
+
+/* ── HISTORY TABLE ── */
+.hist-table { width: 100%; border-collapse: collapse; }
+.hist-table th {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  color: var(--hint); text-align: left; padding: 0 12px 10px;
+  text-transform: uppercase;
+}
+.hist-table td {
+  padding: 12px; font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+.hist-table td:first-child { border-radius: 8px 0 0 8px; }
+.hist-table td:last-child { border-radius: 0 8px 8px 0; }
+.hist-table tr:hover td { background: var(--surface2); cursor: pointer; }
+
+/* ── LOGIN SCREEN ── */
+.login-wrap {
+  max-width: 380px;
+  margin: 60px auto 0;
+}
+.login-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.login-logo-icon {
+  width: 52px; height: 52px;
+  background: rgba(124,108,250,0.12);
+  border: 1px solid rgba(124,108,250,0.25);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+}
+.login-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+.login-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.04em; margin-bottom: 6px; display: block; }
+.login-info {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: rgba(124,108,250,0.06);
+  border: 1px solid rgba(124,108,250,0.15);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 12px; color: var(--muted); font-family: var(--mono);
+}
+.login-info svg { width: 14px; height: 14px; color: var(--accent2); flex-shrink: 0; }
+
+/* ── OUTPUT JSON PREVIEW ── */
+.json-row {
+  display: flex; gap: 12px;
+  font-family: var(--mono); font-size: 11.5px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.json-row:last-child { border-bottom: none; }
+.json-key { color: var(--accent2); min-width: 140px; }
+.json-val { color: var(--amber); }
+.json-val.num { color: var(--teal); }
+.json-val.bool { color: var(--red); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="shell" id="appShell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a href="#" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M3 5h10M3 8h7M3 11h5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="11" y="8" width="4" height="4" rx="1" fill="#fff" opacity=".8"/>
+        </svg>
+      </div>
+      Converter Agent
+    </a>
+    <span class="topbar-badge">Platform V · Spring '26</span>
+    <div class="topbar-divider"></div>
+    <span class="topbar-badge" id="tokenGlobal">0 tokens used</span>
+    <div class="user-pill" id="userPill" onclick="logout()" style="display:none">
+      <div class="avatar" id="userAvatar">US</div>
+      <span id="userEmail">user@sber.ru</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar" style="display:none">
+    <div class="nav-label">Workspace</div>
+    <button class="nav-item active" onclick="gotoScreen('upload', this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M8 3L5 6M8 3l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Конвертация
+    </button>
+    <button class="nav-item" onclick="gotoScreen('history', this)">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.5V8l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      История
+    </button>
+    <div class="nav-sep"></div>
+    <div class="nav-label">Статус</div>
+    <button class="nav-item" onclick="gotoScreen('processing', this)" id="navProcessing" style="pointer-events:none;opacity:.4">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Pipeline
+    </button>
+    <button class="nav-item" onclick="gotoScreen('result', this)" id="navResult" style="pointer-events:none;opacity:.4">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Результат
+    </button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="mainContent">
+
+    <!-- LOGIN -->
+    <div class="screen active" id="screen-login">
+      <div class="login-wrap">
+        <div class="login-logo">
+          <div class="login-logo-icon">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <rect x="4" y="12" width="18" height="12" rx="3" stroke="#a594ff" stroke-width="1.5"/>
+              <path d="M9 12V9a4 4 0 018 0v3" stroke="#a594ff" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="13" cy="17" r="2" fill="#a594ff"/>
+            </svg>
+          </div>
+          <div class="login-title">Добро пожаловать</div>
+          <div class="login-sub">Войдите, чтобы продолжить</div>
+        </div>
+        <div class="login-card">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="text" id="loginEmail" placeholder="user@sber.ru" value="user@sber.ru">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Пароль</label>
+            <input type="password" id="loginPass" placeholder="••••••••" value="password">
+          </div>
+          <div class="login-info">
+            <svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M7 6v4M7 4.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            JWT Bearer · POST /api/v1/auth/login · 24h
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">
+            Войти
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <p style="text-align:center;font-size:11px;color:var(--hint);font-family:var(--mono);margin-top:12px">demo: любой email / любой пароль</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="screen" id="screen-upload">
+      <div class="page-title">Новая конвертация</div>
+      <div class="page-sub">Загрузите файл с табличными данными и укажите целевую JSON-структуру</div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Форматов</div>
+          <div class="metric-value accent">6</div>
+          <div class="metric-sub">CSV XLS PDF DOCX PNG JPG</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Avg tokens</div>
+          <div class="metric-value green">~340</div>
+          <div class="metric-sub">schema-only prompting</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Self-healing</div>
+          <div class="metric-value amber">3×</div>
+          <div class="metric-sub">retry max</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Статус</div>
+          <div class="metric-value" style="font-size:14px;padding-top:6px"><span class="badge badge-success badge-dot">ready</span></div>
+          <div class="metric-sub">GigaChat-2-Max</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Шаг 1 — Файл</div>
+        <div class="dropzone" id="dropzone" ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+          <input type="file" accept=".csv,.xls,.xlsx,.pdf,.docx,.png,.jpg,.jpeg" onchange="onFileSelect(event)">
+          <div class="drop-icon">
+            <svg viewBox="0 0 22 22" fill="none"><path d="M11 14V4M11 4L7 8M11 4l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="drop-title" id="dropTitle">Перетащите файл или нажмите</div>
+          <div class="drop-sub">Максимум 10 MB</div>
+          <div class="format-tags">
+            <span class="format-tag">CSV</span>
+            <span class="format-tag">XLS</span>
+            <span class="format-tag">XLSX</span>
+            <span class="format-tag">PDF</span>
+            <span class="format-tag">DOCX</span>
+            <span class="format-tag">PNG</span>
+            <span class="format-tag">JPG</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Шаг 2 — Target JSON schema</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-family:var(--mono)">
+          Пример объекта в котором нужно представить данные
+        </div>
+        <textarea id="targetJson" rows="6" placeholder='{"dealId": "string", "amount": "number", "stage": "string", "createdAt": "string"}'>{
+  "dealId": "string",
+  "amount": "number",
+  "stage": "string",
+  "createdAt": "string",
+  "responsible": "string"
+}</textarea>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="clearForm()">Сбросить</button>
+          <button class="btn btn-primary" onclick="startProcessing()">
+            Сгенерировать TypeScript
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROCESSING -->
+    <div class="screen" id="screen-processing">
+      <div class="page-title">Pipeline</div>
+      <div class="page-sub">LangGraph StateGraph · GigaChat-2-Max</div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Прогресс</div>
+        <div class="pipeline" id="pipelineSteps">
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step1-circle">1</div>
+            <div>
+              <div class="pipe-name">parse_file</div>
+              <div class="pipe-desc" id="step1-desc">factory(mime) → schema_hint + sample rows</div>
+            </div>
+            <span class="badge badge-warn" id="step1-badge">wait</span>
+          </div>
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step2-circle">2</div>
+            <div>
+              <div class="pipe-name">generate_code</div>
+              <div class="pipe-desc" id="step2-desc">prompt(schema, target_json) → LLM → ts_code</div>
+            </div>
+            <span class="badge badge-warn" id="step2-badge">wait</span>
+          </div>
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step3-circle">3</div>
+            <div>
+              <div class="pipe-name">validate_code</div>
+              <div class="pipe-desc" id="step3-desc">tsc compile + node runtime check</div>
+            </div>
+            <span class="badge badge-warn" id="step3-badge">wait</span>
+          </div>
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step4-circle">4</div>
+            <div>
+              <div class="pipe-name">result</div>
+              <div class="pipe-desc" id="step4-desc">JSON output ready</div>
+            </div>
+            <span class="badge badge-warn" id="step4-badge">wait</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Token usage</div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px">
+          <span id="tokenCurrent">0</span>
+          <span style="color:var(--hint)">/ 1000 limit</span>
+        </div>
+        <div class="token-bar-track">
+          <div class="token-bar-fill" id="tokenBarFill" style="width:0%"></div>
+        </div>
+        <div class="token-meta">
+          <span>prompt: <span id="tokPrompt">0</span></span>
+          <span>completion: <span id="tokCompletion">0</span></span>
+          <span style="color:var(--teal)">retries: <span id="tokRetries">0</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="screen" id="screen-result">
+      <div class="page-title">Результат</div>
+      <div class="page-sub" id="resultSub">Конвертация завершена успешно</div>
+
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+        <div class="metric">
+          <div class="metric-label">Статус TS</div>
+          <div class="metric-value" style="font-size:14px;padding-top:6px"><span class="badge badge-success badge-dot" id="resStatus">valid</span></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Токены</div>
+          <div class="metric-value green" id="resTokens">340</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Попытки</div>
+          <div class="metric-value" id="resRetries">1 / 3</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Записей</div>
+          <div class="metric-value accent" id="resRecords">5</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Сгенерированный TypeScript</div>
+          <span class="badge badge-success">tsc ✓ compiled</span>
+        </div>
+        <div class="code-block" id="tsOutput"><span class="code-comment">// Генерация...</span></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">JSON output</div>
+          <span class="badge badge-info" id="recordsBadge">5 records</span>
+        </div>
+        <div id="jsonPreview" style="border:1px solid var(--border);border-radius:8px;padding:12px">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="downloadJSON()">Скачать JSON</button>
+          <button class="btn btn-ghost" onclick="downloadTS()">Скачать .ts</button>
+          <button class="btn btn-primary" onclick="gotoScreen('upload', document.querySelector('.nav-item'))">Новая конвертация</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="screen" id="screen-history">
+      <div class="page-title">История</div>
+      <div class="page-sub">Конвертации текущей сессии · <span id="histUser">user@sber.ru</span></div>
+
+      <div class="card">
+        <table class="hist-table">
+          <thead>
+            <tr>
+              <th>Статус</th>
+              <th>Файл</th>
+              <th>Формат</th>
+              <th>Токены</th>
+              <th>Попытки</th>
+              <th>Время</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr><td colspan="6" style="text-align:center;color:var(--hint);font-family:var(--mono);font-size:12px;padding:24px">Нет записей в текущей сессии</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+let state = {
+  loggedIn: false,
+  email: '',
+  token: null,
+  file: null,
+  totalTokens: 0,
+  history: [],
+  lastResult: null,
+};
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim() || 'user@sber.ru';
+  const pass = document.getElementById('loginPass').value;
+  if (!pass) { alert('Введите пароль'); return; }
+  state.loggedIn = true;
+  state.email = email;
+  state.token = 'eyJhbGciOiJIUzI1NiJ9.demo';
+  document.getElementById('userEmail').textContent = email;
+  const initials = email.split('@')[0].slice(0,2).toUpperCase();
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userPill').style.display = 'flex';
+  document.getElementById('sidebar').style.display = 'flex';
+  document.getElementById('histUser').textContent = email;
+  showScreen('upload');
+  document.querySelector('.nav-item').classList.add('active');
+}
+
+function logout() {
+  if (!confirm('Выйти?')) return;
+  state = { loggedIn:false,email:'',token:null,file:null,totalTokens:0,history:[],lastResult:null };
+  document.getElementById('userPill').style.display = 'none';
+  document.getElementById('sidebar').style.display = 'none';
+  document.getElementById('tokenGlobal').textContent = '0 tokens used';
+  showScreen('login');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function gotoScreen(id, btn) {
+  showScreen(id);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.add('drag-over');
+}
+function onDragLeave() {
+  document.getElementById('dropzone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) setFile(f);
+}
+function onFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) setFile(f);
+}
+function setFile(f) {
+  state.file = f;
+  document.getElementById('dropTitle').textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+}
+function clearForm() {
+  state.file = null;
+  document.getElementById('dropTitle').textContent = 'Перетащите файл или нажмите';
+  document.getElementById('targetJson').value = '';
+}
+
+function startProcessing() {
+  if (!state.file) { alert('Выберите файл'); return; }
+  const tj = document.getElementById('targetJson').value.trim();
+  if (!tj) { alert('Укажите target JSON schema'); return; }
+
+  document.getElementById('navProcessing').style.pointerEvents = '';
+  document.getElementById('navProcessing').style.opacity = '1';
+  gotoScreen('processing', document.querySelectorAll('.nav-item')[2]);
+  resetPipeline();
+  runPipeline();
+}
+
+function resetPipeline() {
+  ['step1','step2','step3','step4'].forEach((s,i) => {
+    setStep(i+1, 'wait');
+  });
+  setTokens(0,0,0,0);
+}
+
+function setStep(n, status) {
+  const c = document.getElementById('step'+n+'-circle');
+  const b = document.getElementById('step'+n+'-badge');
+  c.className = 'step-circle';
+  if (status === 'done') {
+    c.classList.add('sc-done');
+    b.className = 'badge badge-success'; b.textContent = 'done';
+  } else if (status === 'active') {
+    c.classList.add('sc-active');
+    b.className = 'badge badge-info'; b.textContent = 'running';
+  } else if (status === 'retry') {
+    c.classList.add('sc-active');
+    b.className = 'badge badge-warn'; b.textContent = 'retry';
+  } else {
+    c.classList.add('sc-wait');
+    b.className = 'badge badge-warn'; b.textContent = 'wait';
+  }
+}
+
+function setTokens(total, prompt, completion, retries) {
+  document.getElementById('tokenCurrent').textContent = total;
+  document.getElementById('tokPrompt').textContent = prompt;
+  document.getElementById('tokCompletion').textContent = completion;
+  document.getElementById('tokRetries').textContent = retries;
+  document.getElementById('tokenBarFill').style.width = Math.min(total/10,100)+'%';
+  document.getElementById('tokenGlobal').textContent = (state.totalTokens + total) + ' tokens used';
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runPipeline() {
+  await delay(400);
+  setStep(1, 'active');
+  document.getElementById('step1-desc').textContent = 'Читаем ' + (state.file ? state.file.name : 'файл') + '...';
+  await delay(900);
+  setTokens(80, 65, 15, 0);
+  setStep(1, 'done');
+  document.getElementById('step1-desc').textContent = 'schema_hint: {columns: 24, sample: 2 rows}';
+
+  await delay(300);
+  setStep(2, 'active');
+  document.getElementById('step2-desc').textContent = 'LLM → attempt 1/3...';
+  await delay(1100);
+  setTokens(290, 240, 50, 0);
+  setStep(2, 'done');
+  document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · 1 попытка';
+
+  await delay(300);
+  setStep(3, 'active');
+  document.getElementById('step3-desc').textContent = 'tsc compile...';
+  await delay(800);
+  setTokens(340, 290, 50, 0);
+  setStep(3, 'done');
+  document.getElementById('step3-desc').textContent = 'tsc ✓ · node runtime ✓ · JSON shape ✓';
+
+  await delay(200);
+  setStep(4, 'active');
+  await delay(400);
+  setStep(4, 'done');
+  document.getElementById('step4-desc').textContent = '5 записей · valid';
+
+  state.totalTokens += 340;
+
+  const ts = state.file ? state.file.name : 'data.csv';
+  state.lastResult = { tokens: 340, retries: 1, records: 5 };
+  state.history.unshift({
+    status: 'valid', file: ts,
+    format: (ts.split('.').pop() || 'csv').toUpperCase(),
+    tokens: 340, retries: 1,
+    time: new Date().toLocaleTimeString('ru', {hour:'2-digit',minute:'2-digit'})
+  });
+  updateHistory();
+
+  await delay(300);
+  showResult();
+}
+
+function showResult() {
+  document.getElementById('navResult').style.pointerEvents = '';
+  document.getElementById('navResult').style.opacity = '1';
+  gotoScreen('result', document.querySelectorAll('.nav-item')[3]);
+
+  document.getElementById('resTokens').textContent = '340';
+  document.getElementById('resRetries').textContent = '1 / 3';
+  document.getElementById('resRecords').textContent = '5';
+  document.getElementById('recordsBadge').textContent = '5 records';
+  document.getElementById('resultSub').textContent = 'Файл: ' + (state.file ? state.file.name : 'data.csv') + ' · tsc compiled · runtime ✓';
+
+  const ts = `<span class="code-comment">// Auto-generated by Converter Agent</span>
+<span class="code-kw">interface</span> <span class="code-type">DealData</span> {
+  dealId:      <span class="code-type">string</span>
+  amount:      <span class="code-type">number</span>
+  stage:       <span class="code-type">string</span>
+  createdAt:   <span class="code-type">string</span>
+  responsible: <span class="code-type">string</span>
+}
+
+<span class="code-kw">export default function</span>(base64file: <span class="code-type">string</span>): <span class="code-type">DealData</span>[] {
+  <span class="code-kw">const</span> decoded = atob(base64file)
+  <span class="code-kw">const</span> rows = decoded.split(<span class="code-str">'\n'</span>).slice(1)
+  <span class="code-kw">return</span> rows
+    .filter(r => r.trim())
+    .map(row => {
+      <span class="code-kw">const</span> [id,,amount,,stage,,date,,resp] = row.split(<span class="code-str">','</span>)
+      <span class="code-kw">return</span> {
+        dealId: id?.trim(),
+        amount: +amount,
+        stage: stage?.trim(),
+        createdAt: date?.trim(),
+        responsible: resp?.trim()
+      }
+    })
+}`;
+  document.getElementById('tsOutput').innerHTML = ts;
+
+  const records = [
+    {dealId:'DEAL-12345', amount:1000000, stage:'Переговоры', createdAt:'2025-08-15', responsible:'Иванов И.И.'},
+    {dealId:'DEAL-67890', amount:500000,  stage:'Закрыта',    createdAt:'2025-08-10', responsible:'Петрова А.С.'},
+    {dealId:'DEAL-24680', amount:300000,  stage:'В работе',   createdAt:'2025-08-12', responsible:'Сидоров П.В.'},
+    {dealId:'DEAL-13579', amount:30000,   stage:'Новая',      createdAt:'2025-08-01', responsible:'Козлов Д.М.'},
+    {dealId:'DEAL-98765', amount:9600,    stage:'Дистрибьют', createdAt:'2025-08-20', responsible:'Новикова Е.А.'},
+  ];
+
+  const preview = document.getElementById('jsonPreview');
+  preview.innerHTML = '';
+  records.slice(0,3).forEach(r => {
+    const div = document.createElement('div');
+    div.innerHTML = `<div class="json-row"><span class="json-key">"dealId":</span><span class="json-val">"${r.dealId}"</span></div>
+<div class="json-row"><span class="json-key">"amount":</span><span class="json-val num">${r.amount.toLocaleString('ru')}</span></div>
+<div class="json-row"><span class="json-key">"stage":</span><span class="json-val">"${r.stage}"</span></div>
+<div class="json-row"><span class="json-key">"createdAt":</span><span class="json-val">"${r.createdAt}"</span></div>
+<div class="json-row" style="border-bottom:1px solid rgba(255,255,255,0.12);margin-bottom:10px;padding-bottom:10px"><span class="json-key">"responsible":</span><span class="json-val">"${r.responsible}"</span></div>`;
+    preview.appendChild(div);
+  });
+  if(records.length>3) {
+    const more = document.createElement('div');
+    more.style = 'text-align:center;font-family:var(--mono);font-size:11px;color:var(--hint);padding-top:4px';
+    more.textContent = '... ещё ' + (records.length-3) + ' записей';
+    preview.appendChild(more);
+  }
+}
+
+function updateHistory() {
+  const tbody = document.getElementById('historyBody');
+  if (!state.history.length) return;
+  tbody.innerHTML = state.history.map(h => {
+    const bc = h.status === 'valid' ? 'badge-success' : h.status === 'retry' ? 'badge-warn' : 'badge-err';
+    return `<tr onclick="">
+      <td><span class="badge ${bc}">${h.status}</span></td>
+      <td style="font-family:var(--mono);font-size:12px">${h.file}</td>
+      <td><span class="format-tag">${h.format}</span></td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--teal)">${h.tokens}</td>
+      <td style="font-family:var(--mono);font-size:12px">${h.retries} / 3</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--hint)">${h.time}</td>
+    </tr>`;
+  }).join('');
+}
+
+function downloadJSON() {
+  const data = [{dealId:'DEAL-12345',amount:1000000,stage:'Переговоры',createdAt:'2025-08-15',responsible:'Иванов И.И.'}];
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'result.json'; a.click();
+}
+
+function downloadTS() {
+  const code = `interface DealData { dealId: string; amount: number; stage: string; createdAt: string; responsible: string; }\nexport default function(base64file: string): DealData[] { return []; }`;
+  const blob = new Blob([code], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'converter.ts'; a.click();
+}
+</script>
+</body>
+</html>

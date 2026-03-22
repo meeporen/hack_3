@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Converter Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/sber.css">
+<style>
+body { font-family: 'Inter', var(--sans); }
+
+/* ── LAYOUT ── */
+.shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 58px 1fr;
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar { grid-column: 1 / -1; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  position: sticky; top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+
+/* ── MAIN ── */
+.main {
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: var(--bg);
+}
+.screen { display: none; animation: fadeIn .2s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+.page-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+/* ── METRICS ── */
+.metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.metric { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.metric-label { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; margin-bottom: 8px; }
+.metric-value { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.metric-value.c-blue   { color: var(--blue); }
+.metric-value.c-green  { color: var(--accent2); }
+.metric-value.c-yellow { color: var(--yellow); }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
+  padding: 3px 8px; border-radius: 4px; font-weight: 500;
+}
+.badge-success { background: rgba(1,161,4,0.12); color: var(--accent2); }
+.badge-info    { background: rgba(2,136,214,0.12); color: var(--blue); }
+.badge-warn    { background: rgba(253,240,1,0.1); color: #e8d500; }
+.badge-err     { background: rgba(220,50,50,0.12); color: #ff7070; }
+.badge-dot::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; display: inline-block;
+}
+
+/* ── DROPZONE ── */
+.dropzone {
+  border: 1.5px dashed var(--border2); border-radius: 12px;
+  padding: 40px 20px; text-align: center; cursor: pointer;
+  transition: border-color .2s, background .2s; position: relative;
+}
+.dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: rgba(1,161,4,0.04); }
+.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.drop-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(1,161,4,0.1); border: 1px solid rgba(1,161,4,0.2);
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+}
+.drop-icon svg { width: 22px; height: 22px; color: var(--accent2); }
+.drop-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.drop-sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.format-tags { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.format-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  padding: 3px 8px; border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--muted); letter-spacing: 0.06em;
+}
+
+/* ── TEXTAREA ── */
+textarea, input[type=text] {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  resize: vertical;
+}
+
+/* ── BTN ROW ── */
+.btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+
+/* ── PIPELINE ── */
+.pipeline { display: flex; flex-direction: column; gap: 0; }
+.pipe-step {
+  display: grid; grid-template-columns: 36px 1fr auto;
+  align-items: center; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.pipe-step:last-child { border-bottom: none; }
+.step-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; flex-shrink: 0;
+}
+.sc-done   { background: rgba(1,161,4,0.12); color: var(--accent2); border: 1px solid rgba(1,161,4,0.25); }
+.sc-active { background: rgba(2,136,214,0.15); color: var(--blue); border: 1px solid rgba(2,136,214,0.3); animation: pulse 1.6s ease-in-out infinite; }
+.sc-wait   { background: var(--surface2); color: var(--hint); border: 1px solid var(--border); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.pipe-name { font-size: 14px; font-weight: 600; }
+.pipe-desc { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+/* ── TOKEN BAR ── */
+.token-bar-track { height: 4px; border-radius: 2px; background: var(--surface2); overflow: hidden; margin: 8px 0 6px; }
+.token-bar-fill  { height: 100%; border-radius: 2px; background: linear-gradient(90deg,var(--grad-mid1),var(--grad-mid3)); transition: width .4s ease; }
+.token-meta { display: flex; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  line-height: 1.7; color: var(--muted); overflow-x: auto; white-space: pre;
+}
+.code-kw      { color: var(--blue); }
+.code-type    { color: var(--accent2); }
+.code-str     { color: var(--yellow); }
+.code-comment { color: var(--hint); }
+
+/* ── HISTORY TABLE ── */
+.hist-table { width: 100%; border-collapse: collapse; }
+.hist-table th { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: var(--hint); text-align: left; padding: 0 12px 10px; text-transform: uppercase; }
+.hist-table td { padding: 12px; font-size: 13px; border-top: 1px solid var(--border); }
+.hist-table tr:hover td { background: var(--surface2); cursor: pointer; }
+
+/* ── JSON PREVIEW ── */
+.json-row { display:flex; gap:12px; font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:8px 0; border-bottom:1px solid var(--border); align-items:baseline; }
+.json-row:last-child { border-bottom: none; }
+.json-key { color: var(--blue); min-width: 140px; }
+.json-val { color: var(--yellow); }
+.json-val.num  { color: var(--accent2); }
+
+/* ── TERMINAL (glassmorphism) ── */
+.terminal-window {
+  background: rgba(6, 10, 6, 0.88);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(39, 201, 63, 0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  box-shadow:
+    0 0 0 1px rgba(39, 201, 63, 0.04),
+    0 0 48px rgba(39, 201, 63, 0.07),
+    0 10px 40px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.terminal-titlebar {
+  background: rgba(10, 16, 10, 0.96);
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid rgba(39, 201, 63, 0.1);
+  user-select: none;
+}
+.terminal-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.terminal-dot-red    { background: #ff5f56; box-shadow: 0 0 5px rgba(255,95,86,.45); }
+.terminal-dot-yellow { background: #ffbd2e; box-shadow: 0 0 5px rgba(255,189,46,.45); }
+.terminal-dot-green  { background: #27c93f; box-shadow: 0 0 5px rgba(39,201,63,.45); }
+.terminal-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(39, 201, 63, 0.75);
+  margin-left: 6px;
+  flex: 1;
+  letter-spacing: 0.05em;
+}
+.terminal-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(39, 201, 63, 0.55);
+  border: 1px solid rgba(39, 201, 63, 0.18);
+  border-radius: 4px;
+  padding: 2px 8px;
+  letter-spacing: .04em;
+  transition: color .3s, border-color .3s;
+}
+.terminal-badge.is-running { color: #27c93f; border-color: rgba(39,201,63,.35); }
+.terminal-badge.is-done    { color: #27c93f; border-color: rgba(39,201,63,.35); }
+.terminal-clear-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,.28);
+  background: none;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 4px;
+  padding: 2px 9px;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: color .2s, border-color .2s;
+  flex-shrink: 0;
+}
+.terminal-clear-btn:hover { color: rgba(255,255,255,.6); border-color: rgba(255,255,255,.25); }
+.terminal-progress-bar {
+  height: 2px;
+  background: rgba(39, 201, 63, 0.07);
+}
+.terminal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a8c2a, #27c93f, #00ff88);
+  transition: width .45s ease;
+  box-shadow: 0 0 10px rgba(39, 201, 63, 0.55);
+}
+.terminal-body {
+  padding: 16px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.72;
+  color: rgba(39, 201, 63, 0.8);
+  min-height: 240px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(39,201,63,.14) transparent;
+}
+.terminal-body::-webkit-scrollbar { width: 4px; }
+.terminal-body::-webkit-scrollbar-track { background: transparent; }
+.terminal-body::-webkit-scrollbar-thumb { background: rgba(39,201,63,.18); border-radius: 2px; }
+.term-line    { display: block; white-space: pre-wrap; word-break: break-all; }
+.term-empty   { display: block; height: 0.45em; }
+.term-step    { color: rgba(39, 201, 63, 0.82); }
+.term-info    { color: rgba(39, 201, 63, 0.4); }
+.term-ok      { color: #27c93f; text-shadow: 0 0 8px rgba(39,201,63,.35); }
+.term-http    { color: #5dade2; }
+.term-token   { color: #f4e842; }
+.term-prog    { color: rgba(39, 201, 63, 0.6); letter-spacing: -0.01em; }
+.term-warn    { color: #ffbd2e; }
+.term-err     { color: #ff6b6b; text-shadow: 0 0 8px rgba(255,107,107,.3); }
+.term-success { color: #27c93f; font-weight: 700; text-shadow: 0 0 14px rgba(39,201,63,.55); }
+.term-cursor {
+  display: inline-block; width: 8px; height: 14px;
+  background: rgba(39, 201, 63, 0.85); vertical-align: middle;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(39, 201, 63, 0.55);
+  animation: blink 1.1s step-start infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@media (max-width: 640px) {
+  .terminal-body { font-size: 10.5px; padding: 10px 12px; max-height: 300px; }
+  .terminal-title { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm">
+    <span style="font-size:12px;color:var(--hint);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em">
+      Converter Agent · Platform V
+    </span>
+    <div class="topbar-divider"></div>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--hint);border:1px solid var(--border);padding:3px 10px;border-radius:5px"
+          id="tokenGlobal">0 tokens</span>
+    <div class="user-pill" onclick="goProfile()">
+      <div class="user-pill-avatar" id="topbarAvatar"></div>
+      <span id="topbarUserName"></span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-label">Workspace</div>
+    <button class="nav-item active" onclick="gotoScreen('upload', this)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 10V3M8 3L5 6M8 3l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Конвертация
+    </button>
+    <button class="nav-item" onclick="gotoScreen('history', this)">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.5V8l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      История
+    </button>
+    <div class="nav-sep"></div>
+    <div class="nav-label">Статус</div>
+    <button class="nav-item" id="navProcessing" onclick="gotoScreen('processing',this)" style="pointer-events:none;opacity:.4">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Pipeline
+    </button>
+    <button class="nav-item" id="navResult" onclick="gotoScreen('result',this)" style="pointer-events:none;opacity:.4">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Результат
+    </button>
+    <div class="nav-sep"></div>
+    <a href="profile.html" class="nav-item">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 13.5c0-2.5 2.7-4.5 6-4.5s6 2 6 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Профиль
+    </a>
+    <button class="nav-item" onclick="logout()" style="color:rgba(255,80,80,0.7)">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M10 8H3M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3h3a1 1 0 011 1v8a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Выйти
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- UPLOAD -->
+    <div class="screen active" id="screen-upload">
+      <div class="page-title">Новая конвертация</div>
+      <div class="page-sub">Загрузите файл с табличными данными и укажите целевую JSON-структуру</div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Форматов</div>
+          <div class="metric-value c-blue">6</div>
+          <div class="metric-sub">CSV XLS PDF DOCX PNG JPG</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Avg tokens</div>
+          <div class="metric-value c-green">~340</div>
+          <div class="metric-sub">schema-only prompting</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Self-healing</div>
+          <div class="metric-value c-yellow">3×</div>
+          <div class="metric-sub">retry max</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Статус</div>
+          <div class="metric-value" style="font-size:14px;padding-top:6px"><span class="badge badge-success badge-dot">ready</span></div>
+          <div class="metric-sub">GigaChat-2-Max</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">Шаг 1 — Файл</div>
+        <div class="dropzone" id="dropzone" ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+          <input type="file" accept=".csv,.xls,.xlsx,.pdf,.docx,.png,.jpg,.jpeg" onchange="onFileSelect(event)">
+          <div class="drop-icon">
+            <svg viewBox="0 0 22 22" fill="none"><path d="M11 14V4M11 4L7 8M11 4l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="drop-title" id="dropTitle">Перетащите файл или нажмите</div>
+          <div class="drop-sub">Максимум 10 MB</div>
+          <div class="format-tags">
+            <span class="format-tag">CSV</span><span class="format-tag">XLS</span>
+            <span class="format-tag">XLSX</span><span class="format-tag">PDF</span>
+            <span class="format-tag">DOCX</span><span class="format-tag">PNG</span><span class="format-tag">JPG</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">Шаг 2 — Target JSON schema</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-family:'JetBrains Mono',monospace">Пример объекта в котором нужно представить данные</div>
+        <textarea id="targetJson" rows="6" placeholder='{"dealId":"string","amount":"number","stage":"string"}'>{
+  "dealId": "string",
+  "amount": "number",
+  "stage": "string",
+  "createdAt": "string",
+  "responsible": "string"
+}</textarea>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="clearForm()">Сбросить</button>
+          <button class="btn btn-primary" onclick="startProcessing()">
+            Сгенерировать TypeScript
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROCESSING -->
+    <div class="screen" id="screen-processing">
+      <div class="page-title">Pipeline</div>
+      <div class="page-sub">LangGraph StateGraph · GigaChat-2-Max</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">Прогресс</div>
+        <div class="pipeline">
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step1-circle">1</div>
+            <div><div class="pipe-name">parse_file</div><div class="pipe-desc" id="step1-desc">factory(mime) → schema_hint + sample rows</div></div>
+            <span class="badge badge-warn" id="step1-badge">wait</span>
+          </div>
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step2-circle">2</div>
+            <div><div class="pipe-name">generate_code</div><div class="pipe-desc" id="step2-desc">prompt(schema, target_json) → LLM → ts_code</div></div>
+            <span class="badge badge-warn" id="step2-badge">wait</span>
+          </div>
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step3-circle">3</div>
+            <div><div class="pipe-name">validate_code</div><div class="pipe-desc" id="step3-desc">tsc compile + node runtime check</div></div>
+            <span class="badge badge-warn" id="step3-badge">wait</span>
+          </div>
+          <div class="pipe-step">
+            <div class="step-circle sc-wait" id="step4-circle">4</div>
+            <div><div class="pipe-name">result</div><div class="pipe-desc" id="step4-desc">JSON output ready</div></div>
+            <span class="badge badge-warn" id="step4-badge">wait</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Token usage</div>
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px">
+          <span id="tokenCurrent">0</span>
+          <span style="color:var(--hint)">/ 1000 limit</span>
+        </div>
+        <div class="token-bar-track"><div class="token-bar-fill" id="tokenBarFill" style="width:0%"></div></div>
+        <div class="token-meta">
+          <span>prompt: <span id="tokPrompt">0</span></span>
+          <span>completion: <span id="tokCompletion">0</span></span>
+          <span style="color:var(--accent2)">retries: <span id="tokRetries">0</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="screen" id="screen-result">
+      <div class="page-title">Результат</div>
+      <div class="page-sub" id="resultSub">Конвертация завершена успешно</div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Статус TS</div>
+          <div class="metric-value" style="font-size:14px;padding-top:6px"><span class="badge badge-success badge-dot" id="resStatus">valid</span></div>
+        </div>
+        <div class="metric"><div class="metric-label">Токены</div><div class="metric-value c-green" id="resTokens">340</div></div>
+        <div class="metric"><div class="metric-label">Попытки</div><div class="metric-value" id="resRetries">1 / 3</div></div>
+        <div class="metric"><div class="metric-label">Записей</div><div class="metric-value c-blue" id="resRecords">5</div></div>
+      </div>
+      <!-- TERMINAL WINDOW -->
+      <div class="terminal-window" id="terminalWindow">
+        <div class="terminal-titlebar">
+          <div class="terminal-dot terminal-dot-red"></div>
+          <div class="terminal-dot terminal-dot-yellow"></div>
+          <div class="terminal-dot terminal-dot-green"></div>
+          <span class="terminal-title">📟 CONVERTER CONSOLE</span>
+          <span class="terminal-badge" id="terminalBadge">● idle</span>
+          <button class="terminal-clear-btn" onclick="termClear()">clear</button>
+        </div>
+        <div class="terminal-progress-bar">
+          <div class="terminal-progress-fill" id="termProgressFill" style="width:0%"></div>
+        </div>
+        <div class="terminal-body" id="terminalBody">
+          <span class="term-cursor" id="termCursor"></span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Сгенерированный TypeScript</div>
+          <span class="badge badge-success">tsc ✓ compiled</span>
+        </div>
+        <div class="code-block" id="tsOutput"><span class="code-comment">// Генерация...</span></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">JSON output</div>
+          <span class="badge badge-info" id="recordsBadge">5 records</span>
+        </div>
+        <div id="jsonPreview" style="border:1px solid var(--border);border-radius:8px;padding:12px"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="downloadJSON()">Скачать JSON</button>
+          <button class="btn btn-ghost" onclick="downloadTS()">Скачать .ts</button>
+          <button class="btn btn-primary" onclick="gotoScreen('upload', document.querySelector('.nav-item'))">Новая конвертация</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="screen" id="screen-history">
+      <div class="page-title">История</div>
+      <div class="page-sub">Конвертации текущей сессии · <span id="histUser"></span></div>
+      <div class="card">
+        <table class="hist-table">
+          <thead><tr>
+            <th>Статус</th><th>Файл</th><th>Формат</th><th>Токены</th><th>Попытки</th><th>Время</th>
+          </tr></thead>
+          <tbody id="historyBody">
+            <tr><td colspan="6" style="text-align:center;color:var(--hint);font-family:'JetBrains Mono',monospace;font-size:12px;padding:24px">Нет записей</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+// ── Auth guard ──
+if (!requireAuth()) throw new Error('not auth');
+const session = getSession();
+document.getElementById('topbarUserName').textContent = session.name;
+document.getElementById('histUser').textContent = session.email;
+
+// Topbar avatar
+const topbarAv = document.getElementById('topbarAvatar');
+if (session.photo) {
+  topbarAv.style.cssText = `width:28px;height:28px;border-radius:50%;background-image:url(${session.photo});background-size:cover;background-position:center;`;
+} else {
+  topbarAv.textContent = session.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+function goProfile() { window.location.href = 'profile.html'; }
+
+// ── App state ──
+let state = { file:null, totalTokens:0, history:[], lastResult:null };
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function gotoScreen(id, btn) {
+  showScreen(id);
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function onDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag-over'); }
+function onDragLeave() { document.getElementById('dropzone').classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault(); document.getElementById('dropzone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if (f) setFile(f);
+}
+function onFileSelect(e) { const f = e.target.files[0]; if (f) setFile(f); }
+function setFile(f) {
+  state.file = f;
+  document.getElementById('dropTitle').textContent = f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+}
+function clearForm() {
+  state.file = null;
+  document.getElementById('dropTitle').textContent = 'Перетащите файл или нажмите';
+  document.getElementById('targetJson').value = '';
+}
+
+function startProcessing() {
+  if (!state.file) { alert('Выберите файл'); return; }
+  if (!document.getElementById('targetJson').value.trim()) { alert('Укажите target JSON schema'); return; }
+  const navP = document.getElementById('navProcessing');
+  navP.style.pointerEvents = ''; navP.style.opacity = '1';
+  gotoScreen('processing', document.querySelectorAll('.nav-item')[2]);
+  resetPipeline(); runPipeline();
+}
+
+function resetPipeline() {
+  [1,2,3,4].forEach(n => setStep(n,'wait'));
+  setTokens(0,0,0,0);
+}
+
+function setStep(n, status) {
+  const c = document.getElementById('step'+n+'-circle');
+  const b = document.getElementById('step'+n+'-badge');
+  c.className = 'step-circle';
+  if (status==='done')   { c.classList.add('sc-done');   b.className='badge badge-success'; b.textContent='done'; }
+  else if (status==='active') { c.classList.add('sc-active'); b.className='badge badge-info';    b.textContent='running'; }
+  else if (status==='retry')  { c.classList.add('sc-active'); b.className='badge badge-warn';    b.textContent='retry'; }
+  else                   { c.classList.add('sc-wait');   b.className='badge badge-warn';    b.textContent='wait'; }
+}
+
+function setTokens(total, prompt, completion, retries) {
+  document.getElementById('tokenCurrent').textContent = total;
+  document.getElementById('tokPrompt').textContent = prompt;
+  document.getElementById('tokCompletion').textContent = completion;
+  document.getElementById('tokRetries').textContent = retries;
+  document.getElementById('tokenBarFill').style.width = Math.min(total/10,100)+'%';
+  document.getElementById('tokenGlobal').textContent = (state.totalTokens + total) + ' tokens';
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+async function runPipeline() {
+  await delay(400); setStep(1,'active');
+  document.getElementById('step1-desc').textContent = 'Читаем ' + (state.file?.name||'файл') + '...';
+  await delay(900); setTokens(80,65,15,0); setStep(1,'done');
+  document.getElementById('step1-desc').textContent = 'schema_hint: {columns: 24, sample: 2 rows}';
+  await delay(300); setStep(2,'active');
+  document.getElementById('step2-desc').textContent = 'LLM → attempt 1/3...';
+  await delay(1100); setTokens(290,240,50,0); setStep(2,'done');
+  document.getElementById('step2-desc').textContent = 'ts_code сгенерирован · 1 попытка';
+  await delay(300); setStep(3,'active');
+  document.getElementById('step3-desc').textContent = 'tsc compile...';
+  await delay(800); setTokens(340,290,50,0); setStep(3,'done');
+  document.getElementById('step3-desc').textContent = 'tsc ✓ · node runtime ✓ · JSON shape ✓';
+  await delay(200); setStep(4,'active'); await delay(400); setStep(4,'done');
+  document.getElementById('step4-desc').textContent = '5 записей · valid';
+  state.totalTokens += 340;
+  const fname = state.file?.name || 'data.csv';
+  state.history.unshift({ status:'valid', file:fname, format:(fname.split('.').pop()||'csv').toUpperCase(), tokens:340, retries:1, time:new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'}) });
+  updateHistory();
+  await delay(300); showResult();
+}
+
+// ── Terminal ──────────────────────────────────────────────────────────────────
+
+// Current time as [HH:MM:SS] — called at render time so each line gets its real timestamp
+function _ts() {
+  const n = new Date();
+  const p = v => v.toString().padStart(2,'0');
+  return `[${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}]`;
+}
+
+// ASCII progress bar: "████████████░░░░░░░░  62%"
+function _progBar(pct) {
+  const total = 22, filled = Math.round(pct / 100 * total);
+  return '█'.repeat(filled) + '░'.repeat(total - filled);
+}
+
+// Move the thin top progress bar
+function _setProgress(pct) {
+  document.getElementById('termProgressFill').style.width = pct + '%';
+}
+
+// Clear terminal output (keeps cursor)
+function termClear() {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  body.innerHTML = '';
+  body.appendChild(cursor);
+  cursor.style.display = '';
+  _setProgress(0);
+  const badge = document.getElementById('terminalBadge');
+  badge.textContent = '● idle';
+  badge.className = 'terminal-badge';
+}
+
+// Append a full line instantly
+function _appendLine(text, cls) {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  if (!text) {
+    const el = document.createElement('span'); el.className = 'term-empty';
+    body.insertBefore(el, cursor);
+  } else {
+    const el = document.createElement('span'); el.className = 'term-line ' + cls;
+    el.textContent = text; body.insertBefore(el, cursor);
+  }
+  body.scrollTop = body.scrollHeight;
+}
+
+// Type a line character-by-character (typing animation)
+async function _typeLine(text, cls, speed) {
+  const body = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  const el = document.createElement('span');
+  el.className = 'term-line ' + cls;
+  body.insertBefore(el, cursor);
+  for (const ch of text) {
+    el.textContent += ch;
+    body.scrollTop = body.scrollHeight;
+    await new Promise(r => setTimeout(r, speed));
+  }
+}
+
+// Simple wait helper
+const _w = ms => new Promise(r => setTimeout(r, ms));
+
+// Build per-file-type step list.
+// Steps: [type, text, waitMs, charSpeed, progressPct]
+//   type      – 'type' (typed) | 'instant' | 'empty' | 'prog' (ASCII bar line)
+//   text      – log message WITHOUT timestamp (added at render time) or null for 'prog'/'empty'
+//   waitMs    – ms to wait before this step
+//   charSpeed – ms per character (only for 'type')
+//   progressPct – 0-100 or null
+function _buildSteps(ext, fileName, fileSize, schema, jobId) {
+  const schemaShort = schema.replace(/\s+/g,' ').slice(0,50) + (schema.length > 50 ? '…' : '');
+
+  const start = [
+    ['type',    `Initializing Converter Agent...`,                              0,  14, null],
+    ['type',    `Loading file: ${fileName}`,                                  160,  13, null],
+    ['type',    `Analyzing file structure...`,                                 240,  12,   8],
+    ['type',    `Detected format: ${ext.toUpperCase()}  ·  size: ${fileSize}`,280,  11, null],
+    ['empty',   null, 100, 0, null],
+  ];
+
+  // File-type-specific parsing steps
+  let parse = [];
+  if (ext === 'pdf') {
+    parse = [
+      ['type',    `Parsing PDF document structure...`,                          0,  13,  15],
+      ['instant', `Found: 12 pages, 3 embedded tables, 847 text blocks`,     480,   0, null],
+      ['type',    `Starting OCR text recognition...`,                         220,  13, null],
+      ['prog',    null, 220, 0, 32],
+      ['instant', `OCR progress: 45%...`,                                     680,   0, null],
+      ['prog',    null,   0, 0, 45],
+      ['instant', `OCR progress: 85%...`,                                     780,   0, null],
+      ['prog',    null,   0, 0, 56],
+      ['type',    `OCR complete  ·  2,340 tokens extracted`,                  600,  14, null],
+      ['type',    `Building schema_hint from PDF tables...`,                  200,  13, null],
+      ['instant', `schema_hint: {columns: 18, sample: 3 rows}`,              500,   0, null],
+    ];
+  } else if (['png','jpg','jpeg','webp'].includes(ext)) {
+    parse = [
+      ['type',    `Loading image into memory...`,                               0,  13,  15],
+      ['instant', `Image: 1920×1080 px  ·  3 channels`,                      400,   0, null],
+      ['type',    `Detecting tabular regions in image...`,                    200,  13, null],
+      ['prog',    null, 200, 0, 30],
+      ['instant', `Found 2 table regions  ✓`,                                 720,   0, null],
+      ['type',    `OCR scanning table cells...`,                              200,  13, null],
+      ['prog',    null, 300, 0, 48],
+      ['instant', `OCR confidence: 94.2%`,                                    820,   0, null],
+      ['type',    `Extracting cell values...`,                                200,  13, null],
+      ['instant', `schema_hint: {columns: 8, sample: 5 rows}`,               480,   0, null],
+    ];
+  } else if (ext === 'csv') {
+    parse = [
+      ['type',    `Parsing CSV rows...`,                                        0,  13,  15],
+      ['prog',    null, 200, 0, 28],
+      ['instant', `Detected: 847 rows × 24 columns`,                         480,   0, null],
+      ['type',    `Inferring column types...`,                                200,  13, null],
+      ['instant', `types: {string×8, number×12, date×4}`,                    600,   0, null],
+      ['type',    `schema_hint extracted  ✓`,                                300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (['xls','xlsx'].includes(ext)) {
+    parse = [
+      ['type',    `Opening Excel workbook...`,                                  0,  13,  15],
+      ['instant', `Sheets found: Sheet1, Sheet2, Summary`,                    400,   0, null],
+      ['type',    `Reading active sheet: Sheet1`,                             200,  13, null],
+      ['prog',    null, 200, 0, 28],
+      ['instant', `Detected: 1,204 rows × 16 columns`,                       600,   0, null],
+      ['type',    `Resolving merged cells & formulas...`,                     200,  13, null],
+      ['instant', `schema_hint: {columns: 16, sample: 3 rows}`,              580,   0, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (ext === 'json') {
+    parse = [
+      ['type',    `Parsing JSON structure...`,                                  0,  13,  15],
+      ['instant', `Root type: Array  ·  847 elements`,                        350,   0, null],
+      ['type',    `Sampling keys from first 10 elements...`,                  200,  13, null],
+      ['prog',    null, 200, 0, 32],
+      ['instant', `Keys: dealId, amount, stage, createdAt, responsible`,      420,   0, null],
+      ['type',    `schema_hint built  ✓`,                                     300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else if (['docx','doc'].includes(ext)) {
+    parse = [
+      ['type',    `Parsing DOCX structure...`,                                  0,  13,  15],
+      ['instant', `Found: 24 paragraphs, 4 tables`,                           440,   0, null],
+      ['type',    `Extracting table data...`,                                 200,  13, null],
+      ['prog',    null, 200, 0, 28],
+      ['instant', `Table 1: 847 rows × 12 columns  ✓`,                       600,   0, null],
+      ['type',    `schema_hint extracted  ✓`,                                 300,  14, null],
+      ['prog',    null,   0, 0, 52],
+    ];
+  } else {
+    parse = [
+      ['type',    `Reading file bytes...`,                                       0,  13,  15],
+      ['prog',    null, 280, 0, 28],
+      ['instant', `MIME type detected  ·  ${ext.toUpperCase()} format`,       400,   0, null],
+      ['type',    `Extracting data structure...`,                              200,  13, null],
+      ['instant', `schema_hint: {columns: 12, sample: 2 rows}`,              580,   0, null],
+      ['prog',    null,   0, 0, 48],
+    ];
+  }
+
+  const llm = [
+    ['empty',   null, 100, 0, null],
+    ['type',    `Connecting to GigaChat-2-Max API...`,                          0,  14,  60],
+    ['instant', `POST /api/v1/prediction/upload  →  202 Accepted`,            260,   0, null],
+    ['instant', `job_id: "${jobId}"  ·  status: processing`,                  100,   0, null],
+    ['empty',   null,  60, 0, null],
+    ['type',    `LLM generating TypeScript code...`,                           200,  13, null],
+    ['instant', `prompt_tokens=240  completion_tokens=50  total=290`,         980,   0, null],
+    ['prog',    null,  80, 0, 76],
+    ['type',    `TypeScript code generated  ✓`,                               240,  16, null],
+    ['empty',   null,  80, 0, null],
+    ['type',    `Running tsc compiler...`,                                       0,  14, null],
+    ['instant', `tsc  →  0 errors  ✓`,                                        740,   0, null],
+    ['type',    `Node runtime validation...`,                                  180,  14, null],
+    ['instant', `runtime ✓   JSON shape ✓`,                                   640,   0, null],
+    ['prog',    null,  80, 0, 94],
+  ];
+
+  const end = [
+    ['empty',   null, 120, 0, null],
+    ['type',    `[SUCCESS] Conversion complete!`,                               0,  18, 100],
+    ['instant', `Output: result.json  (${fileSize})`,                         240,   0, null],
+    ['instant', `Download ready!`,                                             200,   0, null],
+  ];
+
+  return [...start, ...parse, ...llm, ...end];
+}
+
+// Main terminal orchestrator — called from showResult()
+async function runTerminal(fileName, schema) {
+  const body   = document.getElementById('terminalBody');
+  const cursor = document.getElementById('termCursor');
+  body.innerHTML = ''; body.appendChild(cursor); cursor.style.display = '';
+  _setProgress(0);
+  const badge = document.getElementById('terminalBadge');
+  badge.textContent = '● running'; badge.className = 'terminal-badge is-running';
+
+  const ext      = (fileName.split('.').pop() || 'csv').toLowerCase();
+  const fileSize = state.file ? (state.file.size / 1024).toFixed(1) + ' KB' : '14.2 KB';
+  const jobId    = 'job_' + Math.random().toString(36).slice(2, 10);
+  const steps    = _buildSteps(ext, fileName, fileSize, schema, jobId);
+
+  for (const [type, text, wait, speed, progress] of steps) {
+    if (wait > 0) await _w(wait);
+
+    if (type === 'empty') {
+      _appendLine('', '');
+    } else if (type === 'prog') {
+      _appendLine(`  ${_progBar(progress)}  ${progress}%`, 'term-prog');
+    } else if (type === 'type') {
+      const ts  = _ts();
+      const full = `${ts} > ${text}`;
+      const cls  = text.startsWith('[SUCCESS]') ? 'term-success'
+                 : text.includes('ERROR')       ? 'term-err'
+                 : 'term-step';
+      await _typeLine(full, cls, speed);
+    } else { // instant
+      const ts   = _ts();
+      const full = `${ts} > ${text}`;
+      const cls  = full.includes('POST') || full.includes('GET')
+                   ? 'term-http'
+                 : full.includes('✓')      ? 'term-ok'
+                 : full.includes('tokens') ? 'term-token'
+                 : 'term-info';
+      _appendLine(full, cls);
+    }
+
+    if (progress !== null) _setProgress(progress);
+  }
+
+  await _w(500);
+  _setProgress(100);
+  badge.textContent = '✓ done'; badge.className = 'terminal-badge is-done';
+  cursor.style.display = 'none';
+}
+
+function showResult() {
+  const navR = document.getElementById('navResult');
+  navR.style.pointerEvents=''; navR.style.opacity='1';
+  gotoScreen('result', document.querySelectorAll('.nav-item')[3]);
+  document.getElementById('resTokens').textContent='340';
+  document.getElementById('resRetries').textContent='1 / 3';
+  document.getElementById('resRecords').textContent='5';
+  document.getElementById('recordsBadge').textContent='5 records';
+  const fname = state.file?.name || 'data.csv';
+  document.getElementById('resultSub').textContent='Файл: '+fname+' · tsc compiled · runtime ✓';
+
+  // Run terminal animation
+  const schema = document.getElementById('targetJson')?.value?.trim() || '{"dealId":"string"}';
+  runTerminal(fname, schema);
+
+  document.getElementById('tsOutput').innerHTML=`<span class="code-comment">// Auto-generated by Converter Agent</span>
+<span class="code-kw">interface</span> <span class="code-type">DealData</span> {
+  dealId:      <span class="code-type">string</span>
+  amount:      <span class="code-type">number</span>
+  stage:       <span class="code-type">string</span>
+  createdAt:   <span class="code-type">string</span>
+  responsible: <span class="code-type">string</span>
+}
+
+<span class="code-kw">export default function</span>(base64file: <span class="code-type">string</span>): <span class="code-type">DealData</span>[] {
+  <span class="code-kw">const</span> decoded = atob(base64file)
+  <span class="code-kw">const</span> rows = decoded.split(<span class="code-str">'\n'</span>).slice(1)
+  <span class="code-kw">return</span> rows.filter(r => r.trim()).map(row => {
+    <span class="code-kw">const</span> [id,,amount,,stage,,date,,resp] = row.split(<span class="code-str">','</span>)
+    <span class="code-kw">return</span> { dealId:id?.trim(), amount:+amount, stage:stage?.trim(), createdAt:date?.trim(), responsible:resp?.trim() }
+  })
+}`;
+  const records=[
+    {dealId:'DEAL-12345',amount:1000000,stage:'Переговоры',createdAt:'2025-08-15',responsible:'Иванов И.И.'},
+    {dealId:'DEAL-67890',amount:500000, stage:'Закрыта',   createdAt:'2025-08-10',responsible:'Петрова А.С.'},
+    {dealId:'DEAL-24680',amount:300000, stage:'В работе',  createdAt:'2025-08-12',responsible:'Сидоров П.В.'},
+  ];
+  const preview=document.getElementById('jsonPreview'); preview.innerHTML='';
+  records.forEach(r=>{
+    const d=document.createElement('div');
+    d.innerHTML=`<div class="json-row"><span class="json-key">"dealId":</span><span class="json-val">"${r.dealId}"</span></div><div class="json-row"><span class="json-key">"amount":</span><span class="json-val num">${r.amount.toLocaleString('ru')}</span></div><div class="json-row" style="padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--border2)"><span class="json-key">"stage":</span><span class="json-val">"${r.stage}"</span></div>`;
+    preview.appendChild(d);
+  });
+}
+
+function updateHistory() {
+  const tbody=document.getElementById('historyBody');
+  if (!state.history.length) return;
+  tbody.innerHTML=state.history.map(h=>{
+    const bc=h.status==='valid'?'badge-success':h.status==='retry'?'badge-warn':'badge-err';
+    return `<tr><td><span class="badge ${bc}">${h.status}</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${h.file}</td><td><span class="format-tag">${h.format}</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2)">${h.tokens}</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px">${h.retries}/3</td><td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--hint)">${h.time}</td></tr>`;
+  }).join('');
+}
+
+function downloadJSON() {
+  const data=[{dealId:'DEAL-12345',amount:1000000,stage:'Переговоры',createdAt:'2025-08-15',responsible:'Иванов И.И.'}];
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='result.json'; a.click();
+}
+function downloadTS() {
+  const code=`interface DealData{dealId:string;amount:number;stage:string;createdAt:string;responsible:string;}\nexport default function(base64file:string):DealData[]{return [];}`;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([code],{type:'text/plain'})); a.download='converter.ts'; a.click();
+}
+</script>
+</body>
+</html>

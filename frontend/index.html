@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Вход</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/sber.css">
+<style>
+/* ══ ФОНОВЫЙ ГРАДИЕНТ ════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg,
+    #005fa3 0%,
+    #0288d6 20%,
+    #01a104 55%,
+    #02c45a 78%,
+    #00b85e 100%);
+  padding: 32px 16px 40px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ══ ПЛАВАЮЩИЕ СИМВОЛЫ ВАЛЮТ ════════════════════════════════════════ */
+.currency-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.csym {
+  position: absolute;
+  color: rgba(255,255,255,0.18);  /* базовый цвет ярче */
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  user-select: none;
+  animation: floatSym ease-in-out infinite;
+  will-change: transform, opacity;
+  line-height: 1;
+}
+@keyframes floatSym {
+  0%   { transform: translateY(0px)                        scale(var(--s0));         opacity: var(--o0); }
+  25%  { transform: translateY(calc(var(--dy) * -0.5))     scale(calc(var(--s0) * 1.15)); opacity: calc(var(--o0) * 2.0); }
+  50%  { transform: translateY(calc(var(--dy) * -0.85))    scale(calc(var(--s0) * 0.88)); opacity: calc(var(--o0) * 0.9); }
+  75%  { transform: translateY(calc(var(--dy) * -1.0))     scale(calc(var(--s0) * 1.30)); opacity: calc(var(--o0) * 2.4); }
+  100% { transform: translateY(0px)                        scale(var(--s0));         opacity: var(--o0); }
+}
+
+/* ══ КОНТЕЙНЕР АВТОРИЗАЦИИ — белая карточка ════════════════════════ */
+.auth-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px 36px 32px;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.18),
+    0 24px 64px rgba(0,80,40,0.22),
+    0 0 0 1px rgba(255,255,255,0.15);
+  animation: cardIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ══ ЛОГОТИП ════════════════════════════════════════════════════════ */
+.auth-logo { text-align: center; margin-bottom: 24px; }
+.auth-logo img { height: 46px; width: auto; }
+.auth-logo-tagline {
+  font-size: 11px; color: #6b7280;
+  margin-top: 8px; letter-spacing: 0.07em;
+  font-weight: 600; text-transform: uppercase;
+}
+.auth-logo-stripe {
+  height: 3px; width: 56px;
+  background: linear-gradient(90deg, #0288d6, #01a104, #16da03, #02e97e, #fdf001);
+  border-radius: 2px; margin: 8px auto 0;
+}
+
+/* ══ ТАБЫ ════════════════════════════════════════════════════════════ */
+.auth-tabs {
+  display: flex; background: #f0f2f6;
+  border-radius: 12px; padding: 4px;
+  margin-bottom: 24px; gap: 4px;
+}
+.auth-tab {
+  flex: 1; padding: 10px; border: none;
+  border-radius: 9px; background: transparent;
+  color: #6b7280; font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background .18s, color .18s, box-shadow .18s;
+}
+.auth-tab.active {
+  background: linear-gradient(90deg, #01a104, #16da03);
+  color: #fff; font-weight: 600;
+  box-shadow: 0 2px 10px rgba(1,161,4,0.3);
+}
+
+/* ══ ФОРМЫ ════════════════════════════════════════════════════════════ */
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.form-group { margin-bottom: 18px; }
+.form-label {
+  display: block; font-size: 13px;
+  font-weight: 600; color: #111827; margin-bottom: 7px;
+}
+
+/* ══ INPUT ════════════════════════════════════════════════════════════ */
+.input-wrap { position: relative; }
+.input-wrap input { padding-right: 44px; }
+input[type=text], input[type=email], input[type=password] {
+  width: 100%; background: #f8fafc;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  border-radius: 10px; padding: 12px 16px;
+  color: #111827; font-family: 'Inter', sans-serif;
+  font-size: 14px; outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+input:focus {
+  border-color: #01a104; background: #fff;
+  box-shadow: 0 0 0 4px rgba(1,161,4,0.12);
+}
+input::placeholder { color: #9ca3af; }
+.toggle-pass {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: #9ca3af; padding: 4px;
+  display: flex; align-items: center; transition: color .15s;
+}
+.toggle-pass:hover { color: #6b7280; }
+
+/* ══ ALERT ════════════════════════════════════════════════════════════ */
+#authAlert { display: none; margin-bottom: 14px; }
+.alert {
+  padding: 11px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+}
+.alert-err { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.alert-ok  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+
+/* ══ КНОПКИ ════════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px; border-radius: 10px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .18s; text-decoration: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(90deg, #01a104, #16da03);
+  color: #fff; box-shadow: 0 2px 10px rgba(1,161,4,0.3);
+}
+.btn-primary:hover { box-shadow: 0 4px 18px rgba(1,161,4,0.4); opacity: 0.93; }
+.btn-full { width: 100%; }
+
+/* ══ MINI-FOOTER внутри карточки ════════════════════════════════════ */
+.auth-footer {
+  text-align: center; font-size: 11.5px; color: #9ca3af;
+  margin-top: 20px; line-height: 2;
+}
+.auth-footer a { color: #6b7280; text-decoration: none; transition: color .15s; }
+.auth-footer a:hover { color: #01a104; }
+
+/* ══ ПОДВАЛ СТРАНИЦЫ ════════════════════════════════════════════════ */
+.page-footer {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 460px;
+  margin-top: 28px;
+}
+.page-footer-inner {
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 24px 28px 18px;
+}
+.page-footer-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px 24px; margin-bottom: 16px;
+}
+.pf-col-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(255,255,255,0.8); margin-bottom: 8px;
+}
+.pf-links { list-style: none; }
+.pf-links li { margin-bottom: 5px; }
+.pf-links a { font-size: 12px; color: rgba(255,255,255,0.55); text-decoration: none; transition: color .15s; }
+.pf-links a:hover { color: rgba(255,255,255,0.95); }
+.pf-contacts { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.9; }
+.pf-contacts a { color: rgba(255,255,255,0.55); text-decoration: none; transition: color .15s; }
+.pf-contacts a:hover { color: rgba(255,255,255,0.95); }
+.pf-divider { height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 12px; }
+.pf-copy {
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  text-align: center; line-height: 1.8;
+}
+.pf-license { font-size: 10px; color: rgba(255,255,255,0.25); margin-top: 4px; line-height: 1.6; }
+
+/* ══ RESPONSIVE ══════════════════════════════════════════════════════ */
+@media (max-width: 520px) {
+  .auth-wrapper { padding: 28px 20px 24px; border-radius: 20px; }
+  body { padding: 20px 12px 32px; }
+  .page-footer { max-width: 100%; }
+  .page-footer-inner { padding: 20px 16px 16px; }
+  .page-footer-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Фон: плавающие символы валют ──────────────────────────────── -->
+<div class="currency-bg" id="currencyBg"></div>
+
+<!-- ── Белая карточка авторизации ─────────────────────────────────── -->
+<div class="auth-wrapper">
+
+  <!-- Logo -->
+  <div class="auth-logo">
+    <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo">
+    <div class="auth-logo-tagline">Converter Agent Platform</div>
+    <div class="auth-logo-stripe"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="auth-tabs">
+    <button class="auth-tab active" data-tab="login" onclick="switchTab('login')">Войти</button>
+    <button class="auth-tab" data-tab="register" onclick="switchTab('register')">Регистрация</button>
+  </div>
+
+  <!-- Alert -->
+  <div id="authAlert" class="alert"></div>
+
+  <!-- LOGIN -->
+  <div class="auth-form active" id="form-login">
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" id="loginEmail" placeholder="ivan@sber.ru" autocomplete="email"
+             onkeydown="if(event.key==='Enter') document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Пароль</label>
+      <div class="input-wrap">
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') doLogin()">
+        <button class="toggle-pass" onclick="togglePass('loginPassword', this)" type="button">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+            <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:6px">
+      Войти
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px">
+      Демо: <code style="color:#374151;font-weight:600">ivan@sber.ru</code> / <code style="color:#374151;font-weight:600">password</code>
+    </p>
+  </div>
+
+  <!-- REGISTER — Step 1: форма -->
+  <div class="auth-form" id="form-register">
+
+    <div id="reg-step-form">
+      <div class="form-group">
+        <label class="form-label">Имя и фамилия</label>
+        <input type="text" id="regName" placeholder="Иван Иванов" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="regEmail" placeholder="you@sber.ru" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="regPassword" placeholder="Минимум 6 символов">
+          <button class="toggle-pass" onclick="togglePass('regPassword', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Повторите пароль</label>
+        <div class="input-wrap">
+          <input type="password" id="regConfirm" placeholder="••••••••"
+                 onkeydown="if(event.key==='Enter') sendOtp()">
+          <button class="toggle-pass" onclick="togglePass('regConfirm', this)" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="btnSendOtp" onclick="sendOtp()">
+        Получить код на email
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:14px">
+        После регистрации можно загрузить фото профиля
+      </p>
+    </div>
+
+    <!-- REGISTER — Step 2: ввод кода -->
+    <div id="reg-step-otp" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:36px;margin-bottom:8px">📬</div>
+        <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px">Проверьте почту</div>
+        <div style="font-size:13px;color:#6b7280">
+          Код отправлен на <strong id="otpEmailDisplay"></strong>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="text-align:center;display:block">6-значный код</label>
+        <input type="text" id="otpInput"
+               placeholder="_ _ _ _ _ _"
+               maxlength="6"
+               inputmode="numeric"
+               autocomplete="one-time-code"
+               onkeydown="if(event.key==='Enter') verifyOtp()"
+               style="text-align:center;font-size:24px;font-weight:700;letter-spacing:8px;font-family:'JetBrains Mono',monospace">
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="verifyOtp()" style="margin-bottom:10px">
+        Подтвердить и создать аккаунт
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7l4 4 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <button onclick="backToForm()" style="background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af;text-decoration:underline">
+          ← Изменить данные
+        </button>
+        <button id="btnResend" onclick="resendOtp()" style="background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af">
+          Отправить повторно (<span id="resendTimer">60</span>с)
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="auth-footer">
+    &copy; 2026 ПАО Сбербанк &nbsp;·&nbsp;
+    <a href="#">Конфиденциальность</a> &nbsp;·&nbsp;
+    <a href="#">Поддержка</a>
+  </div>
+
+</div>
+
+<!-- ── Подвал страницы ────────────────────────────────────────────── -->
+<footer class="page-footer">
+  <div class="page-footer-inner">
+    <div class="page-footer-grid">
+      <div>
+        <div class="pf-col-title">Продукты</div>
+        <ul class="pf-links">
+          <li><a href="#">СберБизнес</a></li>
+          <li><a href="#">GigaChat API</a></li>
+          <li><a href="#">SberCloud</a></li>
+          <li><a href="#">СберPay API</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="pf-col-title">Документы</div>
+        <ul class="pf-links">
+          <li><a href="#">Конфиденциальность</a></li>
+          <li><a href="#">Пользовательское соглашение</a></li>
+          <li><a href="#">Политика cookies</a></li>
+          <li><a href="#">Реквизиты</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="pf-col-title">Контакты</div>
+        <div class="pf-contacts">
+          <div><a href="tel:900">900</a> — СберБанк Онлайн</div>
+          <div><a href="tel:88005555550">8‑800‑555‑55‑50</a></div>
+          <div><a href="mailto:support@sberbank.ru">support@sberbank.ru</a></div>
+        </div>
+      </div>
+      <div>
+        <div class="pf-col-title">Адрес</div>
+        <div class="pf-contacts">
+          <div>117997, г. Москва,</div>
+          <div>ул. Вавилова, д. 19</div>
+        </div>
+      </div>
+    </div>
+    <div class="pf-divider"></div>
+    <div class="pf-copy">
+      © 2026 ПАО Сбербанк. Все права защищены.
+      <div class="pf-license">Генеральная лицензия Банка России №1481. Информация не является публичной офертой.</div>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script>
+// ══ EMAILJS CONFIG — вставьте свои значения ══════════════════════════
+const EJS = {
+  publicKey:  'jwgqzLug2bVRHFBSP',
+  serviceId:  'service_sy0jx74',
+  templateId: 'template_uwgayby',
+};
+// ════════════════════════════════════════════════════════════════════
+
+// Redirect if already logged in
+if (getSession()) { window.location.href = 'dashboard.html'; }
+
+// ── OTP state ──────────────────────────────────────────────────────
+const _otp = { code: null, email: null, expiresAt: null, timer: null };
+
+// ── Шаг 1: валидация формы → отправка кода ────────────────────────
+async function sendOtp() {
+  clearAlert();
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirm  = document.getElementById('regConfirm').value;
+
+  // Валидация
+  if (!name)               { showAlert('Введите имя'); return; }
+  if (!email)              { showAlert('Введите email'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAlert('Некорректный email'); return; }
+  if (password.length < 6) { showAlert('Пароль минимум 6 символов'); return; }
+  if (password !== confirm) { showAlert('Пароли не совпадают'); return; }
+  if (getUserByEmail(email)) { showAlert('Пользователь с таким email уже существует'); return; }
+
+  // Генерируем 6-значный код
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  _otp.code      = code;
+  _otp.email     = email;
+  _otp.expiresAt = Date.now() + 10 * 60 * 1000; // 10 минут
+
+  const btn = document.getElementById('btnSendOtp');
+  btn.disabled   = true;
+  btn.textContent = 'Отправляем…';
+
+  try {
+    if (EJS.publicKey === 'REPLACE_PUBLIC_KEY') {
+      throw new Error('EmailJS не настроен');
+    }
+
+    emailjs.init(EJS.publicKey);
+    await emailjs.send(EJS.serviceId, EJS.templateId, {
+      email:     email,
+      user_name: name,
+      otp_code:  code,
+    });
+
+    showAlert('Код отправлен на ' + email, 'ok');
+
+  } catch (err) {
+    console.error('EmailJS error:', err);
+    _showDemoCode(code, email, err?.text || err?.message || String(err));
+  }
+
+  // Переключаем на шаг 2
+  document.getElementById('reg-step-form').style.display = 'none';
+  document.getElementById('reg-step-otp').style.display  = 'block';
+  document.getElementById('otpEmailDisplay').textContent = email;
+  document.getElementById('otpInput').focus();
+
+  // Таймер повторной отправки (60 сек)
+  _startResendTimer();
+}
+
+// ── Шаг 2: проверка кода → создание аккаунта ──────────────────────
+function verifyOtp() {
+  clearAlert();
+  const entered = document.getElementById('otpInput').value.trim();
+
+  if (!entered)          { showAlert('Введите код из письма'); return; }
+  if (entered.length !== 6) { showAlert('Код должен быть 6 цифр'); return; }
+  if (Date.now() > _otp.expiresAt) {
+    showAlert('Код истёк. Запросите новый');
+    backToForm();
+    return;
+  }
+  if (entered !== _otp.code) {
+    // Подсветить поле красным
+    const inp = document.getElementById('otpInput');
+    inp.style.borderColor = '#ef4444';
+    inp.style.background  = '#fef2f2';
+    setTimeout(() => { inp.style.borderColor = ''; inp.style.background = ''; }, 1500);
+    showAlert('Неверный код. Попробуйте ещё раз');
+    return;
+  }
+
+  // Код верный — создаём аккаунт
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+
+  const result = createUser(name, email, password);
+  if (!result.ok) { showAlert(result.error); return; }
+
+  saveSession({ ...result.user, password: undefined });
+  showAlert('Аккаунт создан! Перенаправляем…', 'ok');
+
+  clearTimeout(_otp.timer);
+  _otp.code = null; // Одноразовый — сбрасываем
+
+  setTimeout(() => { window.location.href = 'profile.html?new=1'; }, 1200);
+}
+
+// ── Повторная отправка ─────────────────────────────────────────────
+async function resendOtp() {
+  const btn = document.getElementById('btnResend');
+  btn.disabled = true;
+  // Генерируем новый код
+  _otp.code      = String(Math.floor(100000 + Math.random() * 900000));
+  _otp.expiresAt = Date.now() + 10 * 60 * 1000;
+
+  const name = document.getElementById('regName').value.trim();
+
+  try {
+    if (EJS.publicKey === 'REPLACE_PUBLIC_KEY') throw new Error('demo');
+    await emailjs.send(EJS.serviceId, EJS.templateId, {
+      to_email:  _otp.email,
+      user_name: name,
+      otp_code:  _otp.code,
+    });
+    showAlert('Новый код отправлен на ' + _otp.email, 'ok');
+  } catch {
+    _showDemoCode(_otp.code, _otp.email);
+  }
+
+  document.getElementById('otpInput').value = '';
+  _startResendTimer();
+}
+
+// ── Вернуться к форме ──────────────────────────────────────────────
+function backToForm() {
+  clearAlert();
+  clearTimeout(_otp.timer);
+  document.getElementById('reg-step-otp').style.display  = 'none';
+  document.getElementById('reg-step-form').style.display = 'block';
+  const btn = document.getElementById('btnSendOtp');
+  btn.disabled    = false;
+  btn.innerHTML   = 'Получить код на email <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+}
+
+// ── Таймер обратного отсчёта для повторной отправки ───────────────
+function _startResendTimer() {
+  clearInterval(_otp.timer);
+  let sec = 60;
+  const timerEl = document.getElementById('resendTimer');
+  const btnEl   = document.getElementById('btnResend');
+  if (timerEl) timerEl.textContent = sec;
+  if (btnEl)   btnEl.disabled = true;
+
+  _otp.timer = setInterval(() => {
+    sec--;
+    if (timerEl) timerEl.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(_otp.timer);
+      if (btnEl)   { btnEl.disabled = false; btnEl.innerHTML = 'Отправить повторно'; }
+    }
+  }, 1000);
+}
+
+// ── Демо-режим: показать код прямо на странице ────────────────────
+function _showDemoCode(code, email, errorMsg) {
+  // Удалить предыдущий баннер если есть
+  const old = document.getElementById('demoCodeBanner');
+  if (old) old.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'demoCodeBanner';
+  banner.style.cssText = `
+    position:fixed; top:16px; right:16px; z-index:9999;
+    background:#1e293b; color:#f1f5f9;
+    border:1px solid rgba(99,102,241,0.4);
+    border-radius:12px; padding:16px 20px;
+    font-family:'JetBrains Mono',monospace;
+    box-shadow:0 8px 32px rgba(0,0,0,0.4);
+    max-width:320px;
+  `;
+  banner.innerHTML = `
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;letter-spacing:.06em">
+      📧 DEMO MODE — ${errorMsg ? '⚠️ ' + errorMsg : 'EmailJS не настроен'}
+    </div>
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">
+      Письмо для <b style="color:#e2e8f0">${email}</b>:
+    </div>
+    <div style="font-size:28px;font-weight:700;letter-spacing:10px;color:#22d3ee;
+                text-align:center;background:rgba(34,211,238,0.08);
+                border-radius:8px;padding:10px 8px;margin-bottom:10px">
+      ${code}
+    </div>
+    <div style="font-size:10px;color:#64748b;text-align:center">
+      Введите этот код для подтверждения
+    </div>
+    <button onclick="this.parentElement.remove()"
+            style="position:absolute;top:10px;right:12px;background:none;border:none;
+                   color:#64748b;cursor:pointer;font-size:16px;line-height:1">×</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+/* ── Плавающие символы валют ────────────────────────────────────── */
+(function spawnCurrencySymbols() {
+  const SYMBOLS = ['$','€','¥','£','₽','₿','₴','₩','₪','₦','Fr','₡','₱','฿','₫','¢','₲','₵','Ξ','Ł','Ð','₮','₸','＄','￥','￦'];
+  const container = document.getElementById('currencyBg');
+
+  // Распределение размеров: много маленьких, средние, несколько огромных
+  function randSize() {
+    const r = Math.random();
+    if (r < 0.35) return 14 + Math.random() * 22;    // маленькие: 14–36px
+    if (r < 0.65) return 38 + Math.random() * 40;    // средние:   38–78px
+    if (r < 0.88) return 80 + Math.random() * 60;    // крупные:  80–140px
+    return 150 + Math.random() * 110;                 // гигантские: 150–260px
+  }
+
+  const COUNT = 36;
+  for (let i = 0; i < COUNT; i++) {
+    const el = document.createElement('span');
+    el.className = 'csym';
+    const sym   = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    const size  = randSize();
+    const left  = Math.random() * 102 - 1;           // −1% … 101%
+    const top   = Math.random() * 105 - 2;
+    const dur   = 6 + Math.random() * 14;             // 6–20s
+    const delay = -(Math.random() * dur);
+    const s0    = 0.75 + Math.random() * 0.5;         // scale
+    // Яркость: крупные — чуть прозрачнее, мелкие — ярче
+    const baseO = size > 100 ? 0.08 : size > 50 ? 0.14 : 0.20;
+    const o0    = baseO + Math.random() * 0.12;
+    const dy    = 24 + Math.random() * 70;
+
+    el.textContent = sym;
+    el.style.cssText = [
+      `font-size:${size}px`,
+      `left:${left}%`,
+      `top:${top}%`,
+      `animation-duration:${dur}s`,
+      `animation-delay:${delay}s`,
+      `--s0:${s0}`,
+      `--o0:${o0}`,
+      `--dy:${dy}px`,
+    ].join(';');
+    container.appendChild(el);
+  }
+})();
+
+/* ── Password toggle ────────────────────────────────────────────── */
+function togglePass(inputId, btn) {
+  const input = document.getElementById(inputId);
+  input.type = input.type === 'password' ? 'text' : 'password';
+  btn.style.color = input.type === 'text' ? '#01a104' : '#9ca3af';
+}
+</script>
+</body>
+</html>

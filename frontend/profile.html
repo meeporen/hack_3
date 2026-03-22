@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сбербанк · Профиль</title>
+<!-- Favicon — SVG data URI, no external file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230288d6'/%3E%3Cstop offset='.5' stop-color='%2301a104'/%3E%3Cstop offset='1' stop-color='%2316da03'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='url(%23g)'/%3E%3Cpath d='M8 19 Q8 10 17 10 L14 7 M17 10 L14 13' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M24 13 Q24 22 15 22 L18 25 M15 22 L18 19' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none' opacity='.8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAI3SURBVFhH7ZdNaBNBFMd/m82mmzQEDRqDiiAiHjxIERU8iYpERA+iePLgyZtHQUREPCjowYMHL548iHhQxA+sWMGDBy8+ioiiRSwaExNjPhqzSTbZ3fV/kxRXaBOzJgv2Bw+2k5n3/u+b2d19oygKiqKgKAqKoigYhmGY5z4AAAAASUVORK5CYII=">
+<!-- Apply saved theme before first paint — prevents flash of wrong theme -->
+<script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/effects.css">
+<link rel="stylesheet" href="assets/css/sber.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── BASE RESET — must match dashboard.html exactly ─────────────────── */
+html { font-size: 15px; }           /* sber.css sets 16px → all text 6.7% larger without this */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── VARIABLES ───────────────────────────────────────────────────────── */
+:root {
+  --bg:       #f4f6f9;
+  --surface:  #ffffff;
+  --surface2: #f0f2f6;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --text:     #111827;
+  --muted:    #6b7280;
+  --hint:     #9ca3af;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ── DARK THEME ──────────────────────────────────────────────────────── */
+html.dark {
+  --bg:       #0f1117;
+  --surface:  #1a1d27;
+  --surface2: #222535;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --hint:     #64748b;
+  --shadow:   0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  transition: background .3s ease, color .3s ease;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 88px 1fr auto;
+  min-height: 100vh;
+}
+/* sber.css only sets opacity:0 on sidebar-overlay — must be display:none so it doesn't occupy a grid cell */
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 299; }
+.sidebar-overlay.open { display: block; opacity: 1; pointer-events: auto; }
+.sidebar-wrap { position: sticky; top: 88px; height: calc(100vh - 88px); overflow-y: auto; z-index: 10; }
+.main { padding: 48px 56px; width: 100%; }
+
+/* ── SIDEBAR — override sber.css glass effect to match dashboard ─────── */
+.sidebar {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-right: 1px solid rgba(0,0,0,0.08) !important;
+  box-shadow: none !important;
+  padding: 16px 10px !important;
+  position: sticky; top: 88px;
+  height: calc(100vh - 88px);
+  overflow-y: auto; z-index: 10;
+  transition: left .28s cubic-bezier(.4,0,.2,1), box-shadow .28s ease;
+}
+
+/* ── NAV — override sber.css sizes (15px/11px) to match dashboard (13px/10px) */
+.nav-label { font-size: 10px !important; padding: 8px 10px 4px !important; }
+.nav-item   { font-size: 13px !important; padding: 9px 10px !important; gap: 9px !important; }
+.nav-item svg { width: 15px !important; height: 15px !important; }
+.nav-item.active {
+  background: rgba(1,161,4,0.08) !important;
+  color: #009b03 !important;
+  font-weight: 600;
+  border-left: none !important;
+  padding-left: 10px !important;   /* cancel sber.css border-left indent */
+}
+
+/* ── LOGO — override sber.css 42px to match dashboard 36px ─────────── */
+.sber-logo-sm { height: 36px !important; }
+
+/* ── MERGED HERO CARD ─────────────────────────────────────────────── */
+.profile-merged {
+  display: flex; gap: 56px; align-items: center;
+  padding: 52px 48px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(24px) saturate(1.7);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 20px; margin-bottom: 28px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.09),
+              inset 0 1px 0 rgba(255,255,255,0.95);
+  animation: slideUpBounce 0.6s cubic-bezier(.34,1.56,.64,1) both;
+  transition: box-shadow .28s, transform .28s cubic-bezier(.34,1.56,.64,1);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+}
+.profile-merged:hover {
+  box-shadow: 0 16px 56px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,1);
+  transform: translateY(-4px) translateZ(0);
+}
+.profile-merged::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg,#0288d6,#01a104,#02e97e,#fdf001);
+}
+
+/* Left — avatar + name */
+.profile-identity {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 18px; flex-shrink: 0; min-width: 260px;
+}
+.profile-identity h2 {
+  font-family: 'Exo 2', 'Inter', sans-serif;
+  font-size: 36px; font-weight: 800; color: #111827; text-align: center;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.profile-identity p  { font-size: 16px; color: #4b5563; text-align: center; word-break: break-all; }
+.profile-hero-role {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f0fdf4; color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px; font-size: 14px; font-weight: 600;
+  padding: 6px 18px;
+}
+
+/* Divider */
+.profile-vdivider {
+  width: 1px; background: rgba(0,0,0,0.08);
+  align-self: stretch; flex-shrink: 0;
+}
+
+/* Right — account data */
+.profile-data { flex: 1; display: flex; flex-direction: column; gap: 0; }
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 22px 0; border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+  font-size: 15px; color: #6b7280; font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0;
+}
+.info-value { font-size: 16px; font-weight: 600; color: #111827; }
+
+/* Avatar large */
+.avatar-large-wrap { position: relative; }
+.avatar-large {
+  width: 225px; height: 225px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 0 0 6px rgba(1,161,4,0.32), 0 12px 40px rgba(1,161,4,0.25);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
+}
+.avatar-large:hover { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(1,161,4,0.38), 0 16px 52px rgba(1,161,4,0.3); }
+.avatar-large-placeholder {
+  width: 225px; height: 225px; border-radius: 50%;
+  background: linear-gradient(135deg,#01a104,#02e97e);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Exo 2', 'Inter', sans-serif;
+  font-size: 78px; font-weight: 800; color: #fff;
+  box-shadow: 0 0 0 6px rgba(1,161,4,0.32), 0 12px 40px rgba(1,161,4,0.25);
+  letter-spacing: 0.02em;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.avatar-large-placeholder:hover { transform: scale(1.06); }
+
+/* ── LOGOUT MODAL ───────────────────────────────────────────────── */
+@keyframes modalOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalBounceIn {
+  0%   { opacity: 0; transform: translate3d(0, 36px, 0); }
+  55%  { opacity: 1; transform: translate3d(0, -8px, 0); }
+  75%  { transform: translate3d(0, 4px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes modalBounceOut {
+  0%   { opacity: 1; transform: translate3d(0, 0, 0); }
+  30%  { transform: translate3d(0, -6px, 0); }
+  100% { opacity: 0; transform: translate3d(0, 60px, 0); }
+}
+.logout-modal-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px) saturate(1.4);
+  -webkit-backdrop-filter: blur(6px) saturate(1.4);
+  transform: translateZ(0);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.logout-modal-overlay.open { opacity: 1; pointer-events: auto; }
+.logout-modal {
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 24px;
+  padding: 44px 48px 40px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.28),
+              inset 0 1px 0 rgba(255,255,255,0.9);
+  text-align: center; max-width: 400px; width: 92%;
+  transform: translate3d(0, 36px, 0);
+  opacity: 0;
+  transition: transform .38s cubic-bezier(.34,1.56,.64,1), opacity .25s;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
+}
+.logout-modal-overlay.open .logout-modal {
+  animation: modalBounceIn .45s cubic-bezier(.34,1.56,.64,1) both;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+.logout-modal-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border: 1.5px solid #fecaca;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 16px rgba(220,38,38,0.18);
+  animation: none;
+}
+.logout-modal-overlay.open .logout-modal-icon {
+  animation: bounceIn 0.5s cubic-bezier(.34,1.56,.64,1) .15s both;
+}
+.logout-modal h3 {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 22px; font-weight: 800; color: #111827; margin-bottom: 10px;
+  letter-spacing: 0.01em;
+}
+.logout-modal p  { font-size: 14px; color: #6b7280; line-height: 1.65; margin-bottom: 32px; }
+.logout-modal-btns { display: flex; gap: 14px; justify-content: center; }
+.logout-modal-btns button { min-width: 130px; }
+
+/* Photo upload zone */
+.photo-upload-zone {
+  border: 2px dashed rgba(0,0,0,0.14); border-radius: 14px;
+  padding: 40px 28px; text-align: center; cursor: pointer;
+  background: #f8fafc;
+  transition: border-color .2s, background .2s; position: relative;
+}
+.photo-upload-zone:hover { border-color: #01a104; background: #f0fdf4; }
+.photo-upload-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  width: 100%; height: 100%; padding: 0; background: none; border: none;
+}
+.photo-upload-zone .upload-title  { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px; }
+.photo-upload-zone .upload-hint   { font-size: 12px; color: #6b7280; }
+.photo-upload-icon {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #dcfce7; border: 1px solid #bbf7d0;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+}
+.photo-upload-icon svg { color: #16a34a; }
+.photo-preview-wrap {
+  display: none; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px;
+}
+.photo-preview {
+  width: 100px; height: 100px; border-radius: 50%;
+  object-fit: cover; border: 3px solid #01a104;
+}
+
+/* Welcome banner */
+.welcome-banner {
+  display: none;
+  background: linear-gradient(135deg,rgba(2,136,214,0.08),rgba(1,161,4,0.08));
+  border: 1px solid rgba(1,161,4,0.2); border-radius: 12px;
+  padding: 20px 24px; margin-bottom: 20px; align-items: center; gap: 16px;
+}
+.welcome-banner.show { display: flex; }
+.welcome-banner-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: linear-gradient(135deg,#01a104,#02e97e);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.welcome-banner h3 { font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 2px; }
+.welcome-banner p  { font-size: 13px; color: #4b5563; }
+
+/* Section title */
+.section-title {
+  font-family: 'Exo 2', 'Inter', sans-serif;
+  font-size: 12px; font-weight: 700; color: #6b7280;
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 20px;
+}
+
+/* Card base */
+.card {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.68);
+  border-radius: 18px; padding: 36px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.07),
+              inset 0 1px 0 rgba(255,255,255,0.9);
+  margin-bottom: 24px;
+  animation: slideUpBounce 0.55s cubic-bezier(.34,1.56,.64,1) both;
+  transition: box-shadow .28s, transform .28s cubic-bezier(.34,1.56,.64,1);
+}
+.card:hover {
+  box-shadow: 0 12px 48px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.96);
+  transform: translateY(-4px);
+}
+
+/* SVG liquid glass filter placeholder */
+.liquid-filter { position: absolute; width: 0; height: 0; }
+
+/* ── Wandering orb lights ── */
+@keyframes orbFloat {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.3); }
+  35%  { opacity: .85; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--odx)), calc(-50% + var(--ody))) scale(1.3); }
+}
+.btn-orb {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  animation: orbFloat var(--dur,1s) ease-out forwards;
+  filter: blur(var(--oblur,5px)); z-index: 10;
+}
+
+/* ── THEME TOGGLE ────────────────────────────────────────────────────── */
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: #fff; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.32); transform: rotate(25deg); }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .icon-sun  { display: block; }
+.theme-toggle .icon-moon { display: none; }
+html.dark .theme-toggle .icon-sun  { display: none; }
+html.dark .theme-toggle .icon-moon { display: block; }
+
+/* ── DARK MODE — COMPONENT OVERRIDES ─────────────────────────────────── */
+html.dark .profile-merged {
+  background: rgba(26,32,50,0.85);
+  border-color: rgba(255,255,255,0.09);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+html.dark .profile-identity h2 { color: var(--text); }
+html.dark .profile-identity p  { color: var(--muted); }
+html.dark .profile-hero-role {
+  background: rgba(22,163,74,0.15);
+  border-color: rgba(22,163,74,0.3);
+  color: #4ade80;
+}
+html.dark .profile-vdivider { background: rgba(255,255,255,0.08); }
+html.dark .info-row { border-bottom-color: rgba(255,255,255,0.07); }
+html.dark .info-label { color: var(--muted); }
+html.dark .info-value { color: var(--text); }
+html.dark .card {
+  background: rgba(26,32,50,0.82);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+html.dark .section-title { color: var(--muted); }
+html.dark .welcome-banner {
+  background: linear-gradient(135deg, rgba(2,136,214,0.12), rgba(1,161,4,0.12));
+  border-color: rgba(1,161,4,0.25);
+}
+html.dark .welcome-banner h3 { color: var(--text); }
+html.dark .welcome-banner p  { color: var(--muted); }
+html.dark .photo-upload-zone {
+  background: var(--surface2);
+  border-color: rgba(255,255,255,0.12);
+}
+html.dark .photo-upload-zone:hover { background: rgba(1,161,4,0.08); border-color: rgba(1,161,4,0.4); }
+html.dark .photo-upload-zone .upload-title { color: var(--text); }
+html.dark .photo-upload-zone .upload-hint  { color: var(--muted); }
+html.dark .photo-upload-icon {
+  background: rgba(22,163,74,0.15);
+  border-color: rgba(22,163,74,0.3);
+}
+html.dark .logout-modal {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+html.dark .logout-modal h3 { color: var(--text); }
+html.dark .logout-modal p  { color: var(--muted); }
+html.dark .logout-modal-icon {
+  background: rgba(220,38,38,0.15);
+  border-color: rgba(220,38,38,0.3);
+}
+html.dark .user-dropdown {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .user-dropdown a, html.dark .user-dropdown button { color: var(--text); }
+html.dark .user-dropdown a:hover, html.dark .user-dropdown button:hover { background: var(--surface2); }
+html.dark .user-dropdown button.danger:hover { background: rgba(220,38,38,0.12); }
+html.dark .sidebar {
+  background: var(--surface) !important;
+  border-right-color: rgba(255,255,255,0.08) !important;
+}
+html.dark .site-footer {
+  background: #0d1018;
+  border-top-color: rgba(255,255,255,0.07);
+}
+html.dark .footer-brand-desc,
+html.dark .footer-contact-item,
+html.dark .footer-links a,
+html.dark .footer-bottom-copy,
+html.dark .footer-bottom-links a,
+html.dark .footer-license { color: var(--muted); }
+html.dark .footer-col-title { color: var(--text); }
+html.dark .footer-contact-item a { color: var(--muted); }
+html.dark .footer-divider { background: rgba(255,255,255,0.07); }
+
+/* Smooth transition for theme switch */
+.card, .sidebar, .profile-merged, .photo-upload-zone,
+.user-dropdown, .site-footer, .nav-item {
+  transition-property: background, border-color, color, box-shadow;
+  transition-duration: .3s;
+  transition-timing-function: ease;
+}
+.sidebar { transition-property: left, box-shadow, background, border-color !important; transition-duration: .28s, .28s, .3s, .3s !important; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────── */
+
+/* — Tablet (1024px) — */
+@media (max-width: 1024px) {
+  .main { padding: 32px 28px; }
+  .profile-merged { gap: 36px; padding: 36px 32px; }
+  .profile-identity { min-width: 200px; }
+  .avatar-large, .avatar-large-placeholder { width: 160px !important; height: 160px !important; }
+  .avatar-large-placeholder { font-size: 56px !important; }
+  .site-footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .site-footer { padding: 40px 28px 24px; }
+}
+
+/* — Tablet portrait / large phone (768px) — */
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr !important; grid-template-rows: 64px 1fr auto !important; }
+  .topbar { height: 64px !important; padding: 0 16px !important; gap: 10px !important; }
+  .topbar-badge { display: none !important; }
+  .menu-toggle { display: flex !important; align-items: center; justify-content: center; }
+  .sidebar-wrap {
+    display: block !important;
+    position: fixed !important; top: 64px !important; left: 0 !important;
+    width: 0 !important; height: 0 !important; overflow: visible !important;
+    z-index: 300; pointer-events: none;
+  }
+  .sidebar {
+    position: fixed !important; left: -260px; top: 64px;
+    height: calc(100vh - 64px) !important; z-index: 300; width: 248px;
+    background: rgba(255,255,255,0.96) !important;
+    backdrop-filter: blur(20px) saturate(1.6) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.6) !important;
+    display: flex !important; flex-direction: column; gap: 2px;
+    transition: left .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease, background .3s !important;
+    box-shadow: none !important; border-right: 1px solid rgba(0,0,0,0.1) !important;
+    min-height: unset !important; padding: 16px 10px !important; pointer-events: auto;
+  }
+  html.dark .sidebar { background: rgba(22,26,40,0.97) !important; border-right-color: rgba(255,255,255,0.1) !important; }
+  .sidebar.open { left: 0; box-shadow: 6px 0 32px rgba(0,0,0,0.18) !important; }
+  .sidebar-overlay {
+    display: block !important; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 299;
+    transition: opacity .28s ease; opacity: 0; pointer-events: none;
+  }
+  .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+  .main { padding: 20px 16px; width: 100%; }
+  .profile-merged { flex-direction: column; gap: 20px; padding: 28px 20px; align-items: center !important; }
+  .profile-vdivider { width: 90% !important; height: 1px !important; }
+  .profile-data { width: 100%; }
+  .card { padding: 24px 18px; border-radius: 14px; }
+  .avatar-large, .avatar-large-placeholder { width: 140px !important; height: 140px !important; }
+  .avatar-large-placeholder { font-size: 48px !important; }
+  .profile-identity h2 { font-size: 26px !important; }
+  .profile-identity { min-width: unset !important; }
+  .info-row { padding: 16px 0; }
+  .info-label { font-size: 13px !important; }
+  .info-value { font-size: 14px !important; }
+  .logout-modal-btns { flex-direction: column; gap: 10px; }
+  .logout-modal-btns button { width: 100%; }
+  .site-footer { grid-column: 1 / -1 !important; padding: 32px 16px 20px !important; }
+  .site-footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+/* — Phone (480px) — */
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+  .topbar { gap: 8px !important; }
+  .topbar-title { font-size: 15px; }
+  .topbar-subtitle { display: none; }
+  .sber-logo-sm { height: 28px !important; }
+  .user-pill { padding: 6px 10px !important; gap: 6px !important; font-size: 13px !important; }
+  .user-pill-avatar, .user-avatar { width: 30px !important; height: 30px !important; font-size: 11px !important; }
+  #topbarUserName { display: none; }
+  .theme-toggle { width: 32px; height: 32px; }
+  .main { padding: 14px 12px; }
+  .profile-merged { padding: 20px 14px; gap: 16px; border-radius: 14px; }
+  .avatar-large, .avatar-large-placeholder { width: 110px !important; height: 110px !important; }
+  .avatar-large-placeholder { font-size: 36px !important; }
+  .profile-identity h2 { font-size: 22px !important; }
+  .profile-identity p { font-size: 13px !important; }
+  .profile-hero-role { font-size: 12px !important; padding: 4px 12px !important; }
+  .info-row { padding: 12px 0; }
+  .info-label { font-size: 12px !important; }
+  .info-value { font-size: 13px !important; }
+  .card { padding: 16px 12px; border-radius: 12px; }
+  .section-title { font-size: 10px !important; margin-bottom: 14px !important; }
+  .photo-upload-zone { padding: 28px 14px; }
+  .logout-modal { padding: 32px 20px 28px; border-radius: 18px; }
+  .logout-modal h3 { font-size: 18px; }
+  .site-footer { padding: 24px 12px 16px !important; }
+  .footer-bottom-links { gap: 12px; }
+  .user-dropdown { min-width: 140px; right: -8px; }
+}
+
+/* ── User dropdown (identical to dashboard) ── */
+.user-pill-wrap { position: relative; }
+.user-dropdown {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.1); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13); min-width: 160px;
+  overflow: hidden; z-index: 500;
+  transform: translateZ(0);
+  animation: dropIn .18s ease;
+}
+.user-dropdown.open { display: block; }
+@keyframes dropIn { from { opacity:0; transform:translateY(-6px) translateZ(0); } to { opacity:1; transform:translateZ(0); } }
+.user-dropdown a, .user-dropdown button {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 10px 16px;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  color: #111827; background: transparent;
+  border: none; cursor: pointer; text-decoration: none;
+  transition: background .12s;
+}
+.user-dropdown a:hover, .user-dropdown button:hover { background: #f0f2f6; }
+.user-dropdown button.danger { color: #ef4444; }
+.user-dropdown button.danger:hover { background: #fef2f2; color: #dc2626; }
+.user-dropdown svg { width: 15px; height: 15px; flex-shrink: 0; }
+.dropdown-sep { height: 1px; background: rgba(0,0,0,0.08); margin: 4px 0; }
+/* ══ FORMAT PIE CHART ════════════════════════════════════════════════ */
+.pie-section-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+}
+.pie-mock-badge {
+  display: none; align-items: center; gap: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .04em;
+  background: var(--surface2); color: var(--hint);
+  border: 1px solid var(--border2); border-radius: 4px; padding: 2px 8px;
+}
+.pie-mock-badge.visible { display: inline-flex; }
+.pie-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.pie-canvas-wrap {
+  position: relative;
+  width: 220px; height: 220px;
+  flex-shrink: 0;
+}
+#fmtPieChart { width: 100%; height: 100%; display: block; }
+.pie-legend {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pie-legend-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 8px;
+  cursor: pointer; transition: background .15s, opacity .2s;
+  user-select: none; -webkit-user-select: none;
+}
+.pie-legend-item:hover,
+.pie-legend-item.active { background: var(--surface2); }
+.pie-legend-item.hidden { opacity: 0.38; }
+.pie-legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.pie-legend-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 600; color: var(--text); flex: 1; letter-spacing: .04em;
+}
+.pie-legend-pct {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 700; color: var(--muted);
+}
+.pie-tooltip {
+  position: absolute; display: none; pointer-events: none; z-index: 200;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,0,0,0.1); border-radius: 10px;
+  padding: 9px 13px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+  white-space: nowrap; min-width: 110px;
+}
+html.dark .pie-tooltip {
+  background: rgba(22,26,40,0.97);
+  border-color: rgba(255,255,255,0.1);
+}
+.pie-tt-row { display: flex; align-items: center; gap: 8px; }
+.pie-tt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pie-tt-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); }
+.pie-tt-pct   { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #01a104; margin-left: auto; padding-left: 14px; }
+.pie-tt-count { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+
+@media (max-width: 640px) {
+  .pie-layout { grid-template-columns: 1fr; justify-items: center; }
+  .pie-canvas-wrap { width: 180px; height: 180px; }
+  .pie-legend { width: 100%; max-width: 280px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SVG liquid glass distortion filter -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="liquid-glass-filter" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9 0.7" numOctaves="4" seed="8" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+      <feGaussianBlur in="displaced" stdDeviation="0.4" result="soft"/>
+      <feComposite in="soft" in2="SourceGraphic" operator="atop"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="layout">
+
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="menu-toggle" onclick="toggleMobileSidebar()" aria-label="Меню">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M2 4h14M2 9h14M2 14h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="sber-logo-sm" style="filter:brightness(0) invert(1);">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span class="topbar-title">Профиль</span>
+      <span class="topbar-subtitle" style="font-family:'JetBrains Mono',monospace;"
+            data-typewriter
+            data-tw-phrases='["Управление аккаунтом","Настройки профиля","Загрузка фото","История токенов"]'
+            data-tw-speed="55"
+            data-tw-delete-speed="28"
+            data-tw-pause="2800">Управление аккаунтом</span>
+    </div>
+    <span class="topbar-badge">Мой аккаунт</span>
+    <div class="topbar-divider"></div>
+    <a href="dashboard.html" class="topbar-badge" style="text-decoration:none">← Дашборд</a>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему" title="Тёмная / светлая тема">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+    <div class="user-pill-wrap">
+      <div class="user-pill" onclick="toggleProfileDropdown(event)">
+        <div class="user-pill-avatar" id="topbarAvatar"></div>
+        <span id="topbarUserName"></span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="user-dropdown" id="profileDropdown">
+        <a href="profile.html">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 13.5c0-2.5 2.7-4.5 6-4.5s6 2 6 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Профиль
+        </a>
+        <div class="dropdown-sep"></div>
+        <button class="danger" onclick="logout()">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M10 8H3M6 5l-3 3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3h3a1 1 0 011 1v8a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Выйти
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-wrap" id="sidebarWrap">
+    <nav class="sidebar" id="mobileSidebar">
+      <div class="nav-label">Навигация</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Дашборд
+      </a>
+      <a href="profile.html" class="nav-item active">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 13.5c0-2.5 2.7-4.5 6-4.5s6 2 6 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Профиль
+      </a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Welcome banner -->
+    <div class="welcome-banner" id="welcomeBanner">
+      <div class="welcome-banner-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 2l2.4 6.6H20l-5.2 3.8 2 6.6L11 15l-5.8 4 2-6.6L2 8.6h6.6L11 2z" stroke="white" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h3>Добро пожаловать!</h3>
+        <p>Аккаунт создан. Загрузите фото профиля, чтобы персонализировать аккаунт.</p>
+      </div>
+    </div>
+
+    <!-- ── MERGED: Hero + Account data ──────────────────────────────── -->
+    <div class="profile-merged">
+      <!-- Left: avatar + name/email/role -->
+      <div class="profile-identity">
+        <div class="avatar-large-wrap">
+          <img class="avatar-large" id="heroAvatarImg" style="display:none" src="" alt="Фото профиля">
+          <div class="avatar-large-placeholder" id="heroAvatarPlaceholder"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center">
+          <h2 id="heroName" style="margin:0">—</h2>
+          <button id="editNameBtn" onclick="startEditName()" title="Редактировать имя"
+            style="background:rgba(1,161,4,0.1);border:1px solid rgba(1,161,4,0.25);border-radius:6px;padding:3px 6px;cursor:pointer;display:flex;align-items:center;transition:all .15s;color:#009b03">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5l2 2L4 10H2V8l6.5-6.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <!-- Edit name inline form -->
+        <div id="editNameForm" style="display:none;flex-direction:column;gap:6px;align-items:center;width:100%">
+          <input type="text" id="editNameInput" placeholder="Имя Фамилия"
+            style="width:100%;max-width:200px;text-align:center;border:1.5px solid #01a104;border-radius:8px;padding:7px 10px;font-size:13px;font-family:'Inter',sans-serif;outline:none;box-shadow:0 0 0 3px rgba(1,161,4,0.1);">
+          <div style="display:flex;gap:6px">
+            <button onclick="saveEditName()"
+              style="background:linear-gradient(90deg,#01a104,#16da03);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+              Сохранить
+            </button>
+            <button onclick="cancelEditName()"
+              style="background:#f0f2f6;color:#6b7280;border:1px solid rgba(0,0,0,0.12);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif">
+              Отмена
+            </button>
+          </div>
+        </div>
+        <p id="heroEmail" style="font-family:'JetBrains Mono',monospace;font-size:11px">—</p>
+        <div class="profile-hero-role">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M3 5l1.5 1.5L7 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span id="heroRole">user</span>
+        </div>
+      </div>
+
+      <div class="profile-vdivider"></div>
+
+      <!-- Right: account data -->
+      <div class="profile-data">
+        <div class="section-title" style="margin-bottom:8px">Данные аккаунта</div>
+        <div class="info-row">
+          <span class="info-label">Имя</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="info-value" id="infoName">—</span>
+            <button onclick="startEditName()" title="Изменить"
+              style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;display:flex;align-items:center;transition:color .15s"
+              onmouseover="this.style.color='#01a104'" onmouseout="this.style.color='#9ca3af'">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9 1.5l2.5 2.5L4 11.5H1.5V9L9 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value" style="font-family:'JetBrains Mono',monospace;font-size:12px" id="infoEmail">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Роль</span>
+          <span class="info-value" id="infoRole">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Дата регистрации</span>
+          <span class="info-value" id="infoCreated">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Photo upload ──────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="section-title">Фото профиля</div>
+
+      <div class="photo-upload-zone" id="photoZone">
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+               onchange="handlePhotoUpload(this)" id="photoFileInput">
+        <div class="photo-upload-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 14V4M11 4L7 8M11 4l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="upload-title">Перетащите фото или нажмите</div>
+        <div class="upload-hint">JPG, PNG, WebP · до 5 MB</div>
+      </div>
+
+      <div class="photo-preview-wrap" id="photoPreviewWrap">
+        <img class="photo-preview" id="photoPreviewImg" src="" alt="Предпросмотр">
+        <div style="font-size:13px;color:#6b7280">Фото обновлено</div>
+        <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px"
+                onclick="document.getElementById('photoFileInput').click()">Изменить</button>
+      </div>
+    </div>
+
+    <!-- ── Token usage chart ─────────────────────────────────────────── -->
+    <div class="card">
+      <div class="section-title">Использование токенов</div>
+      <canvas id="tokenChart" height="120"></canvas>
+      <div id="tokenChartEmpty" style="display:none;text-align:center;padding:32px;font-size:13px;color:#9ca3af;font-family:'JetBrains Mono',monospace">
+        Нет данных · запустите конвертацию
+      </div>
+    </div>
+
+    <!-- ── Format statistics pie chart ──────────────────────────────── -->
+    <div class="card" aria-label="Статистика форматов файлов">
+      <div class="pie-section-header">
+        <div class="section-title" style="margin-bottom:0">Форматы файлов</div>
+        <span class="pie-mock-badge" id="pieMockBadge">демо-данные</span>
+      </div>
+      <div class="pie-layout">
+        <!-- Canvas: donut chart drawn by JS -->
+        <div class="pie-canvas-wrap">
+          <canvas id="fmtPieChart"
+                  role="img"
+                  aria-label="Круговая диаграмма распределения форматов файлов"></canvas>
+          <!-- Floating tooltip (positioned by JS) -->
+          <div class="pie-tooltip" id="fmtPieTooltip" role="tooltip" aria-live="polite">
+            <div class="pie-tt-row">
+              <span class="pie-tt-dot" id="fmtTtDot"></span>
+              <span class="pie-tt-label" id="fmtTtLabel"></span>
+              <span class="pie-tt-pct"   id="fmtTtPct"></span>
+            </div>
+            <div class="pie-tt-count"   id="fmtTtCount"></div>
+          </div>
+        </div>
+        <!-- Legend: built by JS -->
+        <div class="pie-legend" id="fmtPieLegend" role="list" aria-label="Легенда диаграммы"></div>
+      </div>
+    </div>
+
+
+  </main>
+
+<!-- ── LOGOUT MODAL ────────────────────────────────────────────────── -->
+<div class="logout-modal-overlay" id="logoutModalOverlay">
+  <div class="logout-modal">
+    <div class="logout-modal-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h3>Выйти из аккаунта?</h3>
+    <p>Вы будете перенаправлены на страницу входа. Несохранённые данные не пострадают.</p>
+    <div class="logout-modal-btns">
+      <button class="btn btn-ghost" onclick="closeLogoutModal()">Остаться</button>
+      <button class="btn" style="background:linear-gradient(90deg,#dc2626,#ef4444);color:#fff;box-shadow:0 3px 10px rgba(220,38,38,.3)" onclick="_doLogout()">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER на уровне grid — полная ширина ────────────────────────── -->
+<footer class="site-footer" style="grid-column: 1 / -1; padding-left: calc(240px + 48px);">
+  <div class="site-footer-grid">
+    <div>
+      <img src="assets/images/sber-logo.svg" alt="Сбербанк" class="footer-brand-logo">
+      <p class="footer-brand-desc">Платформа интеллектуальной конвертации данных на базе GigaChat — продукт&nbsp;ПАО&nbsp;Сбербанк.</p>
+      <div class="footer-contact-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.24 1 2 3.24 2 6c0 3.75 5 8 5 8s5-4.25 5-8c0-2.76-2.24-5-5-5zm0 6.5A1.5 1.5 0 115 6a1.5 1.5 0 012 1.5z" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span>117997, г. Москва, ул. Вавилова, д.&nbsp;19</span>
+      </div>
+      <div class="footer-contact-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 9l-1.2 1.2a9.3 9.3 0 01-4.5-4.5L5 4.5 3.5 2H1.5C1.2 5.8 4.7 10.3 8.5 12.5l.5-1.8.5-1.7z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <a href="tel:88005555550">8‑800‑555‑55‑50</a>
+        <span style="color:#9ca3af;font-size:11px;margin-left:4px">(бесплатно)</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Компания</div>
+      <ul class="footer-links">
+        <li><a href="#">О банке</a></li>
+        <li><a href="#">Пресс-центр</a></li>
+        <li><a href="#">Инвесторам</a></li>
+        <li><a href="#">Вакансии</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Документы</div>
+      <ul class="footer-links">
+        <li><a href="#">Конфиденциальность</a></li>
+        <li><a href="#">Пользовательское соглашение</a></li>
+        <li><a href="#">Политика cookies</a></li>
+        <li><a href="#">Реквизиты</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-divider"></div>
+  <div class="footer-bottom">
+    <span class="footer-bottom-copy">© 2026 ПАО Сбербанк. Все права защищены.</span>
+    <div class="footer-bottom-links">
+      <a href="#">Конфиденциальность</a>
+      <a href="#">Поддержка</a>
+    </div>
+  </div>
+  <p class="footer-license">Генеральная лицензия Банка России №1481. Информация на данной странице не является публичной офертой.</p>
+</footer>
+</div>
+
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+if (!requireAuth()) throw new Error('not auth');
+
+const session = getSession();
+const user    = getUserById(session.userId);
+
+// Fill merged card
+document.getElementById('heroName').textContent  = session.name;
+document.getElementById('heroEmail').textContent = session.email;
+document.getElementById('heroRole').textContent  = session.role;
+document.getElementById('infoName').textContent    = session.name;
+document.getElementById('infoEmail').textContent   = session.email;
+document.getElementById('infoRole').textContent    = session.role;
+document.getElementById('infoCreated').textContent = user
+  ? new Date(user.createdAt).toLocaleDateString('ru', {day:'2-digit',month:'long',year:'numeric'})
+  : '—';
+
+// Fill topbar
+document.getElementById('topbarUserName').textContent = session.name;
+
+// Avatar
+const photo = session.photo || (user && user.photo);
+const av = document.getElementById('topbarAvatar');
+if (photo) {
+  document.getElementById('heroAvatarImg').src = photo;
+  document.getElementById('heroAvatarImg').style.display = 'block';
+  document.getElementById('heroAvatarPlaceholder').style.display = 'none';
+  document.getElementById('photoPreviewImg').src = photo;
+  document.getElementById('photoPreviewWrap').style.display = 'flex';
+  const avImg = document.createElement('img');
+  avImg.src = photo;
+  avImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+  av.textContent = '';
+  av.appendChild(avImg);
+} else {
+  const initials = session.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('heroAvatarPlaceholder').textContent = initials;
+  av.textContent = initials;
+}
+
+// Welcome banner for new users
+if (new URLSearchParams(location.search).get('new')) {
+  document.getElementById('welcomeBanner').classList.add('show');
+}
+
+// Photo upload
+window.handlePhotoUpload = function(inputEl) {
+  const file = inputEl.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Файл слишком большой (макс. 5 MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    const sess = getSession();
+    if (sess) {
+      updateUserPhoto(sess.userId, base64);
+      refreshSessionPhoto(base64);
+    }
+    document.getElementById('heroAvatarImg').src = base64;
+    document.getElementById('heroAvatarImg').style.display = 'block';
+    document.getElementById('heroAvatarPlaceholder').style.display = 'none';
+    document.getElementById('photoPreviewImg').src = base64;
+    document.getElementById('photoPreviewWrap').style.display = 'flex';
+    const ta = document.getElementById('topbarAvatar');
+    ta.textContent = '';
+    const tImg = document.createElement('img');
+    tImg.src = base64;
+    tImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+    ta.appendChild(tImg);
+    showToast('Фото успешно обновлено');
+  };
+  reader.readAsDataURL(file);
+};
+
+// ── Token usage chart ────────────────────────────────────────────────
+(async function buildChart() {
+  let history = [];
+  try {
+    const res = await Api.history.list();
+    history = (res.items || []);
+  } catch (_) {
+    history = loadHistory();
+  }
+  if (!history.length) {
+    document.getElementById('tokenChart').style.display = 'none';
+    document.getElementById('tokenChartEmpty').style.display = 'block';
+    return;
+  }
+
+  // Group by date → sum tokens
+  const byDate = {};
+  history.forEach((h, i) => {
+    const key = h.date || (h.time ? h.time.slice(0, 10) : ('запись ' + (i + 1)));
+    byDate[key] = (byDate[key] || 0) + (h.tokens || 0);
+  });
+
+  const labels = Object.keys(byDate).sort();
+  const data   = labels.map(k => byDate[k]);
+
+  // If only one unique date — show by usage index instead
+  let finalLabels = labels;
+  let finalData   = data;
+  if (labels.length === 1) {
+    finalLabels = history.map((_, i) => '#' + (i + 1));
+    finalData   = history.map(h => h.tokens || 0);
+  }
+
+  const canvas = document.getElementById('tokenChart');
+  const ctx = canvas.getContext('2d');
+
+  // Горизонтальный градиент для линии
+  const w = canvas.offsetWidth || 500;
+  const gradLine = ctx.createLinearGradient(0, 0, w, 0);
+  gradLine.addColorStop(0,    '#0288d6');
+  gradLine.addColorStop(0.25, '#01a104');
+  gradLine.addColorStop(0.5,  '#16da03');
+  gradLine.addColorStop(0.75, '#02e97e');
+  gradLine.addColorStop(1,    '#fdf001');
+
+  // Вертикальный градиент для заливки
+  const gradFill = ctx.createLinearGradient(0, 0, 0, 200);
+  gradFill.addColorStop(0,   'rgba(2,136,214,0.28)');
+  gradFill.addColorStop(0.4, 'rgba(1,161,4,0.18)');
+  gradFill.addColorStop(1,   'rgba(2,233,126,0.02)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: finalLabels,
+      datasets: [{
+        label: 'Токены',
+        data: finalData,
+        borderColor: gradLine,
+        backgroundColor: gradFill,
+        borderWidth: 2.5,
+        pointBackgroundColor: '#0288d6',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: '#01a104',
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.97)',
+          borderColor: 'rgba(0,0,0,0.1)',
+          borderWidth: 1,
+          titleColor: '#111827',
+          bodyColor: '#4b5563',
+          padding: 10,
+          callbacks: {
+            label: ctx => '  ' + ctx.parsed.y + ' токенов'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: "'JetBrains Mono', monospace", size: 11 }, color: '#6b7280' }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { family: "'JetBrains Mono', monospace", size: 11 }, color: '#6b7280' }
+        }
+      }
+    }
+  });
+})();
+
+/* ── Edit name ──────────────────────────────────────────────────── */
+window.startEditName = function() {
+  document.getElementById('heroName').style.display = 'none';
+  document.getElementById('editNameBtn').style.display = 'none';
+  const form = document.getElementById('editNameForm');
+  form.style.display = 'flex';
+  const input = document.getElementById('editNameInput');
+  input.value = getSession().name || '';
+  input.focus();
+  input.select();
+};
+
+window.saveEditName = function() {
+  const newName = document.getElementById('editNameInput').value.trim();
+  if (!newName) { document.getElementById('editNameInput').style.borderColor = '#dc2626'; return; }
+
+  // Обновляем localStorage
+  const sess = getSession();
+  if (sess) {
+    sess.name = newName;
+    localStorage.setItem('sber_session', JSON.stringify(sess));
+  }
+  const users = JSON.parse(localStorage.getItem('sber_users') || '[]');
+  const idx = users.findIndex(u => u.id === (sess && sess.userId));
+  if (idx !== -1) {
+    users[idx].name = newName;
+    localStorage.setItem('sber_users', JSON.stringify(users));
+  }
+
+  // Обновляем UI
+  document.getElementById('heroName').textContent = newName;
+  document.getElementById('infoName').textContent  = newName;
+  document.getElementById('topbarUserName').textContent = newName;
+
+  // Обновляем initials аватара если нет фото
+  const photo = sess && (sess.photo || (users[idx] && users[idx].photo));
+  if (!photo) {
+    const initials = newName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const ph = document.getElementById('heroAvatarPlaceholder');
+    if (ph && ph.style.display !== 'none') ph.textContent = initials;
+    const ta = document.getElementById('topbarAvatar');
+    if (ta && !ta.querySelector('img')) ta.textContent = initials;
+  }
+
+  cancelEditName();
+  showToast('Имя успешно обновлено');
+};
+
+window.cancelEditName = function() {
+  document.getElementById('heroName').style.display = '';
+  document.getElementById('editNameBtn').style.display = '';
+  document.getElementById('editNameForm').style.display = 'none';
+  document.getElementById('editNameInput').style.borderColor = '#01a104';
+};
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(1,161,4,0.9);backdrop-filter:blur(10px);color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(1,161,4,.3);transition:opacity .3s;white-space:nowrap';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2500);
+}
+
+/* ── Profile dropdown ───────────────────────────────────────────── */
+window.toggleProfileDropdown = function(e) {
+  e.stopPropagation();
+  document.getElementById('profileDropdown').classList.toggle('open');
+};
+document.addEventListener('click', function() {
+  const dd = document.getElementById('profileDropdown');
+  if (dd) dd.classList.remove('open');
+});
+
+/* ── Logout modal ───────────────────────────────────────────────── */
+window.__showLogoutModal = function() {
+  document.getElementById('logoutModalOverlay').classList.add('open');
+};
+function closeLogoutModal() {
+  document.getElementById('logoutModalOverlay').classList.remove('open');
+}
+// Close on overlay click
+document.getElementById('logoutModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeLogoutModal();
+});
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLogoutModal();
+});
+
+/* ══ WANDERING ORB LIGHTS ON BUTTONS ════════════════════════════════ */
+(function initBtnOrbs() {
+  const colors = [
+    'rgba(255,255,255,0.75)','rgba(180,255,220,0.6)',
+    'rgba(160,230,255,0.6)','rgba(253,240,1,0.45)','rgba(2,233,126,0.5)'
+  ];
+  function spawnOrbs(btn) {
+    for (let i = 0; i < 7; i++) {
+      setTimeout(() => {
+        const orb = document.createElement('span');
+        orb.className = 'btn-orb';
+        const size = 14 + Math.random() * 28;
+        const x = 10 + Math.random() * 80;
+        const y = 10 + Math.random() * 80;
+        const dx = (Math.random() * 70 - 35) + 'px';
+        const dy = (-18 - Math.random() * 44) + 'px';
+        const dur = (0.75 + Math.random() * 0.65) + 's';
+        const blur = (4 + Math.random() * 8) + 'px';
+        const col = colors[Math.floor(Math.random() * colors.length)];
+        orb.style.cssText = `width:${size}px;height:${size}px;left:${x}%;top:${y}%;` +
+          `background:radial-gradient(circle,${col} 0%,transparent 68%);` +
+          `--odx:${dx};--ody:${dy};--dur:${dur};--oblur:${blur};`;
+        btn.appendChild(orb);
+        setTimeout(() => orb.remove(), parseFloat(dur) * 1000 + 100);
+      }, i * 55);
+    }
+  }
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => spawnOrbs(btn));
+  });
+})();
+
+/* ── Effects.js included at end of body — see script tag below ───── */
+
+/* ══ FORMAT PIE CHART ════════════════════════════════════════════════
+   Pure Canvas implementation — no external libraries.
+   • Donut chart with animated draw-in (cubic ease-out, 850ms)
+   • Hover: sector expands +8px with glow, tooltip appears
+   • Legend click: toggle sector visibility
+   • Data: real history first, falls back to mock demo data
+   • Dark/light theme aware (reads CSS vars at render time)
+   ═══════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var _historyData = [];
+
+  /* ── Brand colour palette per format ─────────────────────────────── */
+  var PALETTE = {
+    CSV:  { color: '#0288d6', glow: 'rgba(2,136,214,.45)'  },
+    JSON: { color: '#01a104', glow: 'rgba(1,161,4,.45)'    },
+    XLS:  { color: '#16da03', glow: 'rgba(22,218,3,.45)'   },
+    XLSX: { color: '#16da03', glow: 'rgba(22,218,3,.45)'   },
+    PDF:  { color: '#f59e0b', glow: 'rgba(245,158,11,.45)' },
+    DOCX: { color: '#7c3aed', glow: 'rgba(124,58,237,.45)' },
+    DOC:  { color: '#7c3aed', glow: 'rgba(124,58,237,.45)' },
+    PNG:  { color: '#02e97e', glow: 'rgba(2,233,126,.45)'  },
+    JPG:  { color: '#fb923c', glow: 'rgba(251,146,60,.45)' },
+    JPEG: { color: '#fb923c', glow: 'rgba(251,146,60,.45)' },
+  };
+  var FALLBACK_COLORS = [
+    '#0288d6','#01a104','#f59e0b','#7c3aed','#02e97e',
+    '#fb923c','#ec4899','#14b8a6','#ef4444','#6366f1'
+  ];
+
+  /* ── Mock data shown when conversion history is empty ─────────────── */
+  var MOCK = [
+    { label: 'PDF',  value: 35 },
+    { label: 'PNG',  value: 25 },
+    { label: 'CSV',  value: 18 },
+    { label: 'JSON', value: 12 },
+    { label: 'XLS',  value:  5 },
+    { label: 'DOCX', value:  3 },
+    { label: 'JPG',  value:  2 },
+  ];
+
+  /* ── Read history and build format counts ─────────────────────────── */
+  function buildData() {
+    var history = _historyData;
+    if (!history.length) return { segments: buildSegments(MOCK), isMock: true };
+
+    var counts = {};
+    history.forEach(function (h) {
+      var fmt = ((h.format || h.file_format || h.outputFormat || h.type || '')).replace(/^\./, '').toUpperCase();
+      if (fmt) counts[fmt] = (counts[fmt] || 0) + 1;
+    });
+    if (!Object.keys(counts).length) return { segments: buildSegments(MOCK), isMock: true };
+
+    var total = Object.values(counts).reduce(function (a, b) { return a + b; }, 0);
+    var raw = Object.entries(counts)
+      .sort(function (a, b) { return b[1] - a[1]; })
+      .map(function (entry) { return { label: entry[0], value: entry[1], count: entry[1] }; });
+
+    return { segments: buildSegments(raw, total), isMock: false };
+  }
+
+  /* ── Convert raw data array into segment objects ──────────────────── */
+  function buildSegments(raw, total) {
+    total = total || raw.reduce(function (s, d) { return s + d.value; }, 0);
+    var angle = -Math.PI / 2;  // start at 12 o'clock
+    var colorIdx = 0;
+
+    return raw.map(function (d) {
+      var pct   = Math.round(d.value / total * 100);
+      var sweep = (d.value / total) * Math.PI * 2;
+      var pal   = PALETTE[d.label] || { color: FALLBACK_COLORS[colorIdx % FALLBACK_COLORS.length], glow: 'rgba(100,100,100,.4)' };
+      colorIdx++;
+      var seg = {
+        label: d.label,
+        value: d.value,
+        count: d.count || null,
+        pct:   pct,
+        color: pal.color,
+        glow:  pal.glow,
+        startAngle: angle,
+        sweep: sweep,
+        visible: true,
+        /* runtime — filled during draw: */
+        _drawnStart: 0, _drawnEnd: 0,
+        _ox: 0, _oy: 0,
+      };
+      angle += sweep;
+      return seg;
+    });
+  }
+
+  /* ── Easing ───────────────────────────────────────────────────────── */
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  /* ── CSS variable reader ──────────────────────────────────────────── */
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  /* ══ PieChart class ══════════════════════════════════════════════════ */
+  function PieChart(canvasEl, legendEl, tooltipEl) {
+    this.canvas     = canvasEl;
+    this.ctx        = canvasEl.getContext('2d');
+    this.legendEl   = legendEl;
+    this.tooltipEl  = tooltipEl;
+    this.segments   = [];
+    this.hoverProg  = [];   /* per-segment 0..1 hover animation */
+    this.drawProg   = 0;    /* 0..1 overall entrance animation  */
+    this.hovered    = -1;
+    this.rafId      = null;
+    this._cw = this._ch = this._cx = this._cy = this._R = this._ri = 0;
+    this._init();
+  }
+
+  PieChart.prototype._init = function () {
+    var result = buildData();
+    this.segments  = result.segments;
+    this.hoverProg = this.segments.map(function () { return 0; });
+
+    if (result.isMock) {
+      var badge = document.getElementById('pieMockBadge');
+      if (badge) badge.classList.add('visible');
+    }
+
+    this._buildLegend();
+    this._resize();
+    this._startEntrance();
+
+    /* Re-layout on container resize */
+    var self = this;
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { self._resize(); self._scheduleRender(); })
+        .observe(this.canvas.parentElement);
+    }
+  };
+
+  /* ── Canvas sizing (DPR-aware for crisp retina rendering) ─────────── */
+  PieChart.prototype._resize = function () {
+    var dpr  = window.devicePixelRatio || 1;
+    var rect = this.canvas.getBoundingClientRect();
+    var size = Math.min(rect.width || 220, rect.height || 220);
+    this.canvas.width  = size * dpr;
+    this.canvas.height = size * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this._cw = size; this._ch = size;
+    this._cx = size / 2; this._cy = size / 2;
+    this._R  = size * 0.41;   /* outer radius */
+    this._ri = size * 0.235;  /* inner radius (donut hole) */
+  };
+
+  /* ── Entrance: animate drawProg 0→1 over 850ms ───────────────────── */
+  PieChart.prototype._startEntrance = function () {
+    var self = this;
+    var start = null;
+    var DURATION = 850;
+    function tick(ts) {
+      if (!start) start = ts;
+      self.drawProg = Math.min((ts - start) / DURATION, 1);
+      self._render();
+      if (self.drawProg < 1) self.rafId = requestAnimationFrame(tick);
+      else { self.rafId = null; self.drawProg = 1; }
+    }
+    this.rafId = requestAnimationFrame(tick);
+  };
+
+  /* ── Schedule a single render frame ──────────────────────────────── */
+  PieChart.prototype._scheduleRender = function () {
+    if (this.rafId) return;
+    var self = this;
+    this.rafId = requestAnimationFrame(function () {
+      self.rafId = null;
+      self._render();
+    });
+  };
+
+  /* ── Hover animation loop ─────────────────────────────────────────── */
+  PieChart.prototype._animateHover = function () {
+    var self = this;
+    function tick() {
+      var needMore = false;
+      self.hoverProg.forEach(function (p, i) {
+        var target = (i === self.hovered) ? 1 : 0;
+        var d = (target - p) * 0.2;
+        if (Math.abs(d) > 0.005) { self.hoverProg[i] += d; needMore = true; }
+        else self.hoverProg[i] = target;
+      });
+      self._render();
+      if (needMore) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  };
+
+  /* ── Main draw routine ────────────────────────────────────────────── */
+  PieChart.prototype._render = function () {
+    var ctx = this.ctx;
+    var cx = this._cx, cy = this._cy, R = this._R, ri = this._ri;
+    var eased = easeOutCubic(this.drawProg);
+    var GAP   = 0.013;  /* small gap between sectors in radians */
+
+    ctx.clearRect(0, 0, this._cw, this._ch);
+
+    /* Recalculate angles from visible segments only */
+    var visTotal = this.segments.reduce(function (s, seg) {
+      return s + (seg.visible ? seg.value : 0);
+    }, 0) || 1;
+
+    var angle = -Math.PI / 2;
+
+    for (var i = 0; i < this.segments.length; i++) {
+      var seg = this.segments[i];
+
+      if (!seg.visible) {
+        seg._drawnStart = angle; seg._drawnEnd = angle;
+        seg._ox = 0; seg._oy = 0;
+        continue;
+      }
+
+      var sweep    = (seg.value / visTotal) * Math.PI * 2 * eased;
+      var hp       = this.hoverProg[i];
+      var expand   = hp * 8;
+      var midAngle = angle + sweep / 2;
+      var ox = Math.cos(midAngle) * expand;
+      var oy = Math.sin(midAngle) * expand;
+
+      /* Glow shadow on hover */
+      if (hp > 0.01) {
+        ctx.shadowColor = seg.glow;
+        ctx.shadowBlur  = 18 * hp;
+      }
+
+      /* Draw donut sector */
+      ctx.beginPath();
+      ctx.arc(cx + ox, cy + oy, R + expand, angle + GAP, angle + sweep - GAP);
+      ctx.arc(cx + ox, cy + oy, ri,         angle + sweep - GAP, angle + GAP, true);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      /* Store for hit-testing */
+      seg._drawnStart = angle;
+      seg._drawnEnd   = angle + sweep;
+      seg._ox = ox; seg._oy = oy;
+
+      angle += sweep;
+    }
+
+    /* Center label */
+    var textColor  = cssVar('--text')  || '#111827';
+    var mutedColor = cssVar('--muted') || '#6b7280';
+
+    if (this.hovered >= 0 && this.drawProg >= 0.5) {
+      var s = this.segments[this.hovered];
+      /* big percentage */
+      ctx.font = 'bold ' + Math.round(R * 0.52) + "px 'Exo 2', sans-serif";
+      ctx.fillStyle   = textColor;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.pct + '%', cx, cy - Math.round(R * 0.12));
+      /* format name below */
+      ctx.font = '600 ' + Math.round(R * 0.22) + "px 'JetBrains Mono', monospace";
+      ctx.fillStyle = mutedColor;
+      ctx.fillText(s.label, cx, cy + Math.round(R * 0.25));
+    } else if (this.drawProg >= 1) {
+      /* total count */
+      var visCount = this.segments.filter(function (s) { return s.visible; }).length;
+      ctx.font = 'bold ' + Math.round(R * 0.44) + "px 'Exo 2', sans-serif";
+      ctx.fillStyle   = textColor;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(visCount, cx, cy - Math.round(R * 0.1));
+      ctx.font = '500 ' + Math.round(R * 0.19) + "px 'Inter', sans-serif";
+      ctx.fillStyle = mutedColor;
+      ctx.fillText('форматов', cx, cy + Math.round(R * 0.26));
+    }
+  };
+
+  /* ── Hit test: which sector contains (x, y)? ─────────────────────── */
+  PieChart.prototype._hitTest = function (x, y) {
+    var cx = this._cx, cy = this._cy, R = this._R, ri = this._ri;
+    var TWO_PI = Math.PI * 2;
+
+    for (var i = 0; i < this.segments.length; i++) {
+      var seg = this.segments[i];
+      if (!seg.visible || seg._drawnStart === seg._drawnEnd) continue;
+
+      var dx = x - (cx + seg._ox);
+      var dy = y - (cy + seg._oy);
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < ri - 4 || dist > R + 12) continue;
+
+      /* Normalize mouse angle to our drawing range */
+      var ang = Math.atan2(dy, dx);
+      while (ang < seg._drawnStart) ang += TWO_PI;
+      while (ang > seg._drawnStart + TWO_PI) ang -= TWO_PI;
+      if (ang >= seg._drawnStart && ang <= seg._drawnEnd) return i;
+    }
+    return -1;
+  };
+
+  /* ── Event wiring ─────────────────────────────────────────────────── */
+  PieChart.prototype._bindEvents = function () {
+    var self = this;
+    var canvas = this.canvas;
+    var dpr = window.devicePixelRatio || 1;
+
+    canvas.addEventListener('mousemove', function (e) {
+      if (self.drawProg < 0.5) return;
+      var rect  = canvas.getBoundingClientRect();
+      var scale = (canvas.width / dpr) / rect.width;
+      var x = (e.clientX - rect.left) * scale;
+      var y = (e.clientY - rect.top)  * scale;
+      var hit = self._hitTest(x, y);
+
+      if (hit !== self.hovered) {
+        self.hovered = hit;
+        self._updateLegendActive(hit);
+        self._animateHover();
+        if (hit >= 0) self._showTooltip(e, hit);
+        else          self._hideTooltip();
+      } else if (hit >= 0) {
+        self._moveTooltip(e);
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('mouseleave', function () {
+      if (self.hovered !== -1) {
+        self.hovered = -1;
+        self._updateLegendActive(-1);
+        self._animateHover();
+        self._hideTooltip();
+      }
+    });
+
+    canvas.addEventListener('click', function () {
+      if (self.hovered >= 0) {
+        var seg = self.segments[self.hovered];
+        seg.visible = !seg.visible;
+        self._buildLegend();
+        self._scheduleRender();
+      }
+    });
+  };
+
+  /* ── Tooltip helpers ──────────────────────────────────────────────── */
+  PieChart.prototype._showTooltip = function (e, idx) {
+    var seg = this.segments[idx];
+    var dot   = document.getElementById('fmtTtDot');
+    var label = document.getElementById('fmtTtLabel');
+    var pct   = document.getElementById('fmtTtPct');
+    var count = document.getElementById('fmtTtCount');
+    if (!dot) return;
+    dot.style.background   = seg.color;
+    label.textContent      = seg.label;
+    pct.textContent        = seg.pct + '%';
+    count.textContent      = seg.count ? seg.count + ' конверта' + (seg.count === 1 ? '' : seg.count < 5 ? 'ции' : 'ций') : '';
+    count.style.display    = seg.count ? 'block' : 'none';
+    this.tooltipEl.style.display = 'block';
+    this._moveTooltip(e);
+  };
+  PieChart.prototype._moveTooltip = function (e) {
+    var wrap = this.canvas.parentElement.getBoundingClientRect();
+    var x = e.clientX - wrap.left + 14;
+    var y = e.clientY - wrap.top  - 14;
+    var ttW = this.tooltipEl.offsetWidth  || 120;
+    var ttH = this.tooltipEl.offsetHeight || 56;
+    if (x + ttW + 6 > wrap.width)  x = e.clientX - wrap.left - ttW - 14;
+    if (y + ttH + 6 > wrap.height) y = e.clientY - wrap.top  - ttH - 14;
+    if (x < 0) x = 4;
+    if (y < 0) y = 4;
+    this.tooltipEl.style.left = x + 'px';
+    this.tooltipEl.style.top  = y + 'px';
+  };
+  PieChart.prototype._hideTooltip = function () {
+    this.tooltipEl.style.display = 'none';
+  };
+
+  /* ── Legend ───────────────────────────────────────────────────────── */
+  PieChart.prototype._buildLegend = function () {
+    var self = this;
+    this.legendEl.innerHTML = '';
+    this.segments.forEach(function (seg, i) {
+      var item = document.createElement('div');
+      item.className   = 'pie-legend-item' + (seg.visible ? '' : ' hidden');
+      item.setAttribute('role', 'listitem');
+      item.setAttribute('aria-label', seg.label + ' ' + seg.pct + '%' + (seg.visible ? '' : ' (скрыт)'));
+      item.setAttribute('title', 'Нажмите, чтобы ' + (seg.visible ? 'скрыть' : 'показать'));
+
+      var dot  = document.createElement('span'); dot.className  = 'pie-legend-dot';  dot.style.background = seg.color; dot.style.boxShadow = '0 0 6px ' + seg.color;
+      var name = document.createElement('span'); name.className = 'pie-legend-name'; name.textContent = seg.label;
+      var pct  = document.createElement('span'); pct.className  = 'pie-legend-pct';  pct.textContent  = seg.pct + '%';
+      item.appendChild(dot); item.appendChild(name); item.appendChild(pct);
+
+      item.addEventListener('mouseenter', function () {
+        self.hovered = i;
+        self._updateLegendActive(i);
+        self._animateHover();
+      });
+      item.addEventListener('mouseleave', function () {
+        self.hovered = -1;
+        self._updateLegendActive(-1);
+        self._animateHover();
+      });
+      item.addEventListener('click', function () {
+        seg.visible = !seg.visible;
+        item.classList.toggle('hidden', !seg.visible);
+        self._scheduleRender();
+      });
+
+      self.legendEl.appendChild(item);
+    });
+  };
+
+  PieChart.prototype._updateLegendActive = function (idx) {
+    var items = this.legendEl.querySelectorAll('.pie-legend-item');
+    items.forEach(function (item, i) {
+      item.classList.toggle('active', i === idx);
+    });
+  };
+
+  /* ── Bootstrap ────────────────────────────────────────────────────── */
+  function init() {
+    var canvas  = document.getElementById('fmtPieChart');
+    var legend  = document.getElementById('fmtPieLegend');
+    var tooltip = document.getElementById('fmtPieTooltip');
+    if (!canvas || !legend || !tooltip) return;
+
+    /* Reduced-motion: skip entrance animation */
+    var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var chart = new PieChart(canvas, legend, tooltip);
+    if (prefersReduced) { chart.drawProg = 1; chart._render(); }
+    chart._bindEvents();
+  }
+
+  async function _loadAndInit() {
+    try {
+      var res = await Api.history.list();
+      _historyData = res.items || [];
+    } catch (_) {
+      _historyData = (typeof loadHistory === 'function') ? loadHistory() : [];
+    }
+    init();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _loadAndInit);
+  else _loadAndInit();
+
+})();
+
+/* ── Theme toggle ───────────────────────────────────────────────── */
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+/* ── Sidebar mobile toggle ──────────────────────────────────────── */
+function toggleMobileSidebar() {
+  document.getElementById('mobileSidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeMobileSidebar() {
+  document.getElementById('mobileSidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+</script>
+<script src="assets/js/effects.js"></script>
+</body>
+</html>

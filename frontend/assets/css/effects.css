@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   EFFECTS.CSS  —  Custom Cursor  +  Typewriter
+   Used by: dashboard.html, profile.html
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ══ 1.  HIDE SYSTEM CURSOR ══════════════════════════════════════════════
+   Applied only when JS has confirmed a fine pointer (mouse, not touch).
+   The class .cursor-active is added to <html> by effects.js.
+   ════════════════════════════════════════════════════════════════════════ */
+html.cursor-active *,
+html.cursor-active *::before,
+html.cursor-active *::after {
+  cursor: none !important;
+}
+
+/* ══ 2.  CURSOR DOT  (inner — snaps to mouse exactly) ══════════════════ */
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  /* -4px centres the 8×8 dot on the pointer */
+  width: 8px; height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #ffffff;
+  /* mix-blend-mode: difference  →  white on dark bg, dark on light bg  */
+  mix-blend-mode: difference;
+  pointer-events: none;
+  z-index: 999999;
+  will-change: transform;
+  /* Only non-transform properties transition — transform is set every frame */
+  transition: width .18s ease, height .18s ease,
+              margin .18s ease, opacity .25s ease,
+              background .18s ease;
+}
+
+/* ══ 3.  CURSOR RING  (outer — lags behind via lerp in rAF) ════════════ */
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  /* -18px centres the 36×36 ring on the lagged position */
+  width: 36px; height: 36px;
+  margin: -18px 0 0 -18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(2, 136, 214, 0.65);
+  background: transparent;
+  box-shadow: 0 0 14px rgba(2, 136, 214, 0.18),
+              inset 0 0 10px rgba(2, 136, 214, 0.07);
+  pointer-events: none;
+  z-index: 999998;
+  will-change: transform;
+  transition: width .22s cubic-bezier(.34,1.56,.64,1),
+              height .22s cubic-bezier(.34,1.56,.64,1),
+              margin .22s cubic-bezier(.34,1.56,.64,1),
+              border-color .22s ease,
+              box-shadow .22s ease,
+              background .22s ease,
+              opacity .25s ease;
+}
+
+/* ── Hidden state (outside window) ─────────────────────────────────── */
+.cursor-dot.cursor-hidden,
+.cursor-ring.cursor-hidden {
+  opacity: 0;
+}
+
+/* ── Hover state  (over buttons, links, cards …) ────────────────────
+   Ring expands and shifts colour to green;  dot shrinks into a seed.   */
+.cursor-dot.cursor-hover {
+  width: 5px; height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  background: rgba(255,255,255,0.9);
+}
+.cursor-ring.cursor-hover {
+  width: 54px; height: 54px;
+  margin: -27px 0 0 -27px;
+  border-color: rgba(1, 161, 4, 0.55);
+  box-shadow: 0 0 22px rgba(1, 161, 4, 0.22),
+              inset 0 0 14px rgba(1, 161, 4, 0.08);
+  background: rgba(1, 161, 4, 0.04);
+}
+
+/* ── Click / press state ────────────────────────────────────────────── */
+.cursor-dot.cursor-click {
+  width: 4px; height: 4px;
+  margin: -2px 0 0 -2px;
+  background: #01a104;
+}
+.cursor-ring.cursor-click {
+  width: 26px; height: 26px;
+  margin: -13px 0 0 -13px;
+  border-color: rgba(1, 161, 4, 0.9);
+  box-shadow: 0 0 10px rgba(1, 161, 4, 0.4);
+}
+
+/* ── Text-input state  (over inputs / textareas) ────────────────────── */
+.cursor-dot.cursor-text {
+  width: 2px; height: 18px;
+  margin: -9px 0 0 -1px;
+  border-radius: 1px;
+  background: #0288d6;
+}
+.cursor-ring.cursor-text {
+  opacity: 0;
+}
+
+/* ══ 4.  TYPEWRITER ════════════════════════════════════════════════════ */
+
+/* The blinking caret appended after typed text */
+.tw-cursor {
+  display: inline-block;
+  width: 2px;
+  /* height matches the line — set via font-size of the parent */
+  height: 0.9em;
+  background: currentColor;
+  margin-left: 3px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: twBlink 1s step-end infinite;
+}
+
+/* Slower blink once typing is complete */
+.tw-cursor.tw-done {
+  animation: twBlink 1.4s step-end infinite;
+}
+
+@keyframes twBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── Reduced-motion fallback: no animation, just show the caret ─────── */
+@media (prefers-reduced-motion: reduce) {
+  .tw-cursor {
+    animation: none;
+    opacity: 1;
+  }
+}
