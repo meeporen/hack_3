@@ -172,6 +172,8 @@ def _vision_pipeline(filepath: str, api_key: str) -> dict:
     schema["_csv_bytes_b64"] = base64.b64encode(csv_bytes).decode()
     schema["_original_type"] = "docx"
     schema["_strategy"] = "vision"
+    schema["_vision_prompt_tokens"] = total_in
+    schema["_vision_completion_tokens"] = total_out
     return schema
 
 

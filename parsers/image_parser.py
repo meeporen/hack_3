@@ -61,6 +61,8 @@ def generate_schema_hint(filepath: str) -> dict:
 
     # Запрос 1 — только заголовки
     print(f"\n[image_parser] ── шаг 2: запрос заголовков ─────────────────")
+    total_in, total_out = 0, 0
+
     r_headers = client.chat.completions.create(
         model=_MODEL,
         temperature=0,
@@ -69,6 +71,9 @@ def generate_schema_hint(filepath: str) -> dict:
             {"type": "text", "text": _PROMPT_HEADERS},
         ]}],
     )
+    if r_headers.usage:
+        total_in += r_headers.usage.prompt_tokens or 0
+        total_out += r_headers.usage.completion_tokens or 0
     raw_headers = r_headers.choices[0].message.content.strip()
     if raw_headers.startswith("```"):
         raw_headers = raw_headers.split("```")[1].lstrip("json").strip()
@@ -90,6 +95,10 @@ def generate_schema_hint(filepath: str) -> dict:
             {"type": "text", "text": prompt_data},
         ]}],
     )
+    if r_data.usage:
+        total_in += r_data.usage.prompt_tokens or 0
+        total_out += r_data.usage.completion_tokens or 0
+    print(f"[image_parser] токены итого: in={total_in} out={total_out}")
     raw = r_data.choices[0].message.content.strip()
 
     print(f"\n[image_parser] ── шаг 4: ответ LLM (данные) ───────────────")
@@ -148,6 +157,8 @@ def generate_schema_hint(filepath: str) -> dict:
 
     schema["_csv_bytes_b64"] = base64.b64encode(csv_bytes).decode()
     schema["_original_type"] = ext
+    schema["_vision_prompt_tokens"] = total_in
+    schema["_vision_completion_tokens"] = total_out
     return schema
 
 

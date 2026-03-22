@@ -119,6 +119,30 @@ async def parse_file(state: AgentState) -> dict:
     finally:
         os.unlink(tmp_path)
 
+    # Подхватываем токены vision-модели (qwen) если парсер их вернул
+    v_in  = schema_hint.pop("_vision_prompt_tokens",     0) or 0
+    v_out = schema_hint.pop("_vision_completion_tokens", 0) or 0
+    schema_hint.pop("_strategy", None)
+
+    vision_token_update = {}
+    if v_in or v_out:
+        langfuse = get_langfuse_client()
+        job_id = state.get("job_id", "")
+        if langfuse:
+            with langfuse.start_as_current_observation(
+                as_type="generation",
+                name=f"vision_parse job={job_id[:8] if job_id else 'unknown'}",
+                model="qwen/qwen2.5-vl-72b-instruct",
+                metadata={"job_id": job_id, "file_type": original_type},
+            ) as gen:
+                gen.update(usage_details={"input": v_in, "output": v_out})
+            langfuse.flush()
+        vision_token_update = {
+            "prompt_tokens":     state.get("prompt_tokens", 0)     + v_in,
+            "completion_tokens": state.get("completion_tokens", 0) + v_out,
+            "tokens_used":       state.get("tokens_used", 0)       + v_in + v_out,
+        }
+
     # Для изображений image_parser кладёт CSV в schema_hint["_csv_bytes_b64"].
     csv_b64 = schema_hint.pop("_csv_bytes_b64", None)
     schema_hint.pop("_original_type", None)
@@ -127,6 +151,7 @@ async def parse_file(state: AgentState) -> dict:
             "schema_hint": schema_hint,
             "file_b64":    csv_b64,
             "file_type":   "csv",
+            **vision_token_update,
         }
 
     # Для xlsx/xls/json/jsonl — schema_hint строится из CSV-представления,
@@ -137,12 +162,14 @@ async def parse_file(state: AgentState) -> dict:
             "schema_hint": schema_hint,
             "file_b64":    base64.b64encode(original_bytes).decode(),
             "file_type":   original_type,
+            **vision_token_update,
         }
 
     return {
         "schema_hint": schema_hint,
         "file_b64":    base64.b64encode(raw_bytes).decode(),
         "file_type":   file_type,
+        **vision_token_update,
     }
 
 

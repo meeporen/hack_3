@@ -622,5 +622,29 @@
     "records": 5,
     "time": "2026-03-22T03:39:26.826803+00:00",
     "id": 52
+  },
+  {
+    "user_id": 1,
+    "job_id": "1a2cb06a87a143e2aaea176c39351b60",
+    "status": "valid",
+    "filename": "test_1.png",
+    "file_format": "PNG",
+    "tokens": 9533,
+    "retries": 1,
+    "records": 25,
+    "time": "2026-03-22T03:51:56.602780+00:00",
+    "id": 53
+  },
+  {
+    "user_id": 1,
+    "job_id": "b00d28b2b2724612b269656b1f9ebfa3",
+    "status": "valid",
+    "filename": "crmData.csv",
+    "file_format": "CSV",
+    "tokens": 4441,
+    "retries": 1,
+    "records": 5,
+    "time": "2026-03-22T03:57:24.071471+00:00",
+    "id": 54
   }
 ]
